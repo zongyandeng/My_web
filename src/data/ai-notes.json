@@ -272,8 +272,63 @@
         "answer": "答：不是。LoRA 是微調 (Fine-tuning) 技術下的一種高效輕量化「手段」，兩者是包含與被包含的關係。如果全面微調 (Full Fine-tuning) 是將跑車的引擎、變速箱、底盤零件拆開全面改裝；LoRA 則是在不碰核心架構的前提下加裝「外掛晶片（或渦輪增壓器）」，以低廉的顯存成本換取相近的性能提升。在現代 AI 實務中（包括 LLM 或 Stable Diffusion 繪圖），聽到別人說「微調模型」時，有 8 到 9 成的機率指的就是使用 LoRA 技術。"
       },
       {
-        "question": "問：LoRA 在部署推論時，會因為旁支運算而造成模型回應變慢嗎？",
-        "answer": "答：完全不會。雖然在訓練時我們是以旁支低階矩陣的乘積來優化參數，但在推論 (Inference) 或部署前，我們可以執行「權重合併 (Weight Merging)」操作，將學到的矩陣乘積 $\\Delta W = B \\times A$ 直接加回到原始權重 $W_0$ 中，將其融合成單個標準的線性層權重（$W = W_0 + \\Delta W$）。因此在推理時無需做兩次矩陣運算，完全沒有任何額外的計算開銷或推理延遲 (Latency)。"
+        "question": "問：LoRA 在部署推論時，會使用到額外的旁支計算而變慢嗎？",
+        "answer": "答：完全不會。在訓練時雖然有旁支矩陣參與，但在部署前，可以將學到的增量 $\\Delta W = B \\times A$ 直接合併加到底座權重 $W_0$ 中，將二者融合成一個權重矩陣（$W = W_0 + B \\times A$）。因此在推理時無需做兩次矩陣乘法，完全沒有任何推理延遲 (Latency) 或額外運算開銷。"
+      }
+    ]
+  },
+  {
+    "id": "transformer_attention",
+    "title": "經典論文研讀：《Attention Is All You Need》 (Transformer)",
+    "englishTitle": "Attention Is All You Need & Transformer Architecture",
+    "description": "2017 年由 Google 團隊發表的《Attention Is All You Need》是現代生成式 AI 與大型語言模型（LLM）的共同起點。它徹底拋棄了傳統的 RNN / LSTM 排隊序列結構，大膽改用並行運算的「自注意力機制 (Self-Attention)」與「位置編碼 (Positional Encoding)」，將 GPU 的平行運算算力完全釋放，奠定了今日 BERT、GPT 系列等巨型模型的黃金盛世。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">Transformer 演進三大流派關鍵差異對比</h3><table class=\"gpu-table\"><thead><tr><th>流派名稱</th><th>架構特點</th><th>代表模型與訓練方式</th><th>優點與缺陷</th></tr></thead><tbody><tr><td style=\"font-weight:700;\">純 Encoder 流派</td><td>讀書時「左右兼顧（雙向看全局）」</td><td><strong>BERT</strong> (Google 2018)<br>透過「遮罩克漏字」進行訓練</td><td>理解與分類能力極強，但缺乏長篇大論的生成能力。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">純 Decoder 流派 (當今主流)</td><td>讀書時「只能從左看往右（單向）」</td><td><strong>GPT 系列, Llama, Claude</strong><br>透過「無止境文字接龍」進行訓練</td><td>適合長文生成與靈活Prompt，規模放大後可激發「湧現能力」。</td></tr><tr><td style=\"font-weight:700;\">Encoder-Decoder 結合流派</td><td>左側精讀原文，右側盲猜接龍</td><td><strong>T5, BART</strong> (2019)<br>文字進、文字出，文本雜訊特訓</td><td>適合機器翻譯、長文降噪摘要等高度精準的文字對換任務。</td></tr></tbody></table>",
+    "steps": [
+      {
+        "name": "1. 傳統序列模型（RNN/LSTM）的核心痛點",
+        "details": "在 Transformer 問世前，自然語言處理主要依賴 RNN 或 LSTM。其核心缺陷在於必須一字字排隊輸入（無法利用 GPU 進行大規模並行運算，訓練極慢），且當文字過長時，極易面臨「長距離依賴丟失（健忘）」的問題。"
+      },
+      {
+        "name": "2. 自注意力機制 (Self-Attention) 的縱觀全局",
+        "details": "自注意力機制是 Transformer 的靈魂。當模型讀取一個字時，它會同時比對句子中的所有文字，動態計算該字與其他字之間的「語意關聯度」。這使模型能精準捕捉上下文的代名詞指代（如「它」代表「動物」而非「馬路」），展現極佳的上下文理解力。"
+      },
+      {
+        "name": "3. 位置編碼 (Positional Encoding) 確保順序感",
+        "details": "由於 Transformer 將所有字「大鍋炒」並行輸入，若不給予位置資訊，模型將分不清詞序（如「狗咬人」與「人咬狗」對其完全一致）。作者採用了固定的正弦與餘弦波形數學公式為每個位置生成絕對編碼，利用三角函數線性關係，使模型輕易學會文字間的「相對距離」。"
+      },
+      {
+        "name": "4. Multi-Head (多頭注意力) 的多角度觀察",
+        "details": "論文指出，將高維向量切分成多個獨立的子空間（論文採用 8 個頭）並行計算注意力，比單一注意力頭更有效。這就像派 8 個不同領域的專家觀察同一個案發現場，能從指代關係、修飾語、時間順序等多個維度全面捕捉複雜語意。"
+      },
+      {
+        "name": "5. 雙胞胎架構（Encoder 與 Decoder）的分流演進",
+        "details": "原始 Transformer 包含 Encoder（精讀理解）與 Decoder（文字接龍）兩部分。後續 AI 界衍生出三大流派：只拿 Encoder 的 BERT 流派（專攻雙向理解）；只拿 Decoder 的 GPT 流派（專攻單向生成與文字接龍）；以及結合兩者的 T5 / BART 流派（序列到序列任務）。"
+      },
+      {
+        "name": "6. Decoder (GPT 架構) 主導市場的工程邏輯",
+        "details": "雖然 Encoder-Decoder 結合體聽起來最平衡，但在模型參數規模極限放大（Scaling Law）時，純 Decoder 因結構最為純粹，容易在多 GPU 叢集上平行訓練，從而勝出。當規模激發出「湧現能力」後，其理解力也隨之暴增，主導了現今的 LLM 生態。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "縮放點積注意力公式 (Scaled Dot-Product Attention)",
+        "latex": "\\text{Attention}(\\mathbf{Q}, \\mathbf{K}, \\mathbf{V}) = \\text{softmax}\\left(\\frac{\\mathbf{Q}\\mathbf{K}^T}{\\sqrt{d_k}}\\right)\\mathbf{V}",
+        "description": "Q（問題）與 K（鍵）乘積計算關聯度。除以向量維度平方根 $\\sqrt{d_k}$ 是極關鍵的縮放因子，用以避免高維下數值過大，導致 SoftMax 梯度消失。最後通過機率分佈與 V（語意內容）相乘融合。"
+      },
+      {
+        "name": "正弦與餘弦位置編碼公式 (Positional Encoding)",
+        "latex": "\\text{PE}_{(\\text{pos}, 2i)} = \\sin\\left(\\frac{\\text{pos}}{10000^{2i/d_{\\text{model}}}}\\right), \\quad PE_{(\\text{pos}, 2i+1)} = \\cos\\left(\\frac{\\text{pos}}{10000^{2i/d_{\\text{model}}}}\\right)",
+        "description": "給予並行文字明確的絕對與相對位置標籤。利用三角函數的積化和差公式特性，能使模型輕易推導出字與字之間的相對距離關係。"
+      }
+    ],
+    "code": "# 使用 PyTorch 矩陣運算實作 Scaled Dot-Product Attention\nimport torch\nimport torch.nn.functional as F\nimport math\n\ndef scaled_dot_product_attention(Q, K, V, mask=None):\n    # Q, K, V 尺寸: [batch_size, num_heads, seq_len, d_k]\n    d_k = Q.size(-1)\n    \n    # 1. 計算點積相似度分數 Q * K^T / sqrt(d_k)\n    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)\n    \n    # 2. 若為解碼器 (Decoder)，套用遮罩 Mask 阻擋未來文字資訊\n    if mask is not None:\n        scores = scores.masked_fill(mask == 0, -1e9)\n        \n    # 3. 通過 SoftMax 歸一化為權重概率分佈\n    attention_weights = F.softmax(scores, dim=-1)\n    \n    # 4. 加權總和語意向量 V\n    output = torch.matmul(attention_weights, V)\n    return output, attention_weights\n\n# 模擬測試數據：Batch=1, Heads=8, SeqLen=10, d_k=64\nq = torch.randn(1, 8, 10, 64)\nk = torch.randn(1, 8, 10, 64)\nv = torch.randn(1, 8, 10, 64)\n\noutput, weights = scaled_dot_product_attention(q, k, v)\nprint(f\"注意力輸出尺寸: {output.shape} (與原 Value 維度一致)\")\nprint(f\"權重矩陣尺寸: {weights.shape}\")",
+    "faq": [
+      {
+        "question": "問：為什麼自注意力計算中必須除以 $\\sqrt{d_k}$ 作為縮放因子？",
+        "answer": "答：這是 Transformer 架構訓練穩定的核心工程關鍵。當向量維度 $d_k$ 非常高時，點積 $\\mathbf{Q}\\mathbf{K}^T$ 的數值會變大，這會使得 SoftMax 函數輸出極度尖銳，極大機率分配給單個數值，其餘機率皆趨近於零。這將會導致計算時反向傳播的梯度極小（即梯度消失問題），使模型無法順利收斂。除以 $\\sqrt{d_k}$ 能將數據重拉回穩定區間，確保訓練正常進行。"
+      },
+      {
+        "question": "問：既然 Encoder-Decoder 結合的架構最為合理，為什麼現在主流 LLM 全是純 Decoder？",
+        "answer": "答：這主要是受商業與工程規模化（Scaling Law）的驅使。第一，純 Decoder 架構極其精簡純粹，在分散式超級電腦上進行超千億參數的並行訓練時，計算效率極高且不易出錯；第二，純 Decoder 只需要專心做單向文字接龍，天生契合聊天機器人「你來我往」的問答Prompt模式；第三，當模型體積被無上限放大後，純 Decoder 會產生「湧現能力」，其理解力隨之暴增，足以參透原本由 Encoder 負責的理解工作。"
       }
     ]
   }
