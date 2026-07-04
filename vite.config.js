@@ -18,7 +18,14 @@ function copyStaticFiles() {
       // 複製檔案
       fs.cpSync(resolve(__dirname, 'src/data'), resolve(__dirname, 'dist/src/data'), { recursive: true });
       fs.cpSync(resolve(__dirname, 'src/img'), resolve(__dirname, 'dist/src/img'), { recursive: true });
-      console.log('Successfully copied src/data and src/img to dist/src/');
+      
+      // 複製助理 CSS 檔
+      try {
+        fs.copyFileSync(resolve(__dirname, 'src/assistant.css'), resolve(__dirname, 'dist/src/assistant.css'));
+        console.log('Successfully copied src/data, src/img, and src/assistant.css to dist/src/');
+      } catch (err) {
+        console.error('Failed to copy src/assistant.css:', err);
+      }
     }
   };
 }
