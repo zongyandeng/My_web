@@ -98,6 +98,9 @@ function renderSingleAINote(note) {
   const container = document.getElementById('ai-note-content');
   if (!container) return;
 
+  // 切換單元時，將視窗滾動回最上方
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
   let stepsHTML = '';
   note.steps.forEach(step => {
     stepsHTML += `
@@ -565,6 +568,10 @@ export async function loadAndRenderCommands() {
 function renderCommandsForGroup(group) {
   const terminalBody = document.getElementById('terminal-body');
   if (!terminalBody) return;
+
+  // 切換單元時，重設終端機內滾動條與視窗滾動條
+  terminalBody.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'instant' });
 
   // 清空終端機
   terminalBody.innerHTML = '';
