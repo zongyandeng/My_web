@@ -944,14 +944,103 @@ pre[class*="language-"] {
 }
 
 @media (max-width: 768px) {
+  /* 導覽列優化：在手機上轉換成精美水平滑動導覽列，不隱藏 */
   .navbar {
-    padding: 0 20px;
+    padding: 0 15px;
+    height: 60px;
+  }
+  .nav-logo {
+    font-size: 1.15rem;
+    gap: 5px;
   }
   .nav-links {
-    display: none; /* 移動端折疊，之後可用簡易 JS 選單 */
+    display: flex !important; /* 蓋掉桌機的排版，確保手機版有顯示 */
+    gap: 12px;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: calc(100% - 150px);
+    padding: 5px 0;
+    -webkit-overflow-scrolling: touch;
   }
+  .nav-links::-webkit-scrollbar {
+    display: none; /* 隱藏行動端導覽列的滾動條 */
+  }
+  .theme-toggle-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  /* 側邊欄優化：在手機上轉換為水平滑動 Tab Bar */
+  .sidebar {
+    margin-bottom: 20px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .sidebar-title {
+    display: none; /* 隱藏手機端的側邊欄大標題，釋放空間 */
+  }
+  .sidebar-menu {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 4px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sidebar-menu::-webkit-scrollbar {
+    height: 4px; /* 極細滾動條 */
+  }
+  .sidebar-menu::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+  }
+  .sidebar-item {
+    flex: 0 0 auto;
+    margin-bottom: 0;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  .sidebar-item:hover, .sidebar-item.active {
+    border-left: none;
+    border-bottom: 2px solid var(--accent-1);
+    padding-left: 14px; /* 移除桌機版 hover 的左內距偏移 */
+  }
+
+  /* 內容容器與長公式優化 */
+  .note-content-container {
+    padding: 20px; /* 縮小手機版內距 */
+  }
+  .math-block {
+    overflow-x: auto; /* 長數學公式防溢出 */
+    padding: 15px 10px;
+  }
+
+  /* 仿真終端機排版優化 */
+  .terminal-simulator {
+    height: 480px; /* 稍微縮小高度 */
+  }
+  .terminal-body {
+    padding: 12px;
+    font-size: 0.8rem;
+  }
+  .terminal-input-line {
+    flex-direction: column; /* 讓 prompt 與指令代碼在手機版上下堆疊 */
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .terminal-text {
+    width: 100%;
+  }
+  .terminal-copy-btn {
+    margin-top: 8px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
   .hero-title {
-    font-size: 2.8rem;
+    font-size: 2.5rem;
   }
   .timeline::before {
     left: 20px;
@@ -971,6 +1060,20 @@ pre[class*="language-"] {
   }
   .timeline-item:nth-child(even) {
     left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 手機極窄版面優化 */
+  .menu-grid {
+    grid-template-columns: 1fr !important; /* 首頁卡片改為單欄 */
+    gap: 15px;
+  }
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-subtitle {
+    font-size: 0.95rem;
   }
 }
 
