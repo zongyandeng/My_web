@@ -261,5 +261,53 @@
         "answer": "答：可以利用 WSL 的匯出與匯入功能來完成無痛搬移。詳細步驟：\n1. 關閉 WSL：wsl --shutdown\n2. 匯出備份：wsl --export Ubuntu D:\\\\WSL_Backups\\\\ubuntu_backup.tar\n3. 解除舊註冊：wsl --unregister Ubuntu (注意：這會清空舊 C 槽的 Ubuntu 資料)\n4. 匯入至 D 槽新路徑：wsl --import Ubuntu D:\\\\WSL\\\\Ubuntu D:\\\\WSL_Backups\\\\ubuntu_backup.tar\n5. 設定預設登入使用者為之前的 user（非 root）：ubuntu config --default-user <你的使用者名稱>（或者修改登錄檔或使用 WSL 設定檔）。"
       }
     ]
+  },
+  {
+    "category": "yolo",
+    "title": "YOLO 模型訓練與偵測指南",
+    "englishTitle": "YOLO Training & Object Detection Reference",
+    "description": "介紹如何使用 Ultralytics YOLO 進行物件偵測模型的訓練、評估與推論，包含 CLI 終端機指令與 Python API 呼叫方式。",
+    "commands": [
+      {
+        "cmd": "pip install ultralytics",
+        "desc": "安裝 Ultralytics 套件",
+        "explanation": "安裝 YOLO 官方維護的套件，包含 YOLOv8/v9/v10/v11 等最新模型結構與工具。"
+      },
+      {
+        "cmd": "yolo task=detect mode=train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640 device=0",
+        "desc": "使用 CLI 訓練 YOLO 偵測模型",
+        "explanation": "啟動 YOLO 訓練：指定任務為 `detect`（偵測）、模式為 `train`、使用 `yolov8n.pt` 預訓練權重、設定資料集設定檔為 `coco8.yaml`，訓練 100 個 epochs，輸入影像大小為 640x640，並使用編號 0 的 GPU。"
+      },
+      {
+        "cmd": "yolo task=detect mode=val model=path/to/best.pt data=coco8.yaml",
+        "desc": "驗證模型效能 (Validation)",
+        "explanation": "在驗證集上評估訓練好的模型，輸出 mAP50, mAP50-95 等精確度指標。"
+      },
+      {
+        "cmd": "yolo task=detect mode=predict model=path/to/best.pt source=image.jpg save=True",
+        "desc": "模型推論偵測 (Predict)",
+        "explanation": "使用訓練好的權重對指定的圖片（或影片、資料夾、串流）進行偵測，並將繪製有偵測框的結果圖片儲存到 `runs/detect/predict` 目錄。"
+      },
+      {
+        "cmd": "yolo export model=path/to/best.pt format=onnx",
+        "desc": "匯出模型為 ONNX 格式",
+        "explanation": "將 PyTorch 權重檔 (`.pt`) 轉換為跨平台的 ONNX 格式，方便部署到邊緣裝置或 C++ 環境。"
+      },
+      {
+        "cmd": "from ultralytics import YOLO\n\n# 載入預訓練模型\nmodel = YOLO('yolov8n.pt')\n\n# 啟動訓練\nresults = model.train(\n    data='coco8.yaml',\n    epochs=100,\n    imgsz=640,\n    device=0\n)",
+        "desc": "使用 Python API 進行模型訓練",
+        "explanation": "在 Python 腳本中載入 YOLO 模型並啟動訓練，方便整合到自訂的資料預處理與訓練流程中。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：訓練時出現 'RuntimeError: DataLoader worker (pid XXX) is killed by signal: Killed' 該怎麼辦？",
+        "answer": "答：這通常是因為系統記憶體 (RAM) 或共享記憶體 (Shared Memory, shm) 不足，導致 DataLoader 執行緒被系統強制終止。解決方案：\n1. 在訓練參數中調低 worker 數量，例如加上 `workers=2` 或 `workers=0` (單執行緒讀取)。\n2. 若是在 Docker 容器內，請在啟動容器時加上 `--shm-size=8g` 參數來增大共享記憶體空間。"
+      },
+      {
+        "question": "問：要如何自訂 YOLO 的訓練資料集？我需要準備哪些檔案？",
+        "answer": "答：1. 資料夾結構：準備 `images/` 和 `labels/` 資料夾，兩者底下再分 `train/` 與 `val/`。確保圖片與對應的 `.txt` 標記檔檔名相同。\n2. 標記格式：YOLO 格式為每一行代表一個目標：`<class_id> <x_center> <y_center> <width> <height>`，皆為 0 到 1 之間的歸一化數值。\n3. 設定檔：建立一個 `dataset.yaml`，內容如下：\n```yaml\npath: /path/to/dataset  # 資料集根目錄\ntrain: images/train      # 訓練集路徑\nval: images/val          # 驗證集路徑\nnames:\n  0: person              # 類別編號與名稱\n  1: car\n```"
+      }
+    ]
   }
 ]
