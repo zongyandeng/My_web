@@ -1318,3 +1318,67 @@ body.hide-cursor * {
   display: block;
 }
 
+/* ==========================================================================
+   🔮 Three.js 3D 幾何體測試區段樣式 (Three.js 3D Test Section Styles)
+   ========================================================================== */
+
+.three-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.three-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.three-header .section-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.three-header .section-desc {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+#three-container {
+  width: 100%;
+  max-width: 900px;
+  height: 500px;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 50px var(--shadow-color);
+  transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+#three-container:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+}
+
+#webgl-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+
+

@@ -74,6 +74,17 @@
     </div>
   </main>
 
+  <!-- 3D 幾何體測試區段 -->
+  <section class="three-section">
+    <div class="three-header">
+      <h2 class="section-title">🔮 3D 幾何體測試實驗室</h2>
+      <p class="section-desc">使用 Three.js 渲染的 MeshStandardMaterial 互動正方體</p>
+    </div>
+    <div id="three-container">
+      <canvas id="webgl-canvas"></canvas>
+    </div>
+  </section>
+
   <!-- 客製互動游標 (僅在磁吸游標特效開啟時啟用) -->
   <div class="custom-cursor" id="custom-cursor">
     <div class="cursor-dot"></div>
@@ -99,5 +110,6 @@
   <script type="module" src="src/renderer.js"></script>
   <script type="module" src="src/effects.js"></script>
   <script type="module" src="src/assistant.js"></script>
+  <script type="module" src="src/three-demo.js"></script>
 </body>
 </html>
