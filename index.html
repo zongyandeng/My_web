@@ -13,6 +13,9 @@
   <div class="dynamic-bg"></div>
   <div class="grid-overlay"></div>
 
+  <!-- 互動特效專用 Canvas -->
+  <canvas id="effect-canvas" class="effect-canvas"></canvas>
+
   <!-- 頂部導覽列 -->
   <nav class="navbar">
     <a href="index.html" class="nav-logo">
@@ -67,7 +70,29 @@
     </div>
   </main>
 
+  <!-- 客製互動游標 (僅在磁吸游標特效開啟時啟用) -->
+  <div class="custom-cursor" id="custom-cursor">
+    <div class="cursor-dot"></div>
+    <div class="cursor-ring"></div>
+  </div>
+
+  <!-- 特效切換控制面板 -->
+  <div class="effects-panel" id="effects-panel">
+    <div class="panel-header" id="panel-header">
+      <span>✨ 特效控制台</span>
+      <button class="panel-toggle-btn" id="panel-toggle">▼</button>
+    </div>
+    <div class="panel-body" id="panel-body">
+      <button class="effect-btn active" data-effect="none">📴 無特效</button>
+      <button class="effect-btn" data-effect="spotlight">🌌 聚光燈</button>
+      <button class="effect-btn" data-effect="particles">☄️ 科技連線</button>
+      <button class="effect-btn" data-effect="trail">✨ 流星拖尾</button>
+      <button class="effect-btn" data-effect="magnetic">🧲 磁吸游標</button>
+    </div>
+  </div>
+
   <script type="module" src="src/main.js"></script>
   <script type="module" src="src/renderer.js"></script>
+  <script type="module" src="src/effects.js"></script>
 </body>
 </html>
