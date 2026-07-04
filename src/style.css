@@ -1173,3 +1173,29 @@ body.hide-cursor * {
   box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.02);
 }
 
+/* YOLO 物件偵測卡片與圖片美化樣式 */
+.detection-node {
+  align-items: flex-start !important; /* 讓包含圖片的大卡片對齊頂部而非置中 */
+}
+
+.note-img-wrapper {
+  margin-top: 15px;
+  width: 100%;
+  max-width: 650px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.note-img-wrapper:hover {
+  transform: scale(1.01);
+}
+
+.note-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
