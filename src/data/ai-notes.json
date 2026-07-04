@@ -221,5 +221,60 @@
         "answer": "答：小物件在圖片中佔比極低，特徵圖歷經多層卷積下採樣後其語意幾乎消失。<strong>改進方案</strong>：1. <strong>提高輸入尺寸</strong>：提升模型輸入解析度（如從 640 提高到 960 或 1280）。2. <strong>特徵金字塔</strong>：加強 FPN / PANet 等深淺層多尺度特徵的融合。3. <strong>子圖推理 (SAHI)</strong>：藉由滑動窗口切圖進行推論，再拼合邊界框以降低漏檢。"
       }
     ]
+  },
+  {
+    "id": "finetuning_lora",
+    "title": "模型微調與 LoRA 輕量化技術 (Fine-tuning & LoRA)",
+    "englishTitle": "Full Fine-tuning vs. LoRA (Low-Rank Adaptation)",
+    "description": "模型微調 (Fine-tuning) 是讓大型語言模型 (LLM) 或擴散模型學習特定領域知識與對話風格的核心手段。本單元深入解析全面微調 (Full Fine-tuning) 與主流輕量化微調技術 LoRA (Low-Rank Adaptation) 的運作邏輯、核心數學公式、參數對比與硬體門檻，探討其在實務應用中的權衡與取捨。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">全面微調 (Full Fine-tuning) vs. LoRA 關鍵差異對比</h3><table class=\"gpu-table\"><thead><tr><th>特性</th><th>全面微調 (Full Fine-tuning)</th><th>LoRA (Low-Rank Adaptation)</th></tr></thead><tbody><tr><td style=\"font-weight:700;\">原本參數</td><td>全部一起訓練調整</td><td style=\"color:var(--accent-2); font-weight:600;\">完全凍結，維持原樣</td></tr><tr><td style=\"font-weight:700;\">額外參數</td><td>無</td><td style=\"color:var(--accent-2); font-weight:600;\">極少（通常 &lt; 1%）</td></tr><tr><td style=\"font-weight:700;\">檔案大小</td><td>跟原模型一樣巨大 (數 GB ~ 數十 GB)</td><td style=\"color:var(--accent-2); font-weight:600;\">非常小 (數 MB ~ 數百 MB)</td></tr><tr><td style=\"font-weight:700;\">硬體門檻</td><td>極高 (通常需要多張昂貴的 A100/H100 GPU)</td><td style=\"color:var(--accent-2); font-weight:600;\">較低 (消費級顯卡、單張 GPU 即可跑)</td></tr><tr><td style=\"font-weight:700;\">應用場景</td><td>大規模領域轉移、基底能力全面改造</td><td style=\"color:var(--accent-2); font-weight:600;\">特定風格控制、特定任務特化 (如 Stable Diffusion 畫風、LLM 特定角色扮演)</td></tr></tbody></table>",
+    "steps": [
+      {
+        "name": "1. 全面微調 (Full Fine-tuning) 運作機制",
+        "details": "當我們希望模型深入適應全新學科或特定任務時，會將全新領域的資料餵給模型。此時，模型中所有權重矩陣（數十億至數百億個參數）都會被解凍，並隨著梯度下降進行全面的權重更新。"
+      },
+      {
+        "name": "2. 全面微調的硬體挑戰與災難性遺忘",
+        "details": "因為要儲存與更新與原模型等量大小的梯度，全面微調需要極度龐大的 GPU 記憶體與算力支援。同時，這也極易引發「災難性遺忘 (Catastrophic Forgetting)」，即模型在專注於新任務的過程中，逐漸喪失原先所學的通用學術常識。"
+      },
+      {
+        "name": "3. LoRA (Low-Rank Adaptation) 高效微調邏輯",
+        "details": "為解決全面微調成本過高的問題，微軟於 2021 年提出 LoRA。其核心策略為：完全凍結 (Freeze) 底座模型的所有原始權重 $W_0$，使之在訓練期間維持不變。接著在矩陣旁邊引入一條額外的旁支線路，僅更新該旁支中的少量參數。"
+      },
+      {
+        "name": "4. 低階矩陣分解與參數壓縮原理",
+        "details": "LoRA 將需要學習的權重增量 $\\Delta W$ 拆解為兩個低階矩陣 $A$ 與 $B$ 的乘積（$\\Delta W = B \\times A$）。若底座模型矩陣維度為 $d \\times k$，LoRA 藉由設定低秩 $r$（通常 $r \\le 8$ 或 $16$），將參數更新量壓縮至原本的 $1\\%$ 以下，大幅節省儲存與顯存空間。"
+      },
+      {
+        "name": "5. 推理無延遲的權重合併技術",
+        "details": "LoRA 在推論 (Inference) 階段，可以將學到的旁支增量矩陣乘積（$B \\times A$）直接與底座模型權重進行實體相加合併，即 $W = W_0 + B \\times A$，將兩者融合成一個權重矩阵。如此一來，在推理部署時無需執行兩次矩陣運算，完全不會增加額外的推理延遲 (Latency)。"
+      },
+      {
+        "name": "6. 多任務隨機切換的插件化應用",
+        "details": "由於 LoRA 的底座模型始終保持不變，且訓練產生的 LoRA 權重檔案極小（通常僅數十 MB），因此我們可以將不同的任務特化（如律師諮詢、文學創作、特定畫風）打包成獨立的「LoRA 插件」，在同一個底座模型上實現毫秒級的靈活插件切換。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "LoRA 權重分解與更新公式",
+        "latex": "W = W_0 + \\Delta W = W_0 + B \\times A",
+        "description": "原始權重 $W_0 \\in \\mathbb{R}^{d \\times k}$ 凍結不變。權重增量 $\\Delta W$ 藉由低階矩陣 $B \\in \\mathbb{R}^{d \\times r}$ 與 $A \\in \\mathbb{R}^{r \\times k}$ 的乘積來逼近，其中低秩 $r \\ll \\min(d, k)$。"
+      },
+      {
+        "name": "LoRA 前向傳播運算式",
+        "latex": "h = W_0 x + \\Delta W x = W_0 x + \\frac{\\alpha}{r} (B \\times A) x",
+        "description": "輸入向量 $x$ 同時送入凍結的原始路徑與 LoRA 旁支。常數 $\\alpha$ 為縮放係數，用於微調學習時的影響比重。初始化時 $B$ 通常設為 0，確保訓練剛開始時模型表現與原模型完全一致。"
+      }
+    ],
+    "code": "# 使用 PyTorch 模擬自訂 LoRA 線性層的前向傳播實作\nimport torch\nimport torch.nn as nn\nimport math\n\nclass LoRALinear(nn.Module):\n    def __init__(self, in_features, out_features, r=8, lora_alpha=16):\n        super().__init__()\n        # 1. 模擬底座模型的線性層，並凍結其參數\n        self.base_layer = nn.Linear(in_features, out_features)\n        self.base_layer.weight.requires_grad = False # 凍結\n        \n        # 2. 定義低秩旁支矩陣 A 與 B\n        # A 以高斯分佈初始化，B 以全零初始化\n        self.lora_A = nn.Parameter(torch.randn(in_features, r) / math.sqrt(in_features))\n        self.lora_B = nn.Parameter(torch.zeros(r, out_features))\n        \n        # 3. 縮放參數\n        self.r = r\n        self.alpha = lora_alpha\n        self.scaling = self.alpha / self.r\n        \n    def forward(self, x):\n        # 前向傳播：原始輸出 + (旁支低階矩陣乘積的輸出 * 縮放比例)\n        # x 尺寸: [batch_size, in_features]\n        base_output = self.base_layer(x)\n        lora_output = (x @ self.lora_A @ self.lora_B) * self.scaling\n        return base_output + lora_output\n\n# 測試 LoRALinear 層\n# 輸入維度 768，輸出維度 768，秩 r = 8\nl_layer = LoRALinear(in_features=768, out_features=768, r=8)\ntest_input = torch.randn(1, 768)\noutput = l_layer(test_input)\nprint(f\"輸出張量形狀: {output.shape} (與原 Linear 一致)\")",
+    "faq": [
+      {
+        "question": "問：Fine-tuning 與 LoRA 兩者是平行的競爭概念嗎？",
+        "answer": "答：不是。LoRA 是微調 (Fine-tuning) 技術下的一種高效輕量化「手段」，兩者是包含與被包含的關係。如果全面微調 (Full Fine-tuning) 是將跑車的引擎、變速箱、底盤零件拆開全面改裝；LoRA 則是在不碰核心架構的前提下加裝「外掛晶片（或渦輪增壓器）」，以低廉的顯存成本換取相近的性能提升。在現代 AI 實務中（包括 LLM 或 Stable Diffusion 繪圖），聽到別人說「微調模型」時，有 8 到 9 成的機率指的就是使用 LoRA 技術。"
+      },
+      {
+        "question": "問：LoRA 在部署推論時，會因為旁支運算而造成模型回應變慢嗎？",
+        "answer": "答：完全不會。雖然在訓練時我們是以旁支低階矩陣的乘積來優化參數，但在推論 (Inference) 或部署前，我們可以執行「權重合併 (Weight Merging)」操作，將學到的矩陣乘積 $\\Delta W = B \\times A$ 直接加回到原始權重 $W_0$ 中，將其融合成單個標準的線性層權重（$W = W_0 + \\Delta W$）。因此在推理時無需做兩次矩陣運算，完全沒有任何額外的計算開銷或推理延遲 (Latency)。"
+      }
+    ]
   }
 ]
