@@ -66,7 +66,7 @@ export async function loadAndRenderAINotes() {
   if (!sidebar || !contentContainer) return;
 
   try {
-    const response = await fetch('/src/data/ai-notes.json');
+    const response = await fetch('src/data/ai-notes.json');
     const data = await response.json();
 
     // 1. 生成側邊欄選單
@@ -417,7 +417,7 @@ export async function loadAndRenderHardware() {
   if (!container) return;
 
   try {
-    const response = await fetch('/src/data/hardware-notes.json');
+    const response = await fetch('src/data/hardware-notes.json');
     const data = await response.json();
 
     container.innerHTML = '';
@@ -505,7 +505,7 @@ export async function loadAndRenderCommands() {
   if (!sidebar || !terminalBody) return;
 
   try {
-    const response = await fetch('/src/data/commands-notes.json');
+    const response = await fetch('src/data/commands-notes.json');
     const data = await response.json();
 
     // 1. 生成左側大單元選單

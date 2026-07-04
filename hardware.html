@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>硬體研究室 | Edison.Dev</title>
   <meta name="description" content="Edison 的個人組電腦與 AI 訓練硬體（GPU 顯卡、SSD 固態硬碟）科普與選購研究筆記。">
-  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
 
@@ -15,15 +15,15 @@
 
   <!-- 頂部導覽列 -->
   <nav class="navbar">
-    <a href="/index.html" class="nav-logo">
+    <a href="index.html" class="nav-logo">
       <span>🌌 Edison.Dev</span>
     </a>
     <ul class="nav-links">
-      <li><a href="/index.html">首頁</a></li>
-      <li><a href="/profile.html">個人經歷</a></li>
-      <li><a href="/ai-learning.html">AI 實驗室</a></li>
-      <li><a href="/hardware.html" class="active">硬體研究</a></li>
-      <li><a href="/commands.html">指令查詢</a></li>
+      <li><a href="index.html">首頁</a></li>
+      <li><a href="profile.html">個人經歷</a></li>
+      <li><a href="ai-learning.html">AI 實驗室</a></li>
+      <li><a href="hardware.html" class="active">硬體研究</a></li>
+      <li><a href="commands.html">指令查詢</a></li>
     </ul>
     <button class="theme-toggle-btn" id="theme-toggle">
       🌌 Deep Space
@@ -47,7 +47,7 @@
   </main>
 
   <script type="module">
-    import { loadAndRenderHardware } from '/src/renderer.js';
+    import { loadAndRenderHardware } from './src/renderer.js';
     window.addEventListener('DOMContentLoaded', loadAndRenderHardware);
   </script>
 </body>

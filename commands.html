@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>開發與伺服器指令集 | Edison.Dev</title>
   <meta name="description" content="Edison 的 Ubuntu SSH 連線、Docker 容器操作、Git 常用指令與 PyTorch API 指令集查詢手冊。">
-  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="src/style.css">
 
   <!-- CDN 載入 Prism.js 程式碼語法高亮 (指令說明可能需要) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
@@ -20,15 +20,15 @@
 
   <!-- 頂部導覽列 -->
   <nav class="navbar">
-    <a href="/index.html" class="nav-logo">
+    <a href="index.html" class="nav-logo">
       <span>🌌 Edison.Dev</span>
     </a>
     <ul class="nav-links">
-      <li><a href="/index.html">首頁</a></li>
-      <li><a href="/profile.html">個人經歷</a></li>
-      <li><a href="/ai-learning.html">AI 實驗室</a></li>
-      <li><a href="/hardware.html">硬體研究</a></li>
-      <li><a href="/commands.html" class="active">指令查詢</a></li>
+      <li><a href="index.html">首頁</a></li>
+      <li><a href="profile.html">個人經歷</a></li>
+      <li><a href="ai-learning.html">AI 實驗室</a></li>
+      <li><a href="hardware.html">硬體研究</a></li>
+      <li><a href="commands.html" class="active">指令查詢</a></li>
     </ul>
     <button class="theme-toggle-btn" id="theme-toggle">
       🌌 Deep Space
@@ -77,7 +77,7 @@
   </main>
 
   <script type="module">
-    import { loadAndRenderCommands } from '/src/renderer.js';
+    import { loadAndRenderCommands } from './src/renderer.js';
     window.addEventListener('DOMContentLoaded', loadAndRenderCommands);
   </script>
 </body>
