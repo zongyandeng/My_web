@@ -88,6 +88,11 @@
     "description": "整理實驗室專案開發與 GitHub 協作時最常使用的 Git 版本控制指令。",
     "commands": [
       {
+        "cmd": "git init",
+        "desc": "初始化本地 Git 儲存庫 (Initialize Repository)",
+        "explanation": "在當前目錄建立一個新的空白 Git 儲存庫，開啟版本控制功能。"
+      },
+      {
         "cmd": "git clone <repo_url>",
         "desc": "複製遠端儲存庫 (Clone Repository)",
         "explanation": "下載 GitHub 上的完整專案程式碼與歷史紀錄到本地端。"
@@ -96,6 +101,16 @@
         "cmd": "git status",
         "desc": "檢查當前檔案狀態 (Git Status)",
         "explanation": "查看哪些檔案被修改了、哪些檔案還沒加入追蹤、以及當前處於哪個分支。"
+      },
+      {
+        "cmd": "git log --oneline -n 10",
+        "desc": "查看簡短提交歷史紀錄 (Git Log)",
+        "explanation": "列出最近的 10 次 Commit，以單行簡短格式顯示，包含 Commit Hash 與提交訊息。"
+      },
+      {
+        "cmd": "git branch -a",
+        "desc": "列出所有分支 (List Branches)",
+        "explanation": "顯示本地端與遠端 (origin) 所有的分支清單，當前所在的分支會以綠色與星號標記。"
       },
       {
         "cmd": "git add .",
@@ -126,12 +141,41 @@
         "cmd": "git stash",
         "desc": "暫存當前未提交的工作 (Stash)",
         "explanation": "當你程式寫到一半需要緊急切換分支去修 Bug，但又不想把寫一半的亂碼 Commit 時，可以用此指令把修改暫存起來，使工作區變乾淨。修完後用 `git stash pop` 還原。"
+      },
+      {
+        "cmd": "git restore <file_path>",
+        "desc": "放棄工作區檔案變更 (Discard Changes)",
+        "explanation": "丟棄指定檔案在工作區（尚未暫存 add）的修改，將檔案內容回復到上一次 Commit 或暫存時的狀態。"
+      },
+      {
+        "cmd": "git restore --staged <file_path>",
+        "desc": "取消已暫存的檔案 (Unstage File)",
+        "explanation": "將檔案從暫存區移出（等同於取消 git add），但會保留工作區檔案的修改內容。"
+      },
+      {
+        "cmd": "git reset --soft HEAD~1",
+        "desc": "撤銷最近一次 Commit (保留修改程式碼)",
+        "explanation": "退回到上一次 Commit 狀態，但會將該 Commit 的修改內容保留在「暫存區」，可用於重新撰寫 Commit 訊息或整理代碼。"
+      },
+      {
+        "cmd": "git reset --hard HEAD~1",
+        "desc": "強制退回最近一次 Commit (清除所有變更)",
+        "explanation": "⚠️ 警告：強制將目前分支、暫存區與工作區都退回到上一次 Commit 狀態，所有未提交的修改都會被抹除且無法直接還原。"
+      },
+      {
+        "cmd": "git revert <commit_hash>",
+        "desc": "安全撤銷指定 Commit (多人協作推薦)",
+        "explanation": "針對指定的 Commit 進行撤銷，並自動產生一個內容相反的「全新 Commit」。這不會修改歷史紀錄，適合已經 Push 到遠端共享的分支。"
       }
     ],
     "faq": [
       {
         "question": "問：當我執行 git push 時，噴出 'Updates were rejected because the remote contains work...' 錯誤該怎麼辦？",
         "answer": "答：這代表 GitHub 上的程式碼比你本地端新（可能是別的組員提交了新代碼）。**解決方案**：先執行 `git pull origin main` 將遠端變更拉取下來。如果產生衝突 (Conflicts)，手動開啟檔案解決衝突部分，再次 `git add .`、`git commit` 即可重新 `git push`。"
+      },
+      {
+        "question": "問：如果我不小心執行了 git reset --hard，還有救嗎？要怎麼還原？",
+        "answer": "答：只要該 Commit 曾經被提交過，都可以透過 reflog 找回！**救援步驟**：\n1. 執行 `git reflog` 查看本地的操作歷史紀錄，找到誤刪前的那次 Commit Hash（例如 `a1b2c3d`）。\n2. 執行 `git reset --hard a1b2c3d` 即可將當前分支與檔案強制回復到該 Commit 的狀態。"
       }
     ]
   },
