@@ -115,8 +115,8 @@
         "answer": "答：此時千萬不要相信 Accuracy (因為盲猜全部為負樣本就能有 99% 的 Accuracy)。**解決方案**：應優先觀察 **F1-Score** 與 **PR 曲線 (Precision-Recall Curve)**。PR 曲線下方的面積 (AUPRC) 比 ROC 曲線的面積 (AUROC) 更能真實反映極度不平衡資料集上的模型表現。"
       },
       {
-        "question": "問：在影像辨識與物件偵測（如 YOLO）的混淆矩陣中，多出來的 background 代表什麼意義？",
-        "answer": "答：在 YOLO 等物件偵測的混淆矩陣中，多出了 background (背景) 欄與列，代表物件「匹配失敗」的情況：<br>1. <strong>background row（漏檢 / False Negative）</strong>：真實有該物體，但模型完全沒有標記出框（被預測為背景）。這代表模型的 Recall 遇到瓶頸。<br>2. <strong>background column（誤檢 / False Positive）</strong>：真實只是背景（什麼都沒有），但模型卻無中生有地預測出框。這會大幅拉低模型的 Precision。"
+        "question": "問：在物件偵測（如 YOLO）的混淆矩陣中，多出來的 background 代表什麼實務意義？",
+        "answer": "答：物件偵測多分類混淆矩陣多出「背景 (background)」列與行，主要是為了評估定位誤差與檢索漏失：<br>1. <strong>預測為背景（background row - 漏檢）</strong>：代表真實場景有標記物件，但模型完全沒有框出它（被漏看了）。這代表模型的 **Recall (召回率)** 有待加強。<br>2. <strong>真實為背景（background column - 誤檢）</strong>：代表該區域本是空白背景，但模型卻無中生有框出了物件。這代表模型產生了虛警（False Alarm），會拉低模型的 **Precision (精準率)**。"
       }
     ]
   },
@@ -157,8 +157,8 @@
         "answer": "答：在訓練初期或是有加入強烈的 Regularization (如高比例的 Dropout, Data Augmentation) 時是正常的。因為訓練時模型受到 Regularization 的限制，而在驗證時這些限制會關閉 (model.eval())，因此驗證集表現反而可能更好。但如果是訓練中後期依然如此，需要檢查驗證集與訓練集是否分布不均（例如驗證集太過簡單）。"
       },
       {
-        "question": "問：在物件偵測訓練圖表（如 YOLO）中，常見的 box_loss、cls_loss 與 dfl_loss 代表什麼？",
-        "answer": "答：物件偵測除了分類，還需要精確標記邊界框。其損失函數通常由以下加權組成：<br>1. <strong>box_loss (邊界框定位損失)</strong>：衡量預測框與真實框的位置貼合度，通常使用 CIoU 或 GIoU 指標計算。其數值與 1 - IoU 呈正比，越低代表定位越準。<br>2. <strong>cls_loss (分類損失)</strong>：通常使用二元交叉熵 (BCE) 損失，衡量模型對框內物體類別分類的準確性。<br>3. <strong>dfl_loss (Distribution Focal Loss)</strong>：用於精細化回歸邊界框的連續分佈，對於邊緣模糊、重疊度高或小物件的定位精度提升有極大助益。"
+        "question": "問：在 YOLO 訓練折線圖中，定位與分類的 box_loss、cls_loss、dfl_loss 代表什麼？",
+        "answer": "答：物件偵測模型需要同時學習物體的「位置」與「類別」，其訓練指標通常包含三個損失：<br>1. <strong>box_loss (定位損失)</strong>：計算預測框與真實標註框的交併重合度。此數值一般與 1 - IoU 呈正比，數值越低代表定位越貼合。<br>2. <strong>cls_loss (分類損失)</strong>：使用交叉熵判定框內物件的分類正確性，當類別判定越精準，Loss 越低。<br>3. <strong>dfl_loss (Distribution Focal Loss)</strong>：用於學習邊界框的連續概率分佈，能大幅精細化物件邊界的預測，對重疊、遮擋或極小目標定位非常有幫助。"
       }
     ]
   },
@@ -166,59 +166,59 @@
     "id": "object_detection",
     "title": "物件偵測評估指標與訓練圖表解讀 (Object Detection)",
     "englishTitle": "Object Detection & YOLO Evaluation Metrics",
-    "description": "物件偵測任務（如 YOLO）因為需要同時解決「定位（在哪裡）」與「分類（是什麼）」兩個問題，因此其評估指標與圖表解讀比單純的分類任務更為複雜。本單元深入解析 YOLO 訓練時的標註分布圖、總損失函數組成、mAP 指標計算，以及多分類混淆矩陣中背景欄列的實務意義。",
+    "description": "影像辨識中的物件偵測任務（如 YOLO）需要同時解決物體「定位」與「分類」的問題，其評估指標比一般分類任務更具深度。本單元介紹如何解讀標註框分佈特徵、小物件偵測挑戰、複合損失函數收斂性，以及混淆矩陣中背景類別對於檢索漏失與誤報的實務指引。",
     "steps": [
       {
-        "name": "1. 標註分布圖分析 (Label Distribution)",
-        "details": "訓練前需檢查標註框的數量分布以判斷類別不平衡度（Imbalance Ratio）。同時分析標註框中心點 $x, y$ 的熱區分佈，若中心偏向特定區域，代表資料集場景單一，可能導致模型在其他視角下漏檢。"
+        "name": "1. 標註資料集分佈特徵解讀",
+        "details": "訓練前須檢查標註框的 instances 類別數量。若各類別資料量差距過大，將會面臨類別不平衡問題。同時，觀察標註框的中心點 (cx, cy) 散布圖，若高度集中在特定區域，說明拍攝視角或場景過於固定，需防範泛化能力不足。"
       },
       {
-        "name": "2. 物件大小分布與小物件挑戰 (Small Object Distribution)",
-        "details": "分析標註框的 width 與 height 比例。若大部分框集中在左下角（佔整張圖片面積 $< 1\\%$），則代表小物件居多，容易面臨特徵不明顯、定位不準等小物件偵測 (Small Object Detection) 的挑戰。"
+        "name": "2. 物件大小比例與小目標挑戰",
+        "details": "分析標註框的寬度與高度 (w, h)。若多數標記框極小（例如面積比例低於圖片 $1\\%$），則代表屬於小物件偵測場景。由於小物件在特徵提取時像素資訊極易流失，在定位與分類上皆面臨高度挑戰。"
       },
       {
-        "name": "3. 邊界框交併比 (IoU - Intersection over Union)",
-        "details": "衡量預測邊界框與真實標註框的重合程度。IoU 介於 0 到 1 之間，數值越高代表定位越精準。物件定位損失 $L_{\\text{box}}$ 與 $1 - \\text{IoU}$ 呈正相關。"
+        "name": "3. 邊界框交併比 (IoU) 計算機制",
+        "details": "IoU (Intersection over Union) 衡量預測邊界框與實體標籤框的重合面積比例，介於 0 與 1 之間。它是計算定位損失 $L_{\\text{box}}$ 的底層指標，數值越高表示模型定位越精確。"
       },
       {
-        "name": "4. YOLO 總損失函數解讀 (Loss Composition)",
-        "details": "YOLO 訓練過程會記錄多個 Loss，包含：box_loss（定位）、cls_loss（分類）以及 dfl_loss（邊界框分佈細化損失）。三者穩定同步下降且驗證集無反彈，代表模型健康收斂。"
+        "name": "4. 複合損失函數與收斂判定",
+        "details": "物件偵測的損失曲線是由定位 (box)、分類 (cls) 與細化分佈 (dfl) 三種 Loss 加權組成的複合體。在訓練折線圖中，必須確保這三項 Loss 的驗證集曲線同步平穩下降且無反彈，方能判定模型健康收斂。"
       },
       {
-        "name": "5. 精準度與召回率 (Precision & Recall)",
-        "details": "Precision 衡量預測出的框有多少比例是真的目標；Recall 衡量所有真實目標中有多少被成功框出。實務上在工安違規偵測中，Recall（避免漏檢）通常比 Precision（避免誤報）更具決定性。"
+        "name": "5. 精準度與召回率的場景權衡",
+        "details": "精準率 (Precision) 指預測框 the 真實程度，召回率 (Recall) 則代表對真實目標的抓取能力。在工安等違規偵測中，Recall（避免漏檢）通常比 Precision（避免誤警）更為關鍵，需透過微調信心門檻 (Confidence Threshold) 取得平衡。"
       },
       {
-        "name": "6. 平均精度均值 - mAP@50 與 mAP@50:95",
-        "details": "AP 為 Precision-Recall 曲線下的面積。mAP 為所有類別 AP 的平均。mAP@50 代表在固定 IoU = 0.5 門檻下的表現；mAP@50:95 則是 IoU 從 0.50 到 0.95 每隔 0.05 進行 AP 計算後的平均值，用來推估邊界框定位的嚴格度。"
+        "name": "6. 平均精度均值 (mAP) 嚴格度指標",
+        "details": "AP 為 Precision-Recall 曲線下的面積，mAP 是所有類別 AP 的平均值。mAP@50 代表在 IoU 0.5 門檻下的寬鬆指標；而 mAP@50:95 則是同時評估 IoU 從 0.50 到 0.95 多個門檻下的均值，是衡量定位貼合度高低的核心嚴格指標。"
       }
     ],
     "formulas": [
       {
         "name": "邊界框交併比 (IoU - Intersection over Union)",
         "latex": "\\text{IoU} = \\frac{|B_{\\text{pred}} \\cap B_{\\text{gt}}|}{|B_{\\text{pred}} \\cup B_{\\text{gt}}|}",
-        "description": "計算模型預測框 $B_{\\text{pred}}$ 與真實標註框 $B_{\\text{gt}}$ 的交集面積除以聯集面積。常用作定位準確性的閾值基準。"
+        "description": "預測邊界框 $B_{\\text{pred}}$ 與真實標註框 $B_{\\text{gt}}$ 的交集面積除以聯集面積。用以設定預測正確與否的重合度閥值。"
       },
       {
         "name": "YOLO 總損失函數概念式 (YOLO Total Loss)",
         "latex": "\\mathcal{L}_{\\text{total}} = \\lambda_{\\text{box}} \\mathcal{L}_{\\text{box}} + \\lambda_{\\text{cls}} \\mathcal{L}_{\\text{cls}} + \\lambda_{\\text{dfl}} \\mathcal{L}_{\\text{dfl}}",
-        "description": "由定位損失 (box)、分類損失 (cls) 與邊界分佈損失 (dfl) 加權組合而成。其中 $\\lambda$ 為各項損失的權重常數。"
+        "description": "由定位損失 (box)、分類損失 (cls) 與邊界概率分佈損失 (dfl) 組合而成，$\\lambda$ 代表各損失項的調節權重。"
       },
       {
         "name": "類別不平衡比例 (Imbalance Ratio)",
         "latex": "\\text{Imbalance Ratio} = \\frac{\\max_{c \\in \\mathcal{C}} N_c}{\\min_{c \\in \\mathcal{C}} N_c}",
-        "description": "計算最大類別標註數與最小類別標註數的比值。比值過大（例如 $> 3$）代表存在類別不平衡問題，可能導致少數類別的 Recall 偏低。"
+        "description": "最大與最小類別標註數之比例。若比值過大，說明資料集偏斜嚴重，可能導致少數類別的預測 recall 表現低落。"
       }
     ],
     "code": "# 影像辨識 YOLO 物件偵測指標評估模擬\nimport numpy as np\n\ndef calculate_iou(boxA, boxB):\n    # box = [x1, y1, x2, y2]\n    xA = max(boxA[0], boxB[0])\n    yA = max(boxA[1], boxB[1])\n    xB = min(boxA[2], boxB[2])\n    yB = min(boxA[3], boxB[3])\n    \n    interArea = max(0, xB - xA) * max(0, yB - yA)\n    boxAArea = (boxA[2] - boxA[0]) * (boxA[3] - boxA[1])\n    boxBArea = (boxB[2] - boxB[0]) * (boxB[3] - boxB[1])\n    \n    iou = interArea / float(boxAArea + boxBArea - interArea)\n    return iou\n\n# 模擬真實框與預測框\nreal_box = [100, 100, 210, 210]\npred_box = [105, 95, 215, 205]\n\niou_score = calculate_iou(real_box, pred_box)\nprint(f\"IoU 定位精準度: {iou_score:.4f}\")\n\n# YOLO 格式 (cx, cy, w, h) 與像素座標 (x1, y1, x2, y2) 轉換\ndef yolo_to_bbox(cx, cy, w, h, img_w, img_h):\n    # 歸一化座標轉像素座標\n    x1 = int((cx - w / 2) * img_w)\n    y1 = int((cy - h / 2) * img_h)\n    x2 = int((cx + w / 2) * img_w)\n    y2 = int((cy + h / 2) * img_h)\n    return [x1, y1, x2, y2]",
     "faq": [
       {
-        "question": "問：面對物件偵測中的類別不平衡，有什麼改善策略？",
-        "answer": "答：1. <strong>資料面</strong>：針對少數類別進行過採樣 (Oversampling) 或收集更多該類別的影像。 2. <strong>資料增強</strong>：使用 Class-aware Data Augmentation，在訓練中提高少數類別出現的機率。 3. <strong>損失函數面</strong>：使用 Focal Loss，降低易分類樣本的權重，讓模型專注於難分類與少數類別。"
+        "question": "問：面對資料集類別不平衡，實務上有哪些改善策略？",
+        "answer": "答：1. <strong>數據工程</strong>：針對標記數偏低的少數類別進行過採樣 (Oversampling) 或收集特定的擴充樣張。 2. <strong>數據擴增</strong>：採用針對類別敏感的 Class-aware Augmentation，提升少數樣本在批次訓練中的權重。 3. <strong>演算法優化</strong>：在 Loss 函數中引入 Focal Loss 機制，自動壓低易分類樣本的權重，迫使模型關注困難且少數的特徵。"
       },
       {
-        "question": "問：小物件偵測 (Small Object Detection) 為什麼困難？如何改善？",
-        "answer": "答：小物件佔整張圖片面積極小（例如面積比例 $< 1\\%$），在特徵提取過程中其特徵容易消失。<strong>改善對策</strong>：1. <strong>解析度調整</strong>：提高模型訓練輸入解析度（例如從 640 提高到 960 或 1280）。2. <strong>多尺度檢測</strong>：利用特徵金字塔網路（FPN, PANet）融合深淺層特徵。3. <strong>切圖法 (SAHI - Slicing Aided Hyper Inference)</strong>：推理時將大圖切割成多個子圖分別檢測，最後合併結果。"
+        "question": "問：小物件偵測的難點為何？可採取哪些技術來突破？",
+        "answer": "答：小物件在圖片中佔比極低，特徵圖歷經多層卷積下採樣後其語意幾乎消失。<strong>改進方案</strong>：1. <strong>提高輸入尺寸</strong>：提升模型輸入解析度（如從 640 提高到 960 或 1280）。2. <strong>特徵金字塔</strong>：加強 FPN / PANet 等深淺層多尺度特徵的融合。3. <strong>子圖推理 (SAHI)</strong>：藉由滑動窗口切圖進行推論，再拼合邊界框以降低漏檢。"
       }
     ]
   }
