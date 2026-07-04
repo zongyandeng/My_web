@@ -23,7 +23,7 @@
       },
       {
         "name": "5. 語意檢索 (Semantic Retrieval)",
-        "details": "當使用者輸入 Query 時，同樣將 Query 轉為向量，在資料庫中計算餘弦相似度 (Cosine Similarity)，檢索出最相關的 Top-K 個 Chunks。"
+        "details": "當使用者輸入 Query 時，同樣將 Query 轉為向量，在向量資料庫中計算 Query 與知識庫 Chunks 向量之間的相似度或距離（常見的有餘弦相似度 Cosine Similarity、歐氏距離 Euclidean Distance、點積 Dot Product 三種度量方式），檢索出最相關的 Top-K 個 Chunks。"
       },
       {
         "name": "6. 提示詞拼接與生成 (Augmentation & Generation)",
@@ -32,12 +32,22 @@
     ],
     "formulas": [
       {
-        "name": "餘弦相似度 (Cosine Similarity)",
+        "name": "餘弦相似度 (Cosine Similarity) - 常見方式之一",
         "latex": "\\text{Similarity}(\\mathbf{A}, \\mathbf{B}) = \\frac{\\mathbf{A} \\cdot \\mathbf{B}}{\\|\\mathbf{A}\\| \\|\\mathbf{B}\\|} = \\frac{\\sum_{i=1}^{n} A_i B_i}{\\sqrt{\\sum_{i=1}^{n} A_i^2} \\sqrt{\\sum_{i=1}^{n} B_i^2}}",
-        "description": "用於衡量 Query 向量 A 與知識庫 Chunks 向量 B 在語意空間中的方向接近程度，數值介於 -1 到 1 之間，越接近 1 代表語意越相似。"
+        "description": "衡量 Query 向量 A 與知識庫 Chunks 向量 B 在多維語意空間中的方向夾角。數值介於 -1 到 1 之間，越接近 1 代表語意越相似。其優點是不受向量長度（如文本長度）的影響，只關注方向的契合度。"
+      },
+      {
+        "name": "歐氏距離 / L2 距離 (Euclidean Distance / L2 Distance) - 常見方式之二",
+        "latex": "d(\\mathbf{A}, \\mathbf{B}) = \\|\\mathbf{A} - \\mathbf{B}\\| = \\sqrt{\\sum_{i=1}^{n} (A_i - B_i)^2}",
+        "description": "計算兩個向量在多維空間中的幾何直線距離。距離越小，代表向量越相似。注意，若向量長度（如文字量）差異過大時，未歸一化的歐氏距離容易失真，因此通常會先進行 L2 歸一化後再計算距離。"
+      },
+      {
+        "name": "點積 / 內積 (Dot Product / Inner Product) - 常見方式之三",
+        "latex": "\\text{DotProduct}(\\mathbf{A}, \\mathbf{B}) = \\mathbf{A} \\cdot \\mathbf{B} = \\sum_{i=1}^{n} A_i B_i",
+        "description": "直接將兩個向量的對應維度相乘並加總。若兩個向量都已經過 L2 歸一化（長度皆為 1），則點積的計算結果與餘弦相似度完全等價。點積計算速度極快，在現代大規模向量檢索系統中被廣泛採用。"
       }
     ],
-    "code": "import torch\nimport torch.nn.functional as F\n\n# 假設我們有 Query 向量與 Context 向量 (維度 384)\nquery_vector = torch.randn(1, 384)\ncontext_vector = torch.randn(1, 384)\n\n# 使用 PyTorch 計算餘弦相似度\nsimilarity = F.cosine_similarity(query_vector, context_vector)\nprint(f\"餘弦相似度: {similarity.item():.4f}\")\n\n# 簡單的 LangChain RAG 鏈結範例說明：\n# qa_chain = RetrievalQA.from_chain_type(\n#     llm=ChatOpenAI(model=\"gpt-4-turbo\"),\n#     chain_type=\"stuff\",\n#     retriever=vectorstore.as_retriever(search_kwargs={\"k\": 3})\n# )",
+    "code": "import torch\nimport torch.nn.functional as F\n\n# 假設我們有 Query 向量與 Context 向量 (維度 384)\nquery_vector = torch.randn(1, 384)\ncontext_vector = torch.randn(1, 384)\n\n# 1. 餘弦相似度 (Cosine Similarity)\ncosine_sim = F.cosine_similarity(query_vector, context_vector)\nprint(f\"餘弦相似度: {cosine_sim.item():.4f}\")\n\n# 2. 歐氏距離 (Euclidean Distance / L2 Distance)\neuclidean_dist = torch.dist(query_vector, context_vector, p=2)\nprint(f\"歐氏距離: {euclidean_dist.item():.4f}\")\n\n# 3. 點積 (Dot Product / Inner Product)\ndot_product = torch.dot(query_vector.squeeze(), context_vector.squeeze())\nprint(f\"點積: {dot_product.item():.4f}\")\n\n# 簡單的 LangChain RAG 鏈結範例說明：\n# qa_chain = RetrievalQA.from_chain_type(\n#     llm=ChatOpenAI(model=\"gpt-4-turbo\"),\n#     chain_type=\"stuff\",\n#     retriever=vectorstore.as_retriever(search_kwargs={\"k\": 3})\n# )",
     "faq": [
       {
         "question": "問：為什麼 RAG 檢索出來的內容很多噪音或不相關？",
