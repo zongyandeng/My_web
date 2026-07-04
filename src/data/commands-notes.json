@@ -6,6 +6,26 @@
     "description": "介紹如何連線至實驗室的 Ubuntu 伺服器進行開發，並透過 GPU 狀態監控與背景進程管理 (tmux) 確保訓練不會因斷線而中斷。",
     "commands": [
       {
+        "cmd": "sudo apt update && sudo apt install -y openssh-server",
+        "desc": "安裝 OpenSSH 伺服器 (被連線端/伺服器端設定)",
+        "explanation": "在被連線的 Ubuntu 主機上安裝 OpenSSH Server 服務，這是接受外部 SSH 客戶端連線的必要前提。"
+      },
+      {
+        "cmd": "sudo systemctl enable --now ssh",
+        "desc": "啟動並設定 SSH 服務開機自啟",
+        "explanation": "將 SSH 服務註冊為開機自動啟動，並立即在背景執行（--now 參數）。可搭配 `sudo systemctl status ssh` 檢查服務狀態。"
+      },
+      {
+        "cmd": "sudo ufw allow 22/tcp",
+        "desc": "防火牆放行 SSH 預設埠 (Port 22)",
+        "explanation": "若伺服器啟用了 UFW 防火牆，需開放 TCP Port 22，以允許外部連線封包順利進入。"
+      },
+      {
+        "cmd": "ip a",
+        "desc": "查詢伺服器本機 IP 位址",
+        "explanation": "在伺服器端本機執行，用以查詢當前網卡的 IP 位址（如 192.168.x.x），以便客戶端能夠連線該 IP。"
+      },
+      {
         "cmd": "ssh -p <port> <username>@<server_ip>",
         "desc": "安全外殼連線 (Secure Shell)",
         "explanation": "透過指定通訊埠 (port) 與使用者名稱遠端連線到 Linux 伺服器終端機。"
@@ -47,6 +67,10 @@
       }
     ],
     "faq": [
+      {
+        "question": "問：剛裝好的 Ubuntu 主機，要如何設定才能讓實驗室其他電腦透過 SSH 連線進來？",
+        "answer": "答：被連線的主機（伺服器端）必須安裝並啟動 OpenSSH Server 服務。**完整啟用步驟**：\n1. 更新套件源並安裝服務：`sudo apt update && sudo apt install openssh-server -y`\n2. 啟動並設定開機自啟：`sudo systemctl enable --now ssh`\n3. 檢查運作狀態：`sudo systemctl status ssh`（應顯示 active/running）\n4. 防火牆放行 Port 22：`sudo ufw allow 22/tcp`\n5. 查詢 IP 位址：執行 `ip a` 找到伺服器的區域網路 IP（例如 `192.168.1.120`）。之後外部電腦即可使用 `ssh <username>@192.168.1.120` 進行連線。"
+      },
       {
         "question": "問：為什麼我的 SSH 連線放著一段時間沒動，就會自動斷線卡死？",
         "answer": "答：這是因為網路路由器或防火牆會自動清除長時間沒有資料傳輸的閒置連線。**解決方案**：在本地端電腦的 `~/.ssh/config` 檔案中加入以下設定，讓 SSH 每 60 秒自動傳送一次心跳包 (KeepAlive)：\n```bash\nHost *\n  ServerAliveInterval 60\n  ServerAliveCountMax 3\n```"
