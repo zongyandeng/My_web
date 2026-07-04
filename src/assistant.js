@@ -76,7 +76,7 @@ async function initKnowledgeBase() {
             title: `${note.title} - ${step.name}`,
             content: `${step.details}`,
             category: 'AI 實驗室',
-            url: `ai-learning.html`
+            url: `ai-learning.html?note=${note.id}`
           });
         });
       });
@@ -91,7 +91,7 @@ async function initKnowledgeBase() {
             title: `${cat.title} - ${cmd.desc}`,
             content: `指令: \`${cmd.cmd}\`。 物理意義與說明: ${cmd.explanation}`,
             category: '開發指令查詢',
-            url: `commands.html`
+            url: `commands.html?cat=${cat.category}`
           });
         });
       });
@@ -108,7 +108,7 @@ async function initKnowledgeBase() {
               title: `${hw.title} - ${spec.name}`,
               content: `${spec.value}。物理意義與功能: ${spec.description}`,
               category: '硬體研究室',
-              url: `hardware.html`
+              url: `hardware.html?id=${hw.id}`
             });
           });
         }
@@ -120,7 +120,7 @@ async function initKnowledgeBase() {
               title: `${hw.title} - 推薦顯示卡 ${guide.card}`,
               content: `定位: ${guide.recommendation}。 優點: ${guide.pros}。 缺點: ${guide.cons}`,
               category: '硬體研究室',
-              url: `hardware.html`
+              url: `hardware.html?id=${hw.id}`
             });
           });
         }
@@ -132,7 +132,7 @@ async function initKnowledgeBase() {
               title: `${hw.title} - FAQ 常見問題`,
               content: `${faq.question} ${faq.answer}`,
               category: '硬體研究室',
-              url: `hardware.html`
+              url: `hardware.html?id=${hw.id}`
             });
           });
         }

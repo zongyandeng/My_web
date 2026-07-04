@@ -91,8 +91,42 @@ export async function loadAndRenderAINotes() {
       sidebar.appendChild(li);
     });
 
-    // 2. 預設渲染第一個筆記
-    if (data.length > 0) {
+    // 2. 決定預設要渲染哪一個筆記 (支援 URL 參數)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetNoteId = urlParams.get('note');
+    let matchedNote = null;
+    let matchedIndex = 0;
+
+    if (targetNoteId) {
+      matchedNote = data.find((note, idx) => {
+        if (note.id === targetNoteId) {
+          matchedIndex = idx;
+          return true;
+        }
+        return false;
+      });
+    }
+
+    if (matchedNote) {
+      // 移除原有的 active 狀態，並把目標 item 設為 active
+      document.querySelectorAll('.sidebar-item').forEach((item, idx) => {
+        if (idx === matchedIndex) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      renderSingleAINote(matchedNote);
+      // 精準滾動至內容區頂部
+      setTimeout(() => {
+        const contentContainer = document.getElementById('ai-note-content');
+        if (contentContainer) {
+          const yOffset = -90;
+          const y = contentContainer.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 100);
+    } else if (data.length > 0) {
       renderSingleAINote(data[0]);
     }
 
@@ -513,7 +547,7 @@ export async function loadAndRenderHardware() {
       }
 
       container.innerHTML += `
-        <div class="hardware-card">
+        <div class="hardware-card" data-id="${item.id}">
           <div class="hardware-title-container">
             <h2 class="hardware-card-title">${item.title}</h2>
             <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600; font-family:var(--font-mono);">${item.englishTitle}</span>
@@ -528,6 +562,20 @@ export async function loadAndRenderHardware() {
         </div>
       `;
     });
+
+    // 3. 滾動到指定的硬體項目 (支援 URL 參數)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetId = urlParams.get('id');
+    if (targetId) {
+      setTimeout(() => {
+        const card = document.querySelector(`.hardware-card[data-id="${targetId}"]`);
+        if (card) {
+          const yOffset = -90;
+          const y = card.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 100);
+    }
 
   } catch (error) {
     console.error('載入硬體資料失敗:', error);
@@ -567,8 +615,43 @@ export async function loadAndRenderCommands() {
       sidebar.appendChild(li);
     });
 
-    // 2. 預設載入第一組指令
-    if (data.length > 0) {
+    // 2. 決定預設要渲染哪一個指令群組 (支援 URL 參數)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetCat = urlParams.get('cat');
+    let matchedGroup = null;
+    let matchedIndex = 0;
+
+    if (targetCat) {
+      matchedGroup = data.find((group, idx) => {
+        if (group.category === targetCat) {
+          matchedIndex = idx;
+          return true;
+        }
+        return false;
+      });
+    }
+
+    if (matchedGroup) {
+      // 移除原有的 active 狀態，並把目標 item 設為 active
+      document.querySelectorAll('.sidebar-item').forEach((item, idx) => {
+        if (idx === matchedIndex) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      renderCommandsForGroup(matchedGroup);
+      
+      // 精準滾動至終端機頂部
+      setTimeout(() => {
+        const terminalSimulator = document.querySelector('.terminal-simulator');
+        if (terminalSimulator) {
+          const yOffset = -90;
+          const y = terminalSimulator.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 100);
+    } else if (data.length > 0) {
       renderCommandsForGroup(data[0]);
     }
 
