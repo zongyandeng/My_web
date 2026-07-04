@@ -79,6 +79,14 @@ export async function loadAndRenderAINotes() {
         document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
         li.classList.add('active');
         renderSingleAINote(note);
+
+        // 點擊切換時，精準滾動至內容區頂部（考慮 Navbar 70px + 20px 間距 = 90px）
+        const contentContainer = document.getElementById('ai-note-content');
+        if (contentContainer) {
+          const yOffset = -90;
+          const y = contentContainer.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: y, behavior: 'instant' });
+        }
       });
       sidebar.appendChild(li);
     });
@@ -97,9 +105,6 @@ export async function loadAndRenderAINotes() {
 function renderSingleAINote(note) {
   const container = document.getElementById('ai-note-content');
   if (!container) return;
-
-  // 切換單元時，將視窗滾動回最上方
-  window.scrollTo({ top: 0, behavior: 'instant' });
 
   let stepsHTML = '';
   note.steps.forEach(step => {
@@ -550,6 +555,14 @@ export async function loadAndRenderCommands() {
         document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
         li.classList.add('active');
         renderCommandsForGroup(group);
+
+        // 點擊切換時，精準滾動至終端機頂部（考慮 Navbar 70px + 20px 間距 = 90px）
+        const terminalSimulator = document.querySelector('.terminal-simulator');
+        if (terminalSimulator) {
+          const yOffset = -90;
+          const y = terminalSimulator.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: y, behavior: 'instant' });
+        }
       });
       sidebar.appendChild(li);
     });
@@ -569,9 +582,8 @@ function renderCommandsForGroup(group) {
   const terminalBody = document.getElementById('terminal-body');
   if (!terminalBody) return;
 
-  // 切換單元時，重設終端機內滾動條與視窗滾動條
+  // 切換單元時，重設終端機內部滾動條
   terminalBody.scrollTop = 0;
-  window.scrollTo({ top: 0, behavior: 'instant' });
 
   // 清空終端機
   terminalBody.innerHTML = '';
