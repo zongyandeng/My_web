@@ -1,0 +1,93 @@
+[
+  {
+    "id": "gpu",
+    "title": "AI 與深度學習顯示卡 (GPU) 選購指南",
+    "englishTitle": "GPU Guide for Deep Learning",
+    "description": "在進行深度學習與大語言模型訓練/推論時，GPU 是最核心的硬體。選擇 GPU 時不能只看遊戲幀數，必須聚焦於 VRAM、CUDA 核心數、Tensor Cores 以及顯存頻寬等 AI 指標。",
+    "specs": [
+      {
+        "name": "顯存容量 (VRAM / Video RAM)",
+        "value": "對 AI 最致命的指標",
+        "description": "決定了你能訓練/推論多大的模型，以及訓練時最大能設定的 Batch Size。如果 VRAM 不足，會直接噴出 'CUDA out of memory' 錯誤。大語言模型微調 (Fine-tuning) 至少需要 16GB 以上，推論 7B 模型至少需要 8GB~12GB。"
+      },
+      {
+        "name": "CUDA 核心數 (CUDA Cores)",
+        "value": "並行計算基石",
+        "description": "NVIDIA 的平行運算處理單元。數量越多，基礎矩陣運算與數據並行處理的速度就越快。"
+      },
+      {
+        "name": "張量核心 (Tensor Cores)",
+        "value": "AI 矩陣乘法加速器",
+        "description": "專為深度學習矩陣乘法（如 GEMM）設計的專用硬體。支持半精度 (FP16)、混合精度 (Mixed Precision) 以及 INT8/INT4 計算，能提供數倍於傳統 CUDA Cores 的 AI 算力。"
+      },
+      {
+        "name": "顯存頻寬 (Memory Bandwidth)",
+        "value": "資料傳輸速度",
+        "description": "GPU 核心與顯存之間的資料讀寫速度。在大語言模型推論（如 Token-by-Token 生成）等 Memory-bound 任務中，頻寬甚至比算力更決定速度。"
+      }
+    ],
+    "guides": [
+      {
+        "card": "RTX 4060 Ti (16GB)",
+        "recommendation": "學術預算有限首選 (個人專題神器)",
+        "pros": "擁有 16GB 大顯存，能吃得下較大的模型與較大 Batch Size，價格親民。",
+        "cons": "顯存位寬僅 128-bit，頻寬較低，在大型模型推論上速度會受到限制。"
+      },
+      {
+        "card": "RTX 4070 SUPER / 4070 Ti SUPER (16GB)",
+        "recommendation": "中階主流推薦",
+        "pros": "4070 Ti SUPER 具備 16GB 顯存，且擁有 256-bit 位寬與更多 Tensor Cores，速度與容量兼具。",
+        "cons": "價格偏高，需注意電源瓦數與機殼空間。"
+      },
+      {
+        "card": "RTX 4090 (24GB)",
+        "recommendation": "消費級旗艦 (預算充裕終極選擇)",
+        "pros": "24GB 巨大顯存，算力極強，無論微調小模型還是加速訓練都極快。",
+        "cons": "非常昂貴，功耗極高 (450W+)，需要高規格電源與水冷/高散熱通風機殼。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：為什麼組 AI 電腦不推薦 AMD 的顯示卡 (Radeon)？",
+        "answer": "答：因為目前整個 AI / 深度學習生態系（如 PyTorch、TensorFlow、HuggingFace、LLaMA C++ 等）都是圍繞著 NVIDIA 的 **CUDA** 架構開發的。雖然 AMD 有 ROCm，但在相容性、社群除錯資源與安裝難度上，NVIDIA 依舊擁有壓倒性優勢。為了不把時間浪費在搞環境上，強烈建議選擇 NVIDIA 顯示卡。"
+      },
+      {
+        "question": "問：訓練模型時一直遇到 'RuntimeError: CUDA out of memory' 怎麼辦？",
+        "answer": "答：這是新手最常遇到的問題。**解決方法**：1. **調小 Batch Size**：如將 `batch_size=32` 改為 `16` 或 `8`。2. **使用梯度累積 (Gradient Accumulation)**：如果需要大 Batch Size，可以設定小 Batch Size 跑數次，再統一做一次 optimizer.step()。3. **開啟混合精度訓練 (Mixed Precision / FP16)**：使用 PyTorch `torch.cuda.amp.autocast()`。4. **清除 PyTorch 快取**：在程式碼中適當調用 `torch.cuda.empty_cache()`。"
+      }
+    ]
+  },
+  {
+    "id": "ssd",
+    "title": "固態硬碟 (SSD) 規格與選購要點",
+    "englishTitle": "SSD Specifications & Guide",
+    "description": "在深度學習訓練中，大批量的圖片、文字、音訊等資料集需要不斷從硬碟載入到記憶體與 GPU 顯存。如果硬碟速度太慢，GPU 就會經常處於 Idle (閒置) 狀態等待資料輸入，造成算力浪費。因此，高性能的 NVMe SSD 是必備硬體。",
+    "specs": [
+      {
+        "name": "NVMe 協定與 PCIe 世代",
+        "value": "決定讀寫速度上限",
+        "description": "目前主流為 PCIe 4.0 (讀寫約 5000-7500 MB/s)，最新為 PCIe 5.0 (讀寫可達 10000-14000 MB/s)。對 AI 載入資料集來說，PCIe 4.0 已經非常充裕，PCIe 5.0 價格昂貴且發熱量極大。"
+      },
+      {
+        "name": "DRAM 快取 (DRAM Cache)",
+        "value": "系統碟與寫入防掉速關鍵",
+        "description": "配有獨立實體記憶體顆粒的 SSD。DRAM 用於存放對照表 (FTL Mapping Table)，在頻繁讀寫小檔案（如圖片資料集、代碼庫）時，有 DRAM 的 SSD 速度與壽命會好很多。無 DRAM (DRAM-less) 的 SSD 適合當單純的遊戲/冷資料儲存碟。"
+      },
+      {
+        "name": "寫入壽命 (TBW / Terabytes Written)",
+        "value": "硬碟耐用度指標",
+        "description": "代表該 SSD 保固內保證能寫入的總資料量。AI 訓練時經常需要頻繁下載大資料集、解壓縮、寫入 checkpoint 模型權重檔，因此一定要選擇 TBW 較高的 SSD。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：為什麼我的 M.2 NVMe SSD 寫入大量模型檔案後，速度會突然腰斬甚至變得比 HDD 還慢？",
+        "answer": "答：這通常是因為觸發了 **SLC Cache 耗盡**。多數 SSD（特別是 TLC/QLC 顆粒）會劃分一部分空間模擬成高速的 SLC 進行緩衝。當你一次性寫入幾百 GB 的大檔案（如大模型權重）時，緩衝區被填滿，SSD 必須一邊把資料寫入 TLC 一邊進行垃圾回收，速度就會暴跌。**解決方案**：選購時確認 SSD 的「快外直寫速度」或選擇擁有較大 SLC Cache、有實體 DRAM 快取的旗艦款 SSD。"
+      },
+      {
+        "question": "問：SSD 溫度高達 70 度以上，會影響模型訓練嗎？",
+        "answer": "答：會。NVMe SSD 在高溫下會啟動「過熱保護機制 (Thermal Throttling)」，自動降低讀寫速度以防止晶片損毀，這會導致資料讀取變慢，拖累 GPU 訓練效率。**解決方案**：主機板上務必安裝 SSD 散熱片，並確保機殼內風道良好。"
+      }
+    ]
+  }
+]

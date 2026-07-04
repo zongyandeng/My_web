@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="deepspace">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>硬體研究室 | Edison.Dev</title>
+  <meta name="description" content="Edison 的個人組電腦與 AI 訓練硬體（GPU 顯卡、SSD 固態硬碟）科普與選購研究筆記。">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+  <!-- 動態流光背景 -->
+  <div class="dynamic-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- 頂部導覽列 -->
+  <nav class="navbar">
+    <a href="/index.html" class="nav-logo">
+      <span>🌌 Edison.Dev</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">首頁</a></li>
+      <li><a href="/profile.html">個人經歷</a></li>
+      <li><a href="/ai-learning.html">AI 實驗室</a></li>
+      <li><a href="/hardware.html" class="active">硬體研究</a></li>
+      <li><a href="/commands.html">指令查詢</a></li>
+    </ul>
+    <button class="theme-toggle-btn" id="theme-toggle">
+      🌌 Deep Space
+    </button>
+  </nav>
+
+  <!-- 硬體研究室容器 -->
+  <main class="container">
+    <header class="page-header">
+      <h1 class="page-title">硬體研究室</h1>
+      <p class="page-desc">
+        研究 AI 深度學習不可忽略底層硬體規格。這裡記錄了我對組裝電腦、顯卡選購及 SSD 的研究與心得。分析了 CUDA 核心、顯存位寬 (VRAM) 以及 PCIe 讀寫速度對模型訓練的實質影響。
+      </p>
+    </header>
+
+    <!-- 卡片展示區 -->
+    <div class="hardware-grid" id="hardware-container">
+      <!-- 由 renderer.js 動態渲染 -->
+      <p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">正在載入硬體科普內容，請稍候...</p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadAndRenderHardware } from '/src/renderer.js';
+    window.addEventListener('DOMContentLoaded', loadAndRenderHardware);
+  </script>
+</body>
+</html>

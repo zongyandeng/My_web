@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="deepspace">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>個人經歷與榮譽 | Edison.Dev</title>
+  <meta name="description" content="Edison 的個人經歷與競賽獲獎時間軸展示。">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+  <!-- 動態流光背景 -->
+  <div class="dynamic-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- 頂部導覽列 -->
+  <nav class="navbar">
+    <a href="/index.html" class="nav-logo">
+      <span>🌌 Edison.Dev</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">首頁</a></li>
+      <li><a href="/profile.html" class="active">個人經歷</a></li>
+      <li><a href="/ai-learning.html">AI 實驗室</a></li>
+      <li><a href="/hardware.html">硬體研究</a></li>
+      <li><a href="/commands.html">指令查詢</a></li>
+    </ul>
+    <button class="theme-toggle-btn" id="theme-toggle">
+      🌌 Deep Space
+    </button>
+  </nav>
+
+  <!-- 經歷內容區 -->
+  <main class="container">
+    <header class="page-header">
+      <h1 class="page-title">個人經歷與榮譽</h1>
+      <p class="page-desc">
+        這裡記錄了我的學術歷程、參與過的各項競賽與獲獎紀錄。我熱衷於將所學技術應用於實際問題中，並不斷在實驗室研究與專案實作中探索新的領域。
+      </p>
+    </header>
+
+    <!-- 時間軸 (Timeline) -->
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-badge"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2026 年 5 月</div>
+          <h3 class="timeline-title">🏆 全國大專院校 AI 應用創新競賽 - 特優</h3>
+          <p class="timeline-desc">
+            與實驗室夥伴共同開發了一個基於 RAG 技術的「校園私有知識庫問答機器人」。我們實作了語意切分 (Semantic Chunking) 與向量重排 (Rerank)，使模型問答準確度提升了 35%，在近百個參賽隊伍中脫穎而出榮獲特優。
+          </p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-badge"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2025 年 11 月</div>
+          <h3 class="timeline-title">🔬 加入實驗室開始專題研究</h3>
+          <p class="timeline-desc">
+            正式加入人工智慧與資料科學實驗室，在指導教授引導下開啟「大語言模型微調與檢索增強生成 (RAG)」專題。開始學習如何使用 GPU 伺服器進行模型訓練、評估混淆矩陣、以及解讀 Loss 曲線圖。
+          </p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-badge"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2025 年 9 月</div>
+          <h3 class="timeline-title">💻 全國程式設計大賽 - 優等</h3>
+          <p class="timeline-desc">
+            參加全國性演算法競賽，解決了涉及動態規劃 (Dynamic Programming)、圖論與字串處理的演算法難題，獲得優等名次，奠定了紮實的程式邏輯基礎。
+          </p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-badge"></div>
+        <div class="timeline-content">
+          <div class="timeline-date">2024 年 9 月</div>
+          <h3 class="timeline-title">🎓 大學入學與資訊社群參與</h3>
+          <p class="timeline-desc">
+            進入大學資訊工程學系就讀，積極參與黑客松與開源軟體社群活動，對 Linux 系統操作與開源生態產生濃厚興趣。
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/src/renderer.js"></script>
+</body>
+</html>

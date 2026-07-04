@@ -1,0 +1,202 @@
+[
+  {
+    "category": "ssh_ubuntu",
+    "title": "Ubuntu 伺服器與 SSH 連線指南",
+    "englishTitle": "Ubuntu Server & SSH Command Reference",
+    "description": "介紹如何連線至實驗室的 Ubuntu 伺服器進行開發，並透過 GPU 狀態監控與背景進程管理 (tmux) 確保訓練不會因斷線而中斷。",
+    "commands": [
+      {
+        "cmd": "ssh -p <port> <username>@<server_ip>",
+        "desc": "安全外殼連線 (Secure Shell)",
+        "explanation": "透過指定通訊埠 (port) 與使用者名稱遠端連線到 Linux 伺服器終端機。"
+      },
+      {
+        "cmd": "nvidia-smi",
+        "desc": "NVIDIA 系統管理界面 (NVIDIA System Management Interface)",
+        "explanation": "查看當前 GPU 的使用率、溫度、顯存佔用 (VRAM) 以及運行中的進程，是 AI 開發者最常用的指令。"
+      },
+      {
+        "cmd": "watch -n 1 nvidia-smi",
+        "desc": "動態監控 GPU 狀態",
+        "explanation": "每隔 1 秒 (設定 -n 1) 自動執行 nvidia-smi，即時看見模型訓練時顯存與算力的跳動。"
+      },
+      {
+        "cmd": "tmux new -s <session_name>",
+        "desc": "建立新的終端機多路復用會話 (New tmux Session)",
+        "explanation": "建立一個獨立的虛擬終端會話。在 tmux 中跑程式，即使 SSH 斷開連線，程式依然會在伺服器背景持續運行。"
+      },
+      {
+        "cmd": "tmux attach -t <session_name>",
+        "desc": "重新連接 tmux 會話 (Attach Session)",
+        "explanation": "當你重新連線 SSH 後，可以用此指令回到之前的訓練終端畫面。"
+      },
+      {
+        "cmd": "tmux ls",
+        "desc": "列出所有 tmux 會話",
+        "explanation": "顯示當前正在背景運行的所有 tmux 會話名稱與數量。"
+      },
+      {
+        "cmd": "df -h",
+        "desc": "檢查磁碟剩餘空間 (Disk Free)",
+        "explanation": "以易讀的格式 (GB/TB) 列出伺服器上所有硬碟的分區與可用容量，防止硬碟爆掉。"
+      },
+      {
+        "cmd": "free -h",
+        "desc": "檢查記憶體狀態 (Free Memory)",
+        "explanation": "查看伺服器實體記憶體 (RAM) 與虛擬記憶體 (Swap) 的總量、使用中與剩餘空間。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：為什麼我的 SSH 連線放著一段時間沒動，就會自動斷線卡死？",
+        "answer": "答：這是因為網路路由器或防火牆會自動清除長時間沒有資料傳輸的閒置連線。**解決方案**：在本地端電腦的 `~/.ssh/config` 檔案中加入以下設定，讓 SSH 每 60 秒自動傳送一次心跳包 (KeepAlive)：\n```bash\nHost *\n  ServerAliveInterval 60\n  ServerAliveCountMax 3\n```"
+      },
+      {
+        "question": "問：在 tmux 裡面我要怎麼滾動螢幕看之前的 Log？",
+        "answer": "答：tmux 預設不允許直接用滑鼠滾輪滾動。**解決方案**：1. 按下快捷鍵 `Ctrl + B`，放開後按下 `[` (中括號)，此時右上方會出現行數，你就可以使用方向鍵或滑鼠滾輪滾動了。按 `Q` 鍵即可退出滾動模式。2. 也可以在 `~/.tmux.conf` 中加入 `set -g mouse on` 開啟滑鼠支援。"
+      }
+    ]
+  },
+  {
+    "category": "git",
+    "title": "Git 常用版本控制指令",
+    "englishTitle": "Git Version Control Reference",
+    "description": "整理實驗室專案開發與 GitHub 協作時最常使用的 Git 版本控制指令。",
+    "commands": [
+      {
+        "cmd": "git clone <repo_url>",
+        "desc": "複製遠端儲存庫 (Clone Repository)",
+        "explanation": "下載 GitHub 上的完整專案程式碼與歷史紀錄到本地端。"
+      },
+      {
+        "cmd": "git status",
+        "desc": "檢查當前檔案狀態 (Git Status)",
+        "explanation": "查看哪些檔案被修改了、哪些檔案還沒加入追蹤、以及當前處於哪個分支。"
+      },
+      {
+        "cmd": "git add .",
+        "desc": "將所有變更加入暫存區 (Stage Changes)",
+        "explanation": "將當前目錄下所有新增、修改的檔案標記為準備提交的狀態。"
+      },
+      {
+        "cmd": "git commit -m \"<commit_message>\"",
+        "desc": "提交變更並撰寫訊息 (Commit)",
+        "explanation": "將暫存區的變更正式存入 Git 歷史紀錄中，建議用具描述性的文字說明修改了什麼。"
+      },
+      {
+        "cmd": "git push origin <branch_name>",
+        "desc": "推送到遠端儲存庫 (Push to Remote)",
+        "explanation": "將本地端的 Commit 紀錄上傳到 GitHub 對應的分支。"
+      },
+      {
+        "cmd": "git pull origin <branch_name>",
+        "desc": "拉取遠端最新變更並合併 (Pull)",
+        "explanation": "下載 GitHub 上最新的程式碼，並自動與本地端的程式碼進行合併。"
+      },
+      {
+        "cmd": "git checkout -b <new_branch>",
+        "desc": "建立並切換到新分支 (New Branch)",
+        "explanation": "以目前的分支為基礎建立一個獨立的新分支並切換過去，適用於開發新功能時。"
+      },
+      {
+        "cmd": "git stash",
+        "desc": "暫存當前未提交的工作 (Stash)",
+        "explanation": "當你程式寫到一半需要緊急切換分支去修 Bug，但又不想把寫一半的亂碼 Commit 時，可以用此指令把修改暫存起來，使工作區變乾淨。修完後用 `git stash pop` 還原。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：當我執行 git push 時，噴出 'Updates were rejected because the remote contains work...' 錯誤該怎麼辦？",
+        "answer": "答：這代表 GitHub 上的程式碼比你本地端新（可能是別的組員提交了新代碼）。**解決方案**：先執行 `git pull origin main` 將遠端變更拉取下來。如果產生衝突 (Conflicts)，手動開啟檔案解決衝突部分，再次 `git add .`、`git commit` 即可重新 `git push`。"
+      }
+    ]
+  },
+  {
+    "category": "docker",
+    "title": "Docker 容器操作指令",
+    "englishTitle": "Docker Container Management Guide",
+    "description": "介紹如何使用 Docker 建立隔離的深度學習環境，避免不同專案因 PyTorch 或 CUDA 版本不同而產生衝突。",
+    "commands": [
+      {
+        "cmd": "docker run -it --gpus all --name <container_name> -v <host_path>:<container_path> pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel bash",
+        "desc": "啟動支援 GPU 的 PyTorch 容器",
+        "explanation": "最核心的 Docker 指令：1. `--gpus all` 允許容器存取主機的 GPU。2. `-v` 進行硬碟目錄掛載，將主機的專案目錄映射到容器內部，方便修改程式碼。3. 使用指定 CUDA 版本的 PyTorch 映像檔。"
+      },
+      {
+        "cmd": "docker ps",
+        "desc": "列出運行中的容器 (List Running Containers)",
+        "explanation": "查看當前正在背景執行的容器 ID、名稱與映射埠口。"
+      },
+      {
+        "cmd": "docker ps -a",
+        "desc": "列出所有容器 (List All Containers)",
+        "explanation": "顯示所有容器，包括已經停止運行 (Exited) 的容器。"
+      },
+      {
+        "cmd": "docker exec -it <container_name> bash",
+        "desc": "進入已在運行的容器 (Execute Command in Container)",
+        "explanation": "當容器在背景運行時，透過此指令開啟一個新的互動式終端機進入容器內部。"
+      },
+      {
+        "cmd": "docker stop <container_name>",
+        "desc": "停止運行中的容器 (Stop Container)",
+        "explanation": "安全地向容器發送停止訊號，釋放其佔用的資源。"
+      },
+      {
+        "cmd": "docker rm <container_name>",
+        "desc": "刪除容器 (Remove Container)",
+        "explanation": "將已停止運行的容器完全刪除以釋放磁碟空間。"
+      },
+      {
+        "cmd": "docker images",
+        "desc": "列出本地所有映像檔 (List Images)",
+        "explanation": "查看本地硬碟中已經下載或自己編譯的 Docker Images 列表與容量大小。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：為什麼在 Docker 容器內 import torch，接著呼叫 torch.cuda.is_available() 會回傳 False？",
+        "answer": "答：這通常是因為在 `docker run` 啟動容器時，忘記加上 `--gpus all` 參數，或者主機的 NVIDIA Container Toolkit 未正確安裝，導致 Docker 容器內無法存取主機實體 GPU。**解決方案**：1. 確認主機執行 `nvidia-smi` 正常。2. 安裝 NVIDIA Container Toolkit。3. 重新建立容器並加上 `--gpus all`。"
+      }
+    ]
+  },
+  {
+    "category": "pytorch",
+    "title": "PyTorch 常用 API 手冊",
+    "englishTitle": "PyTorch Core API Reference",
+    "description": "整理在建立深度學習模型與進行模型訓練時，最核心常用的 PyTorch API。",
+    "commands": [
+      {
+        "cmd": "device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')",
+        "desc": "動態選擇運算硬體 (Device Configuration)",
+        "explanation": "檢查主機是否有可用的 GPU (CUDA)，有的話就將模型與資料放到 GPU 加速，否則使用 CPU 慢速運行。"
+      },
+      {
+        "cmd": "tensor = torch.tensor(data, dtype=torch.float32).to(device)",
+        "desc": "建立張量並傳送至 GPU (Create & Move Tensor)",
+        "explanation": "將 Python List 或 NumPy Array 轉為 PyTorch Tensor，並載入到指定硬體 (device) 上。"
+      },
+      {
+        "cmd": "class Net(nn.Module):\n    def __init__(self):\n        super().__init__()\n        self.fc = nn.Linear(in_features, out_features)\n    def forward(self, x):\n        return self.fc(x)",
+        "desc": "定義神經網路模型 (Define NN Model)",
+        "explanation": "繼承 `nn.Module` 是在 PyTorch 中宣告模型的標準寫法。必須在 `__init__` 定義網路層，並在 `forward` 定義前向傳播的矩陣流動邏輯。"
+      },
+      {
+        "cmd": "criterion = nn.CrossEntropyLoss()\noptimizer = optim.Adam(model.parameters(), lr=0.001)",
+        "desc": "宣告損失函數與最佳化器",
+        "explanation": "為模型設定訓練目標（如 CrossEntropyLoss 用於分類，MSELoss 用於回歸），並選用優化器（如 Adam 或是 SGD）來更新權重參數。"
+      },
+      {
+        "cmd": "loader = DataLoader(dataset, batch_size=32, shuffle=True)",
+        "desc": "資料載入器 (Data Loader)",
+        "explanation": "將自訂資料集 (Dataset) 包裝，自動實現隨機打亂 (shuffle)、批次讀取 (batch_size) 與多線程平行載入 (num_workers)。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：為什麼在模型評估 (Evaluation) 時要加上 model.eval() 與 with torch.no_grad()？",
+        "answer": "答：這兩個有著不同的作用。`model.eval()` 會將模型切換至評估模式，這會關閉 Dropout 層，並讓 Batch Normalization 使用歷史累積的均值與方差。而 `with torch.no_grad()` 則會告訴 PyTorch「不需要計算梯度與建立計算圖」，這能大幅減少記憶體佔用並加速推論速度。"
+      }
+    ]
+  }
+]

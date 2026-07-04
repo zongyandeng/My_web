@@ -1,0 +1,147 @@
+[
+  {
+    "id": "rag",
+    "title": "檢索增強生成 (Retrieval-Augmented Generation - RAG)",
+    "englishTitle": "Retrieval-Augmented Generation",
+    "description": "RAG 是一種結合外部知識庫檢索與大型語言模型 (LLM) 生成的技術。它能有效解決 LLM 訓練資料時效性落後與幻覺 (Hallucination) 的問題，特別適用於企業私有知識庫與專題問答系統。",
+    "steps": [
+      {
+        "name": "1. 文件準備與寫入 (Document Ingestion & Parsing)",
+        "details": "將 PDF、Markdown 或 TXT 等非結構化文件讀入，並清除無用的特殊字元或版面資訊。"
+      },
+      {
+        "name": "2. 文字分塊 (Text Chunking)",
+        "details": "因為 LLM 有 Context Window 限制，且太長的 Context 會稀釋重點，需要將文件切分成固定大小或語意完整的區塊 (Chunks)。例如：設定 Chunk Size = 500 characters, Chunk Overlap = 50 characters。"
+      },
+      {
+        "name": "3. 向量化 (Embedding)",
+        "details": "使用 Embedding 模型 (例如 OpenAI text-embedding-3-small 或 local 的 HuggingFace 模型) 將每一個文字塊轉換成高維度的實數向量 (Vector)，代表其語意特徵。"
+      },
+      {
+        "name": "4. 儲存至向量資料庫 (Vector Database Storage)",
+        "details": "將 Chunks 以及對應的 Embedding 向量存入資料庫（如 Chroma, FAISS, Milvus 等），並建立向量索引以加速檢索。"
+      },
+      {
+        "name": "5. 語意檢索 (Semantic Retrieval)",
+        "details": "當使用者輸入 Query 時，同樣將 Query 轉為向量，在資料庫中計算餘弦相似度 (Cosine Similarity)，檢索出最相關的 Top-K 個 Chunks。"
+      },
+      {
+        "name": "6. 提示詞拼接與生成 (Augmentation & Generation)",
+        "details": "將檢索出的 Top-K Chunks 作為「背景上下文 (Context)」，與使用者的原始問題拼接成一個豐富的 Prompt，送給 LLM 生成最終回答。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "餘弦相似度 (Cosine Similarity)",
+        "latex": "\\text{Similarity}(\\mathbf{A}, \\mathbf{B}) = \\frac{\\mathbf{A} \\cdot \\mathbf{B}}{\\|\\mathbf{A}\\| \\|\\mathbf{B}\\|} = \\frac{\\sum_{i=1}^{n} A_i B_i}{\\sqrt{\\sum_{i=1}^{n} A_i^2} \\sqrt{\\sum_{i=1}^{n} B_i^2}}",
+        "description": "用於衡量 Query 向量 A 與知識庫 Chunks 向量 B 在語意空間中的方向接近程度，數值介於 -1 到 1 之間，越接近 1 代表語意越相似。"
+      }
+    ],
+    "code": "import torch\nimport torch.nn.functional as F\n\n# 假設我們有 Query 向量與 Context 向量 (維度 384)\nquery_vector = torch.randn(1, 384)\ncontext_vector = torch.randn(1, 384)\n\n# 使用 PyTorch 計算餘弦相似度\nsimilarity = F.cosine_similarity(query_vector, context_vector)\nprint(f\"餘弦相似度: {similarity.item():.4f}\")\n\n# 簡單的 LangChain RAG 鏈結範例說明：\n# qa_chain = RetrievalQA.from_chain_type(\n#     llm=ChatOpenAI(model=\"gpt-4-turbo\"),\n#     chain_type=\"stuff\",\n#     retriever=vectorstore.as_retriever(search_kwargs={\"k\": 3})\n# )",
+    "faq": [
+      {
+        "question": "問：為什麼 RAG 檢索出來的內容很多噪音或不相關？",
+        "answer": "答：這通常是因為 Chunking 策略不佳。如果 Chunk Size 太大，會包含太多雜訊；如果太小，則會失去上下文。**解決方案**：1. 嘗試語意分塊 (Semantic Chunking)。2. 引入 Rerank 機制（如 Cohere Rerank），在第一階段檢索出 20 個 Chunks 後，使用高精度的 Rerank 模型二次篩選出最相關的 Top 3-5 個。"
+      },
+      {
+        "question": "問：LLM 雖然拿到了正確的 Context，但依然會自己胡說八道（幻覺）怎麼辦？",
+        "answer": "答：這與 Temperature 設定以及 System Prompt 有關。**解決方案**：1. 將 LLM 的 Temperature 設為 0，使其輸出高度確定。2. 在 System Prompt 中嚴格限制：'You must ONLY answer the question based on the provided context. If the answer cannot be found in the context, reply \"I don't know\". Do not make up information.'"
+      }
+    ]
+  },
+  {
+    "id": "confusion_matrix",
+    "title": "分類模型評估指標：混淆矩陣 (Confusion Matrix)",
+    "englishTitle": "Confusion Matrix & Evaluation Metrics",
+    "description": "混淆矩陣是二分類或多分類模型預測結果的整理表格，用以展示真實類別與預測類別的分布情況。透過混淆矩陣，我們可以推導出 Accuracy、Precision、Recall 等核心模型評估指標，避免因樣本不平衡而產生評估盲點。",
+    "steps": [
+      {
+        "name": "1. 真陽性 (True Positive - TP)",
+        "details": "實際為正樣本 (Positive)，且模型也預測為正樣本的數量。"
+      },
+      {
+        "name": "2. 偽陽性 (False Positive - FP)",
+        "details": "實際為負樣本 (Negative)，但模型錯誤預測為正樣本的數量 (又稱 Type I error，假警報)。"
+      },
+      {
+        "name": "3. 偽陰性 (False Negative - FN)",
+        "details": "實際為正樣本 (Positive)，但模型錯誤預測為負樣本的數量 (又稱 Type II error，漏警報)。"
+      },
+      {
+        "name": "4. 真陰性 (True Negative - TN)",
+        "details": "實際為負樣本 (Negative)，且模型也預測為負樣本的數量。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "準確率 (Accuracy)",
+        "latex": "\\text{Accuracy} = \\frac{\\text{TP} + \\text{TN}}{\\text{TP} + \\text{TN} + \\text{FP} + \\text{FN}}",
+        "description": "預測正確的樣本佔總樣本的比例。當樣本不平衡時（例如 99% 的樣本是負樣本），此指標失效。"
+      },
+      {
+        "name": "精準率 / 陽性預測值 (Precision)",
+        "latex": "\\text{Precision} = \\frac{\\text{TP}}{\\text{TP} + \\text{FP}}",
+        "description": "在所有被預測為「正樣本」的資料中，有多少是真的正樣本。**適用場景**：FP 的代價很高時（例如：垃圾郵件過濾。要是把正常重要信件 (FP) 誤判為垃圾郵件，用戶會很生氣）。"
+      },
+      {
+        "name": "召回率 / 敏感度 (Recall / Sensitivity)",
+        "latex": "\\text{Recall} = \\frac{\\text{TP}}{\\text{TP} + \\text{FN}}",
+        "description": "在所有「實際為正樣本」的資料中，有多少被模型成功預測出來。**適用場景**：FN 的代價很高時（例如：癌症檢測、地震預警。要是把癌症患者 (FN) 漏判成健康，會延誤黃金治療期）。"
+      },
+      {
+        "name": "F1 分數 (F1-Score)",
+        "latex": "\\text{F1-Score} = 2 \\times \\frac{\\text{Precision} \\times \\text{Recall}}{\\text{Precision} + \\text{Recall}}",
+        "description": "Precision 與 Recall 的調和平均數。當 Precision 與 Recall 互有消長 (Trade-off) 時，F1-Score 能作為綜合性評估指標。"
+      }
+    ],
+    "code": "from sklearn.metrics import confusion_matrix, classification_report\nimport matplotlib.pyplot as plt\nimport seaborn as sns\n\n# 實際標籤與預測標籤\ny_true = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0]\ny_pred = [0, 1, 0, 0, 0, 1, 1, 1, 1, 0]\n\n# 計算混淆矩陣\ncm = confusion_matrix(y_true, y_pred)\nprint(\"混淆矩陣:\\n\", cm)\n\n# 印出 Precision, Recall, F1-Score 報告\nprint(\"\\n分類報告:\\n\", classification_report(y_true, y_pred))\n\n# 繪製美化混淆矩陣\nsns.heatmap(cm, annot=True, fmt='d', cmap='Blues', \n            xticklabels=['Negative', 'Positive'], \n            yticklabels=['Negative', 'Positive'])\nplt.xlabel('Predicted')\nplt.ylabel('Actual')\nplt.show()",
+    "faq": [
+      {
+        "question": "問：為什麼在醫學診斷模型中，Recall 會比 Precision 重要？",
+        "answer": "答：因為在醫療場景下，「漏診 (FN)」的後果極度嚴重（患者可能因此喪命），而「誤診 (FP)」頂多讓患者做進一步檢查確認。因此，我們必須最大化 Recall，哪怕這會降低 Precision。"
+      },
+      {
+        "question": "問：如果我的測試集裡正樣本只有 1%，如何評估模型好壞？",
+        "answer": "答：此時千萬不要相信 Accuracy (因為盲猜全部為負樣本就能有 99% 的 Accuracy)。**解決方案**：應優先觀察 **F1-Score** 與 **PR 曲線 (Precision-Recall Curve)**。PR 曲線下方的面積 (AUPRC) 比 ROC 曲線的面積 (AUROC) 更能真實反映極度不平衡資料集上的模型表現。"
+      }
+    ]
+  },
+  {
+    "id": "loss_curves",
+    "title": "訓練指標折線圖解讀 (Train/Val Loss & Accuracy Curves)",
+    "englishTitle": "Analyzing Loss & Accuracy Curves",
+    "description": "在神經網路訓練過程中，我們會將每個 Epoch 的訓練集損失 (Train Loss) 與驗證集損失 (Val Loss)、精度 (Accuracy) 記錄下來繪製成折線圖。這是診斷模型是處於過擬合、欠擬合還是正常收斂的最直接手段。",
+    "steps": [
+      {
+        "name": "1. 正常收斂 (Good Fit)",
+        "details": "隨著 Epoch 增加，Train Loss 與 Val Loss 皆穩定下降，且兩者差距不大，最後趨於平緩。Val Accuracy 則穩定上升並趨於穩定。"
+      },
+      {
+        "name": "2. 過擬合 (Overfitting)",
+        "details": "Train Loss 持續下降，甚至接近 0。但 Val Loss 在下降到某個點後，開始反彈上升。這代表模型「死記硬背」了訓練集的特徵，失去了對新資料的推廣泛化能力。"
+      },
+      {
+        "name": "3. 欠擬合 (Underfitting)",
+        "details": "Train Loss 與 Val Loss 都維持在很高的數值降不下來，或者下降非常緩慢。這代表模型連訓練集的特徵都學不好，通常是因為模型容量不足或學習率太大。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "多分類交叉熵損失 (Cross-Entropy Loss)",
+        "latex": "\\mathcal{L}_{CE} = -\\frac{1}{N} \\sum_{i=1}^{N} \\sum_{c=1}^{C} y_{i,c} \\log(\\hat{y}_{i,c})",
+        "description": "用於分類任務中衡量模型預測機率分布 $\\hat{y}$ 與真實標籤 one-hot 分布 $y$ 之間的差異。模型預測越準，Loss 越接近 0。"
+      }
+    ],
+    "code": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\n\n# 假設模型、資料載入器已定義\nmodel = nn.Linear(10, 2)\ncriterion = nn.CrossEntropyLoss()\noptimizer = optim.Adam(model.parameters(), lr=0.001)\n\ntrain_losses = []\nval_losses = []\n\n# 訓練 Loop 範例\nfor epoch in range(100):\n    model.train()\n    # ... 載入 train_loader 計算 loss ...\n    loss = criterion(outputs, targets)\n    optimizer.zero_grad()\n    loss.backward()\n    optimizer.step()\n    \n    # 記錄每個 Epoch 的 Loss 以繪製折線圖\n    train_losses.append(loss.item())\n    \n    # 驗證模式\n    model.eval()\n    with torch.no_grad():\n        # ... 計算 val_loss ...\n        val_losses.append(val_loss.item())",
+    "faq": [
+      {
+        "question": "問：我的模型過擬合 (Overfitting) 了，折線圖中 Val Loss 狂飆，該如何解決？",
+        "answer": "答：**常見對策**：1. **Dropout**：在神經網路層間加入 Dropout Layer，訓練時隨機關閉部分神經元。2. **權重衰減 (Weight Decay)**：在優化器中開啟 L2 正則化（例如 `optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)`）。3. **早停法 (Early Stopping)**：當 Val Loss 連續數個 Epoch 沒有下降時，提前終止訓練並保存最佳模型。4. **數據增強 (Data Augmentation)**：增加訓練資料的多樣性。"
+      },
+      {
+        "question": "問：Train Loss 比 Val Loss 還要高是正常的嗎？",
+        "answer": "答：在訓練初期或是有加入強烈的 Regularization (如高比例的 Dropout, Data Augmentation) 時是正常的。因為訓練時模型受到 Regularization 的限制，而在驗證時這些限制會關閉 (model.eval())，因此驗證集表現反而可能更好。但如果是訓練中後期依然如此，需要檢查驗證集與訓練集是否分布不均（例如驗證集太過簡單）。"
+      }
+    ]
+  }
+]

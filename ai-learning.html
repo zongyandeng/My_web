@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="deepspace">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 學習實驗室 | Edison.Dev</title>
+  <meta name="description" content="Edison 的 AI 與 RAG 學習筆記，包含混淆矩陣評估指標與訓練折線圖意義解讀。">
+  <link rel="stylesheet" href="/src/style.css">
+  
+  <!-- CDN 載入 KaTeX 數學公式渲染 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- CDN 載入 Prism.js 程式碼語法高亮 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+
+  <!-- 動態流光背景 -->
+  <div class="dynamic-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- 頂部導覽列 -->
+  <nav class="navbar">
+    <a href="/index.html" class="nav-logo">
+      <span>🌌 Edison.Dev</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/index.html">首頁</a></li>
+      <li><a href="/profile.html">個人經歷</a></li>
+      <li><a href="/ai-learning.html" class="active">AI 實驗室</a></li>
+      <li><a href="/hardware.html">硬體研究</a></li>
+      <li><a href="/commands.html">指令查詢</a></li>
+    </ul>
+    <button class="theme-toggle-btn" id="theme-toggle">
+      🌌 Deep Space
+    </button>
+  </nav>
+
+  <!-- AI 學習實驗室容器 -->
+  <main class="container">
+    <header class="page-header">
+      <h1 class="page-title">AI 學習實驗室</h1>
+      <p class="page-desc">
+        這裡整理了我研究 AI 專題時的核心知識，包含 RAG 運作流程、混淆矩陣指標以及模型收斂折線圖的解讀。內建數學公式渲染、Python 程式碼與可互動的圖表，點選左側目錄即可開始探索。
+      </p>
+    </header>
+
+    <div class="notes-layout">
+      <!-- 左側選單 -->
+      <aside class="sidebar">
+        <h3 class="sidebar-title">筆記單元</h3>
+        <ul class="sidebar-menu" id="ai-sidebar-menu">
+          <!-- 由 renderer.js 動態產生 -->
+          <li class="sidebar-item">Loading...</li>
+        </ul>
+      </aside>
+
+      <!-- 右側內容區 -->
+      <section class="note-content-container" id="ai-note-content">
+        <!-- 由 renderer.js 動態渲染 -->
+        <p style="color: var(--text-muted)">正在載入筆記內容，請稍候...</p>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadAndRenderAINotes } from '/src/renderer.js';
+    
+    // 確保 KaTeX 載入完成後再執行渲染
+    window.addEventListener('DOMContentLoaded', () => {
+      // 由於 KaTeX 可能是非同步 defer 載入，我們給予微小的延遲確保 window.renderMathInElement 可用
+      setTimeout(() => {
+        loadAndRenderAINotes();
+      }, 100);
+    });
+  </script>
+</body>
+</html>
