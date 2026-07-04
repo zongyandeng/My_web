@@ -198,5 +198,68 @@
         "answer": "答：這兩個有著不同的作用。`model.eval()` 會將模型切換至評估模式，這會關閉 Dropout 層，並讓 Batch Normalization 使用歷史累積的均值與方差。而 `with torch.no_grad()` 則會告訴 PyTorch「不需要計算梯度與建立計算圖」，這能大幅減少記憶體佔用並加速推論速度。"
       }
     ]
+  },
+  {
+    "category": "wsl_ubuntu",
+    "title": "WSL Ubuntu 安裝與管理指南",
+    "englishTitle": "WSL Ubuntu Installation & Management Reference",
+    "description": "介紹如何在 Windows 系統中啟用 Windows Subsystem for Linux (WSL)，安裝並設定 Ubuntu 系統，以及常用的 WSL 實例管理與備份指令。",
+    "commands": [
+      {
+        "cmd": "wsl --install",
+        "desc": "一鍵安裝 WSL 2 與預設 Ubuntu",
+        "explanation": "自動啟用 Windows 虛擬機器平台與 WSL 功能，下載並安裝最新版 Linux 核心與預設的 Ubuntu 系統。（需以系統管理員身分執行 PowerShell，安裝後需重啟電腦）"
+      },
+      {
+        "cmd": "wsl -l -o",
+        "desc": "列出所有可用的 Linux 發行版",
+        "explanation": "線上查詢 Microsoft 商店中所有可供安裝的 Linux 發行版名稱與列表。"
+      },
+      {
+        "cmd": "wsl --install -d Ubuntu-22.04",
+        "desc": "安裝指定版本的 Ubuntu 系統",
+        "explanation": "安裝指定名稱的 Linux 發行版。例如 Ubuntu-22.04 或其他可用版本。"
+      },
+      {
+        "cmd": "wsl -l -v",
+        "desc": "檢查已安裝發行版與 WSL 版本",
+        "explanation": "列出目前電腦中安裝的所有 Linux 系統名稱、其運行狀態（Running/Stopped）以及使用的 WSL 版本（1 或 2）。"
+      },
+      {
+        "cmd": "wsl --set-default-version 2",
+        "desc": "設定預設使用 WSL 2",
+        "explanation": "將未來新安裝的 Linux 發行版預設版本設定為 WSL 2，享受完整的 Linux 核心系統呼叫相容性與更佳的 I/O 效能。"
+      },
+      {
+        "cmd": "wsl --shutdown",
+        "desc": "關閉所有 WSL 執行個體",
+        "explanation": "立即終止所有正在背景運行的 WSL Linux 系統與虛擬機器，用以釋放被 Linux 快取佔用的實體記憶體 (RAM)。"
+      },
+      {
+        "cmd": "wsl --export Ubuntu D:\\\\wsl_backup\\\\ubuntu.tar",
+        "desc": "備份 Ubuntu 系統 (匯出)",
+        "explanation": "將指定的 WSL 發行版封裝並匯出為一個 tar 檔案，可用於備份或搬移至其他磁碟機（例如 D 槽）。"
+      },
+      {
+        "cmd": "wsl --import Ubuntu_New D:\\\\wsl_new D:\\\\wsl_backup\\\\ubuntu.tar",
+        "desc": "還原或移動 Ubuntu 系統 (匯入)",
+        "explanation": "將備份的 tar 封裝檔案匯入到指定的實體路徑（建議放在 D 槽，避免佔用 C 槽空間），並註冊為新的 WSL 執行個體。"
+      },
+      {
+        "cmd": "wsl --unregister Ubuntu",
+        "desc": "移除 Linux 發行版 (解除註冊)",
+        "explanation": "⚠️ 警告：這會永久刪除指定的 Linux 發行版以及裡面的所有檔案與資料，且無法還原！"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：安裝過程中出現 '0x80370102' 或 '虛擬化未啟用' 錯誤該怎麼辦？",
+        "answer": "答：這是因為電腦 CPU 虛擬化功能沒有在 BIOS 中開啟，或者 Hyper-V 相關功能未啟用。解決方案：\n1. 重開機進入 BIOS (通常是按 Del 或 F2)，尋找 Intel Virtualization Technology (VT-x) 或 AMD-V (SVM Support) 並設定為 Enabled。\n2. 在 Windows 中以管理員權限打開 PowerShell，執行 dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart Bing 重啟電腦。"
+      },
+      {
+        "question": "問：我的 WSL Ubuntu 預設裝在 C 槽，導致 C 槽容量不夠，要怎麼搬到 D 槽？",
+        "answer": "答：可以利用 WSL 的匯出與匯入功能來完成無痛搬移。詳細步驟：\n1. 關閉 WSL：wsl --shutdown\n2. 匯出備份：wsl --export Ubuntu D:\\\\WSL_Backups\\\\ubuntu_backup.tar\n3. 解除舊註冊：wsl --unregister Ubuntu (注意：這會清空舊 C 槽的 Ubuntu 資料)\n4. 匯入至 D 槽新路徑：wsl --import Ubuntu D:\\\\WSL\\\\Ubuntu D:\\\\WSL_Backups\\\\ubuntu_backup.tar\n5. 設定預設登入使用者為之前的 user（非 root）：ubuntu config --default-user <你的使用者名稱>（或者修改登錄檔或使用 WSL 設定檔）。"
+      }
+    ]
   }
 ]
