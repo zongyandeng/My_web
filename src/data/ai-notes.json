@@ -331,5 +331,60 @@
         "answer": "答：這主要是受商業與工程規模化（Scaling Law）的驅使。第一，純 Decoder 架構極其精簡純粹，在分散式超級電腦上進行超千億參數的並行訓練時，計算效率極高且不易出錯；第二，純 Decoder 只需要專心做單向文字接龍，天生契合聊天機器人「你來我往」的問答Prompt模式；第三，當模型體積被無上限放大後，純 Decoder 會產生「湧現能力」，其理解力隨之暴增，足以參透原本由 Encoder 負責的理解工作。"
       }
     ]
+  },
+  {
+    "id": "rag_assistant_dev",
+    "title": "網頁 RAG AI 助理開發實務 (Web RAG Assistant)",
+    "englishTitle": "Developing a Web RAG AI Assistant",
+    "description": "本單元詳細整理了本專案整合之「星際助理 (RAG Beta)」的開發步驟與系統架構。系統採用「前端輕量檢索、雲端安全生成」的前後端分離 RAG 設計，利用 MiniSearch 引擎在客戶端進行 Context 檢索，並透過部署於 Cloudflare Workers 的 API 中轉服務，安全地調用 Google Gemini API 實現流式 (Streaming) 語意生成與 UX 卡片跳轉。",
+    "steps": [
+      {
+        "name": "1. 本地知識庫建立與索引打平 (Knowledge Flattening)",
+        "details": "助理載入時會利用 Promise.allSettled 同步抓取專案的 ai-notes.json、commands-notes.json 與 hardware-notes.json，將層級式的筆記打平為包含 title, content, url 的扁平化文檔，並匯入 MiniSearch 倒排索引庫中。"
+      },
+      {
+        "name": "2. 動態 HTML/CSS Chat UI 注入",
+        "details": "為了保持極佳的可維護性，網頁不寫死 UI 結構。只需引入 assistant.js，它會在 DOM 載入時動態加載 assistant.css，並在 body 底層動態插入 `#assistant-trigger` 懸浮球與 `#assistant-chatbox` 對話視窗。"
+      },
+      {
+        "name": "3. 前端 MiniSearch 本地相似度檢索 (Retrieval)",
+        "details": "當使用者發送問題時，助理會先在瀏覽器端使用 MiniSearch 進行關鍵字與模糊語意檢索，篩選出最相關的 Top-3 筆文檔作為背景上下文 (Context)，以便提供給 LLM 進行精準回答。"
+      },
+      {
+        "name": "4. Cloudflare Workers 安全中轉 API 請求",
+        "details": "為了確保 Gemini API Key 不會在前端 JavaScript 中洩露，助理將 Context 與問題發送至部署在 Cloudflare Workers 的中轉網址。Worker 作為安全屏障保管 API Key，並代表客戶端向 Google Gemini 發起請求。"
+      },
+      {
+        "name": "5. Gemini 串流 (Streaming) 讀取與即時渲染",
+        "details": "中轉服務調用 Gemini 串流 API，前端利用 ReadableStream 的 getReader() 逐字接收 Chunk，並透過 RegExp 將 Markdown 格式（**粗體**、`程式碼`）即時轉換成 HTML 安全渲染於對話氣泡內。"
+      },
+      {
+        "name": "6. 相關單元卡片跳轉與引導 (UX Enhancement)",
+        "details": "在 AI 答覆結束後，網頁會依據檢索到的 Top-3 原始連結，在對話框下方帶出推薦跳轉小卡片。使用者點擊後會自動關閉對話框，並無縫跳轉至專案的對應筆記單元或指令頁面，最大化瀏覽體驗。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "RAG 提示詞拼接公式",
+        "latex": "\\text{Prompt} = f(\\text{Query}, \\text{Context}) \\quad \\text{where} \\quad \\text{Context} = \\text{MiniSearch}(\\text{Query})",
+        "description": "前端對 Query 進行 MiniSearch 搜尋得到 Context，並將兩者結合作為 Prompt 提供給大語言模型進行生成。"
+      },
+      {
+        "name": "串流解碼動態渲染",
+        "latex": "\\text{UI}_{\\text{text}}(t) = \\text{Render}\\left(\\sum_{i=1}^{t} \\text{Chunk}_i\\right)",
+        "description": "前端接收隨時間 $t$ 抵達的串流 Chunk 片段，動態進行累加與 Markdown-to-HTML 的即時解碼轉譯渲染。"
+      }
+    ],
+    "code": "// 核心 RAG 串接與 Stream 讀取實作片段\nasync function handleAIRAGFlow(question, searchResults, loadingBubble) {\n  const relevantResults = searchResults.slice(0, 3);\n  const contextText = relevantResults.map((r, idx) => {\n    const doc = allDocuments.find(d => d.id === r.id);\n    return `【資料來源 ${idx + 1}】\\n標題: ${doc.title}\\n內容: ${doc.content}`;\n  }).join('\\n\\n');\n\n  const response = await fetch(CONFIG.workerUrl, {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ question, context: contextText })\n  });\n  \n  removeLoading(loadingBubble);\n  const botMsgBubble = appendMessage('', 'bot');\n  const reader = response.body.getReader();\n  const decoder = new TextDecoder();\n  let done = false, accumulatedText = '';\n\n  while (!done) {\n    const { value, done: readerDone } = await reader.read();\n    done = readerDone;\n    if (value) {\n      accumulatedText += decoder.decode(value, { stream: true });\n      botMsgBubble.innerHTML = accumulatedText.replace(/\\n/g, '<br>').replace(/\\*\\*(.*?)\\*\\*/g, '<b>$1</b>');\n    }\n  }\n}",
+    "faq": [
+      {
+        "question": "問：為什麼要使用 Cloudflare Workers 作為中轉，而不直接在前端呼叫 Gemini API？",
+        "answer": "答：這是出於「安全防護」的考量。如果在前端 JS 中直接寫入 API Key，使用者只需按 F12 就能輕鬆截獲並盜用您的 Key。Cloudflare Workers 運行在安全且免費的伺服器端環境中，能隱蔽保管 Key，且其支援極快的冷啟動與 Web Stream 傳輸，是前後端分離下安全調用 AI 服務的標準解決方案。"
+      },
+      {
+        "question": "問：使用 MiniSearch 這類純前端搜尋引擎的優勢與限制是什麼？",
+        "answer": "答：優勢是「零成本與極速」。搜尋完全在本地瀏覽器的內存中運作，不需要架設任何資料庫或向量資料庫 (Vector DB) 伺服器，單次檢索時間小於 5ms。限制是它不適合處理過大的資料量（如數十萬條文檔），否則將索引資料下載到前端時會導致網頁加載速度變慢。"
+      }
+    ]
   }
 ]
