@@ -1,11 +1,10 @@
 import MiniSearch from 'https://cdn.jsdelivr.net/npm/minisearch@7.1.1/dist/es/index.js';
 
-// --- RAG 助理設定面板 ---
 const CONFIG = {
   // 是否啟用 AI 生成式對話 RAG (若為 false 則僅執行純前端檢索跳轉引導)
-  useGeminiRAG: false,
+  useGeminiRAG: true,
   // 部署後的 Cloudflare Worker 網址 (請在階段三部署完畢後修改此處)
-  workerUrl: '',
+  workerUrl: 'https://silent-mud-4a00.zongyandeng941010.workers.dev',
 };
 
 // 預置個人簡介資料 (對應 profile.html)
