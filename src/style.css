@@ -454,6 +454,22 @@ body {
   backdrop-filter: var(--glass-blur);
   position: sticky;
   top: 100px;
+  max-height: calc(100vh - 140px); /* 限制最大高度，防止被視窗截斷 */
+  overflow-y: auto; /* 內容超出時獨立滾動 */
+}
+
+/* 側邊欄精緻滾動條美化 */
+.sidebar::-webkit-scrollbar {
+  width: 4px; /* 極細滾動條 */
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .sidebar-title {
