@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 爆炸速度向量：從正方體中心 (0,0,0) 向粒子座標延伸的方向，加上隨機震盪
     const velocityDir = new THREE.Vector3(ox, oy, oz).normalize();
-    const speed = Math.random() * 1.5 + 0.5; // 隨機速度強度
+    const speed = Math.random() * 3.5 + 1.5; // 大幅增強隨機速度強度，產生超強爆裂感
     velocityDir.multiplyScalar(speed);
     velocities.push(velocityDir);
   }
@@ -129,18 +129,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const mouse = new THREE.Vector2(-9999, -9999); // 初始放置在極遠處
   let isHovered = false;
 
-  // 監聽滑鼠移動事件 (計算相對於該 3D 容器的 NDC 座標)
-  container.addEventListener('mousemove', (e) => {
+  // 全域監聽滑鼠移動事件 (解決 OrbitControls 在 canvas 上阻止事件冒泡導致容器收不到事件的 Bug)
+  window.addEventListener('mousemove', (e) => {
     const rect = container.getBoundingClientRect();
-    mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
-    mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
-    isHovered = true;
-  });
+    // 判定滑鼠座標是否在 3D 容器的矩形區域內
+    const isInContainer = (
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom
+    );
 
-  // 監聽滑鼠離開事件
-  container.addEventListener('mouseleave', () => {
-    mouse.set(-9999, -9999); // 將滑鼠移出檢測區
-    isHovered = false;
+    if (isInContainer) {
+      mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+      isHovered = true;
+    } else {
+      mouse.set(-9999, -9999); // 移到極遠處以防誤觸發
+      isHovered = false;
+    }
   });
 
   // 9. 參數控制面板滑桿事件綁定
@@ -192,10 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // 爆炸狀態：當前座標朝目標位置(原始位置 + 爆炸速度向量 * 爆炸強度)飛行
         // 設計了「爆炸目標點」，可避免粒子無限制飛散至視窗外
         const target = originalPositions[i].clone().addScaledVector(velocities[i], explosionStrength);
-        tempPos.lerp(target, 0.08); // 平滑朝爆炸位置過渡
+        tempPos.lerp(target, 0.12); // 爆炸時以 0.12 係數快速飛散，產生強烈爆裂感
       } else {
-        // 收回狀態：粒子平滑地朝原始正方體座標 Lerp 收回
-        tempPos.lerp(originalPositions[i], 0.06);
+        // 收回狀態：粒子以 0.04 的較低係數緩慢、平滑且有磁力凝聚感地收回正方體
+        tempPos.lerp(originalPositions[i], 0.04);
       }
 
       positionsArray[i3] = tempPos.x;
