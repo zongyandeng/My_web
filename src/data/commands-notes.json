@@ -390,7 +390,7 @@
     "commands": [
       {
         "cmd": "D:",
-        "desc": "切換當前磁碟機至 D 槽",
+        "desc": "切換當前磁碟機至 D 槽 (Windows)",
         "explanation": "在 Windows CMD 終端機中，若要切換至不同的硬碟分區（如 D 槽），無法直接使用 `cd` 指令，必須輸入該磁碟機代碼並加上冒號。"
       },
       {
@@ -401,12 +401,12 @@
       {
         "cmd": "cd ..",
         "desc": "退回上一層目錄",
-        "explanation": "移動至當前所在資料夾的父級目錄。"
+        "explanation": "移動至當前所在資料夾的父級目錄。注意：Linux 系統下 cd 後面必須空一格！"
       },
       {
         "cmd": "mkdir <folder_name>",
         "desc": "建立新資料夾 (Make Directory)",
-        "explanation": "在當前路徑下憑空建立一個指定名稱的新資料夾，完全擺脫滑鼠右鍵點擊新建的操作。"
+        "explanation": "在當前路徑下憑空建立一個指定名稱的新資料夾，等同於滑鼠右鍵 -> 新增資料夾。"
       },
       {
         "cmd": "ssh <username>@localhost",
@@ -417,6 +417,56 @@
         "cmd": "exit",
         "desc": "中斷 SSH 連線或關閉終端機視窗",
         "explanation": "優雅的離場指令。在 SSH 遠端連線中執行會切斷連線退回本機；在本機終端機中再次執行則會直接關閉當前視窗。"
+      },
+      {
+        "cmd": "ls -la",
+        "desc": "查看目前位置的檔案列表 (🐧 Linux)",
+        "explanation": "列出當前目錄下的所有檔案與資料夾，包含隱藏檔（`.` 開頭的檔案與目錄）與詳細的權限、擁有者、修改時間資訊。"
+      },
+      {
+        "cmd": "cd ~",
+        "desc": "回到當前使用者的家目錄 (Home Directory)",
+        "explanation": "Linux / Windows 終端機中迷路時一鍵回家的指令，直接切換回當前登入使用者的個人家目錄。"
+      },
+      {
+        "cmd": "rm <file_name>",
+        "desc": "刪除指定的檔案 (🐧 Linux)",
+        "explanation": "⚠️ 警告：Linux 下使用 rm 刪除檔案後是直接消失，不會進入資源回收桶，執行前請務必確認檔案路徑！"
+      },
+      {
+        "cmd": "rm -rf <folder_name>",
+        "desc": "強制刪除整個資料夾與內容 (🐧 Linux)",
+        "explanation": "⚠️ 警告：強制並遞迴地刪除整個資料夾及其底下的所有檔案，威力極大，下指令前請務必確認路徑！"
+      },
+      {
+        "cmd": "watch -n 1 nvidia-smi",
+        "desc": "即時監控 GPU 顯示卡狀態",
+        "explanation": "每隔 1 秒自動更新一次顯示卡表格，即時監控 GPU 的溫度、功耗，以及最關鍵的顯存（VRAM）佔用量，防止顯存溢出 (OOM)。"
+      },
+      {
+        "cmd": "htop",
+        "desc": "CPU 與記憶體消耗監控 (🐧 Linux)",
+        "explanation": "Linux 終端機文字版的「工作管理員」，會用彩色進度條顯示每個 CPU 核心的忙碌程度與實體記憶體 (RAM) 的消耗，按 `q` 可退出。"
+      },
+      {
+        "cmd": "conda create -n <env_name> python=3.10 -y",
+        "desc": "建立 Conda 虛擬環境 (Create Environment)",
+        "explanation": "AI 開發的必備動作。為不同的 AI 模型（如 RAG、YOLO）開設一個獨立、乾淨的虛擬房間，避免套件版本衝突。"
+      },
+      {
+        "cmd": "conda activate <env_name>",
+        "desc": "啟用/進入指定虛擬環境",
+        "explanation": "激活並進入指定的虛擬房間，此時游標最左邊會出現 `(環境名稱)`，在此狀態下安裝套件最安全。"
+      },
+      {
+        "cmd": "pip list",
+        "desc": "查看當前環境已安裝套件列表",
+        "explanation": "列出當前虛擬環境中所有已經安裝的 Python 套件與其對應版本號。"
+      },
+      {
+        "cmd": "conda deactivate",
+        "desc": "離開當前虛擬環境 (Deactivate)",
+        "explanation": "關閉目前的虛擬環境，退回系統大廳（base 環境或系統預設環境）。"
       }
     ],
     "faq": [
@@ -425,7 +475,15 @@
         "answer": "答：Headless Server 指的是沒有外接螢幕、滑鼠與鍵盤的主機。在進行大語言模型或深度學習開發時，為了將所有珍貴的顯示卡顯存 (VRAM) 資源全部保留給 AI 模型運行，我們會關閉極度吃資源的圖形桌面 (Desktop) 環境，純粹使用文字指令來遠端連線與操控它。"
       },
       {
-        "question": "問：嘗試連線時噴出 'Connection refused' (連線被拒絕) 錯誤該怎麼辦？",
+        "question": "問：可以整理一份 Windows CMD 與 Linux/Ubuntu 常用檔案管理指令的對照小抄嗎？",
+        "answer": "答：沒問題！以下是無頭開發中，最常使用的檔案管理基本功對照表：\n\n| 功能 | 🪟 Windows (CMD) | 🐧 Linux/Ubuntu | 💡 備註 |\n| :--- | :--- | :--- | :--- |\n| **看當前位置檔案** | `dir` 或 `ls` | `ls` 或 `ls -la` | Linux 加上 `-la` 可看隱藏檔與詳細權限。 |\n| **切換／進入資料夾** | `cd <路徑>` | `cd <路徑>` | 例如：`cd OneDrive/Desktop`。 |\n| **回到上一層資料夾** | `cd ..` | `cd ..` | **注意**：Linux 規定 `cd` 後面必須空一格！ |\n| **一鍵回到家目錄** | `cd ~` | `cd ~` 或直接打 `cd` | 迷路時最快的回家方法。 |\n| **憑空建立新資料夾** | `mkdir <名稱>` | `mkdir <名稱>` | 等同於滑鼠右鍵 -> 新增資料夾。 |\n| **刪除檔案** | `del <檔案名>` | `rm <檔案名>` | ⚠️ Linux `rm` 刪除是直接消失，無回收桶！ |\n| **刪除整個資料夾** | `rmdir <資料夾>` | `rm -rf <資料夾>` | ⚠️ `rm -rf` 威力極大，下指令前一定要看清路徑。 |"
+      },
+      {
+        "question": "問：在全黑的終端機世界裡，有哪些工程師必學的「生存快捷鍵」？",
+        "answer": "答：善用這些快捷鍵可以讓你擺脫滑鼠，打字效率快 3 倍：\n1. **`Tab` 鍵 (路徑自動補全)**：打字打到一半按 Tab。例如你想進入 `my_very_long_project_name` 資料夾，只需打 `cd my_` 並按下 Tab 鍵，系統就會自動補齊後續的長檔名。\n2. **方向鍵 `↑` 和 `↓` (翻找歷史紀錄)**：按「上」可以直接叫出前幾次打過的複雜指令，免去重新手打的痛苦。\n3. **`Ctrl + C` (緊急中斷)**：當程式卡住、大模型陷入死循環，或畫面瘋狂狂噴錯誤訊息時，同時按下 `Ctrl + C` 即可強行終止運行。"
+      },
+      {
+        "question": "問：嘗試連線本機時噴出 'Connection refused' (連線被拒絕) 錯誤該怎麼辦？",
         "answer": "答：這是因為 Windows 預設是關閉 SSH 接收連接埠的（用以防範外人侵入）。**解決方案**：\n1. 前往 Windows「設定」 > 「應用程式」 > 「選用功能」。\n2. 點選「新增功能」，搜尋「OpenSSH 伺服器 (OpenSSH Server)」並完成安裝。"
       },
       {
