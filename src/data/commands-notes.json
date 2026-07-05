@@ -378,7 +378,67 @@
       },
       {
         "question": "問：要如何自訂 YOLO 的訓練資料集？我需要準備哪些檔案？",
-        "answer": "答：1. 資料夾結構：準備 `images/` 和 `labels/` 資料夾，兩者底下再分 `train/` 與 `val/`。確保圖片與對應的 `.txt` 標記檔檔名相同。\n2. 標記格式：YOLO 格式為每一行代表一個目標：`<class_id> <x_center> <y_center> <width> <height>`，皆為 0 到 1 之間的歸一化數值。\n3. 設定檔：建立一個 `dataset.yaml`，內容如下：\n```yaml\npath: /path/to/dataset  # 資料集根目錄\ntrain: images/train      # 訓練集路徑\nval: images/val          # 驗證集路徑\nnames:\n  0: person              # 類別編號與名稱\n  1: car\n```"
+        "answer": "答：1. 資料夾結構：準備 `images/` 和 `labels/` 資料夾，兩者底下再分 `train/` 與 `val/`。確保圖片與對應 of `.txt` 標記檔檔名相同。\n2. 標記格式：YOLO 格式為每一行代表一個目標：`<class_id> <x_center> <y_center> <width> <height>`，皆為 0 到 1 之間的歸一化數值。\n3. 設定檔：建立一個 `dataset.yaml`，內容如下：\n```yaml\npath: /path/to/dataset  # 資料集根目錄\ntrain: images/train      # 訓練集路徑\nval: images/val          # 驗證集路徑\nnames:\n  0: person              # 類別編號與名稱\n  1: car\n```"
+      }
+    ]
+  },
+  {
+    "category": "headless_dev",
+    "title": "無頭伺服器與 CMD 開發基本功",
+    "englishTitle": "Headless Server & Windows CMD Reference",
+    "description": "整理無頭伺服器 (Headless Server) 的核心概念、Windows 命令提示字元 (CMD) 的常用檔案管理指令，以及本地端 Windows SSH 伺服器的架設與地獄級 Debug 實戰排錯心法。",
+    "commands": [
+      {
+        "cmd": "D:",
+        "desc": "切換當前磁碟機至 D 槽",
+        "explanation": "在 Windows CMD 終端機中，若要切換至不同的硬碟分區（如 D 槽），無法直接使用 `cd` 指令，必須輸入該磁碟機代碼並加上冒號。"
+      },
+      {
+        "cmd": "cd <directory_path>",
+        "desc": "切換工作目錄 (Change Directory)",
+        "explanation": "進入指定的資料夾路徑。例如 `cd D:\\My_Project`；當遇到 OneDrive 自動同步時，可使用絕對路徑 `cd C:\\Users\\Edison\\OneDrive\\桌面` 進行精準定位。"
+      },
+      {
+        "cmd": "cd ..",
+        "desc": "退回上一層目錄",
+        "explanation": "移動至當前所在資料夾的父級目錄。"
+      },
+      {
+        "cmd": "mkdir <folder_name>",
+        "desc": "建立新資料夾 (Make Directory)",
+        "explanation": "在當前路徑下憑空建立一個指定名稱的新資料夾，完全擺脫滑鼠右鍵點擊新建的操作。"
+      },
+      {
+        "cmd": "ssh <username>@localhost",
+        "desc": "測試連線本地端伺服器 (Self-SSH)",
+        "explanation": "透過 SSH 連線到本機自己（localhost），用以驗證本地 Windows 的 SSH 伺服器服務是否已順利架設並正常運作。"
+      },
+      {
+        "cmd": "exit",
+        "desc": "中斷 SSH 連線或關閉終端機視窗",
+        "explanation": "優雅的離場指令。在 SSH 遠端連線中執行會切斷連線退回本機；在本機終端機中再次執行則會直接關閉當前視窗。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：什麼是 Headless Server (無頭伺服器)？為什麼玩 AI 要用它？",
+        "answer": "答：Headless Server 指的是沒有外接螢幕、滑鼠與鍵盤的主機。在進行大語言模型或深度學習開發時，為了將所有珍貴的顯示卡顯存 (VRAM) 資源全部保留給 AI 模型運行，我們會關閉極度吃資源的圖形桌面 (Desktop) 環境，純粹使用文字指令來遠端連線與操控它。"
+      },
+      {
+        "question": "問：嘗試連線時噴出 'Connection refused' (連線被拒絕) 錯誤該怎麼辦？",
+        "answer": "答：這是因為 Windows 預設是關閉 SSH 接收連接埠的（用以防範外人侵入）。**解決方案**：\n1. 前往 Windows「設定」 > 「應用程式」 > 「選用功能」。\n2. 點選「新增功能」，搜尋「OpenSSH 伺服器 (OpenSSH Server)」並完成安裝。"
+      },
+      {
+        "question": "問：如何啟動 Windows SSH 伺服器服務？若 sshd 噴紅字或權限不足怎麼辦？",
+        "answer": "答：啟動與設定系統服務需要管理員權限。**正確操作步驟**：\n1. 在 Windows 開始選單中，對 `PowerShell` 按右鍵，選擇「以系統管理員身分執行」。\n2. 輸入 `Start-Service sshd` 啟動服務。\n3. 輸入 `Set-Service -Name sshd -StartupType Automatic` 將其設定為開機自動啟動服務。"
+      },
+      {
+        "question": "問：連線時顯示 'Connection reset' 或密碼欄無法順利進入？",
+        "answer": "答：當 Windows 帳戶沒有設定開機密碼（使用 PIN 碼或空密碼登入），SSH 基於安全性預設會拒絕空密碼連線。**解決方案**：必須為您的 Windows 電腦設定一個標準的開機密碼（至設定 > 帳戶 > 登入選項 中修改密碼），連線時輸入該密碼即可順利突破防線。"
+      },
+      {
+        "question": "問：為什麼在 Windows CMD 裡打 'cd 桌面' 顯示系統找不到指定的路徑？",
+        "answer": "答：這是因為 Windows 開啟了 OneDrive 自動備份，會默默地將實體桌面路徑搬移到 `C:\\Users\\<您的使用者名稱>\\OneDrive\\桌面`。**解決方案**：請使用絕對路徑 `cd C:\\Users\\Edison\\OneDrive\\桌面` 即可順利精準定位並進入。"
       }
     ]
   }
