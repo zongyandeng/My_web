@@ -406,15 +406,19 @@
         "details": "技術演進上，從傳統卷積神經網路的 U-Net（醫學分割標竿）與 Mask R-CNN，演進至當前基於 Transformer 的「基礎模型（Foundation Models）」時代。Meta 推出的 Segment Anything (SAM / SAM 2) 具備強大的零樣本（Zero-shot）泛化能力，透過點擊、畫框或提示詞，即可即時分割出模型從未見過的未知物件。"
       },
       {
-        "name": "4. 【實作步驟一】選擇工具鏈與環境配置",
-        "details": "在實作影像分割時，若要開發高效率且易於在邊緣裝置落地的應用，首選是 Ultralytics YOLOv8-seg 或 YOLOv11-seg。第一步是在 Python 環境中執行 `pip install ultralytics` 安裝核心庫，並準備一張測試圖像（例如 `input_image.jpg`）以供模型讀取。"
+        "name": "4. 【實作步驟一】建立 Ubuntu 虛擬環境 (venv) 進行防撞隔離",
+        "details": "在 Linux 遠端伺服器 (Ubuntu) 實作時，首先需建立獨立的工作區。在終端機中執行 `mkdir AI_Practice` 並 `cd AI_Practice`。為防範 Python 全域套件版本衝突的「依賴地獄」，先執行 `sudo apt install python3-venv`，再透過 `python3 -m venv myenv` 建立名為 `myenv` 的虛擬環境。最後使用 `source myenv/bin/activate` 啟動，當終端機提示字元最前方出現 `(myenv)` 時，即代表無菌實驗室架設完畢。"
       },
       {
-        "name": "5. 【實作步驟二】載入 YOLO 預訓練分割模型進行推論",
-        "details": "實作第二步是調用 YOLOv8 內建的預訓練分割模型（如 `yolov8n-seg.pt`）。讀取模型後傳入圖像，模型會自動輸出推論結果，其中的 `result.masks` 對象中包含了所有分割多邊形（Polygon）在影像上的精確坐標點，我們可以利用 OpenCV 將其繪製為半透明彩色覆蓋層。"
+        "name": "5. 【實作步驟二】啟動 Tmux 護罩與安裝 Ultralytics",
+        "details": "影像分割的大模型運算耗時長，網路中斷會導致 SSH 指令中斷。因此必須安裝 Tmux 作為「防斷線保護罩」：執行 `sudo apt install tmux` 後，利用 `tmux new -s ai_run` 開啟虛擬會話。在此保護罩下，執行 `pip install ultralytics` 一鍵安裝 YOLO、PyTorch 與 OpenCV。若需退回背景，可按下快捷鍵 `Ctrl + b` 後按 `d` (Detach)；需要返回時，只需輸入 `tmux attach -t ai_run` 即可。"
       },
       {
-        "name": "6. 模型評估指標：交除併 (IoU) 與 Dice 係數",
+        "name": "6. 【實作步驟三】隔空傳圖與 YOLOv8-seg CLI 一鍵分割",
+        "details": "實例分割需要測試圖片。若是懶人下載，直接在伺服器端用 `wget https://ultralytics.com/images/bus.jpg -O test.jpg` 下載官方經典測試圖；若是要傳送自己筆電的圖片，則在新開啟的本機終端機中，執行 `scp ~/Desktop/test.jpg 帳號@伺服器IP:~/AI_Practice/`。圖片到位後，於伺服器端虛擬環境中輸入 `yolo predict model=yolov8n-seg.pt source=test.jpg`，系統會自動下載 Nano 分割模型並執行一鍵分割，結果將完美塗滿像素邊緣，儲存在 `runs/segment/predict/` 中。"
+      },
+      {
+        "name": "7. 模型評估指標：交除併 (IoU) 與 Dice 係數",
         "details": "評估分割準確度的核心數學指標是 IoU (交除併)。它計算的是模型預測的像素掩碼與真實標籤掩碼的交集面積除以聯集面積。在醫學分割或細微目標分割中，也經常使用 Dice Coefficient (等同於像素級 F1-Score) 來加強評估重合的精度。"
       }
     ],
