@@ -2,110 +2,224 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 /**
- * Edison.Dev - Three.js 3D 幾何體測試實驗室
+ * Edison.Dev - Three.js 互動式「粒子爆裂遊樂場」
  * 實作內容包含：
- * 1. 響應式容器適應 (根據父層 #three-container 的尺寸自動縮放畫布)
- * 2. 3D 場景、透視相機、WebGL 渲染器初始化
- * 3. 旋轉正方體 (標準金屬材質 MeshStandardMaterial)
- * 4. 環境光與平行光設置 (打出立體明暗面)
- * 5. 滑鼠拖曳互動 (OrbitControls，關閉 Zoom 以防干擾網頁滾動)
+ * 1. 10,000 個粒子組成的 BufferGeometry 實心正方體系統。
+ * 2. Raycaster 實作滑鼠懸停偵測 (NDC 座標轉換)。
+ * 3. 物理爆裂與聚合重組動畫 (基於爆炸速度向量與平滑 Lerp 插值)。
+ * 4. 滑桿參數即時控制 (爆炸強度、粒子大小)。
+ * 5. 主題色彩即時同步 (Deep Space 與 Cyberpunk 樣式)。
  */
 
+// 輔助工具：動態獲取 CSS 主題顏色
+function getThemeColor() {
+  const style = getComputedStyle(document.documentElement);
+  return style.getPropertyValue('--accent-1').trim() || '#3b82f6';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. 取得 DOM 容器與 Canvas 節點
+  // 1. 取得 DOM 容器與 Canvas
   const container = document.getElementById('three-container');
   const canvas = document.getElementById('webgl-canvas');
 
-  // 防錯機制：若目前頁面不包含此 3D 容器，則直接退出
+  // 防錯機制
   if (!container || !canvas) return;
 
-  // 2. 初始化場景 (Scene)
-  const scene = new THREE.Scene();
+  // 2. 取得控制面板滑桿 DOM
+  const sliderExplosion = document.getElementById('slider-explosion');
+  const valExplosion = document.getElementById('val-explosion');
+  const sliderSize = document.getElementById('slider-size');
+  const valSize = document.getElementById('val-size');
 
-  // 3. 取得父容器目前的寬高
+  let explosionStrength = parseFloat(sliderExplosion.value);
+  let particleSize = parseFloat(sliderSize.value);
+
+  // 3. 初始化場景 (Scene) 與透視相機 (Camera)
+  const scene = new THREE.Scene();
   let width = container.clientWidth;
   let height = container.clientHeight;
 
-  // 4. 初始化透視相機 (Perspective Camera)
-  // 參數：視野夾角 (fov), 長寬比 (aspect), 近剪裁面 (near), 遠剪裁面 (far)
   const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-  camera.position.set(0, 0, 5); // 將相機朝外拉 5 個單位
+  camera.position.set(0, 0, 4.5);
   scene.add(camera);
 
-  // 5. 初始化 WebGL 渲染器 (Renderer)
+  // 4. 初始化 WebGL 渲染器 (Renderer)
   const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
-    antialias: true, // 啟用抗鋸齒
-    alpha: true,     // 啟用透明背景，以便透出網頁底層流光
+    antialias: true,
+    alpha: true, // 透明背景以透出底層流光
   });
   renderer.setSize(width, height);
-  // 限制像素比率最大為 2，避免在高解析度螢幕 (Retina) 上耗費過多 GPU 效能
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  // 6. 建立 3D 正方體 (Cube)
-  // 幾何體 (BoxGeometry) 尺寸：長、寬、高皆為 1.5 單位
-  const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-  
-  // 標準金屬感材質 (MeshStandardMaterial)
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x3b82f6,      // 經典科技藍
-    roughness: 0.25,      // 粗糙度 0.25 (稍微光滑，能反射亮光)
-    metalness: 0.8,       // 金屬感 0.8
-  });
-  
-  // 網格物體 (Mesh)
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
+  // 5. 生成粒子數據與 Points 物件
+  const particleCount = 10000;
+  const positions = new Float32Array(particleCount * 3);
+  const originalPositions = [];
+  const velocities = [];
 
-  // 7. 燈光設置 (Lighting)
-  // 環境光 (AmbientLight)：提供溫和的基礎全域光，避免背光面全黑
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  // 在邊長 1.5 的虛擬正方體空間內隨機採樣
+  const boxSize = 1.5;
+  for (let i = 0; i < particleCount; i++) {
+    // 實心正方體內隨機點 (X, Y, Z 從 -0.75 到 0.75)
+    const ox = (Math.random() - 0.5) * boxSize;
+    const oy = (Math.random() - 0.5) * boxSize;
+    const oz = (Math.random() - 0.5) * boxSize;
+
+    originalPositions.push(new THREE.Vector3(ox, oy, oz));
+    
+    // 初始化當前位置與原始位置相同
+    positions[i * 3] = ox;
+    positions[i * 3 + 1] = oy;
+    positions[i * 3 + 2] = oz;
+
+    // 爆炸速度向量：從正方體中心 (0,0,0) 向粒子座標延伸的方向，加上隨機震盪
+    const velocityDir = new THREE.Vector3(ox, oy, oz).normalize();
+    const speed = Math.random() * 1.5 + 0.5; // 隨機速度強度
+    velocityDir.multiplyScalar(speed);
+    velocities.push(velocityDir);
+  }
+
+  // 封裝幾何體 (BufferGeometry)
+  const geometry = new THREE.BufferGeometry();
+  const positionAttribute = new THREE.BufferAttribute(positions, 3);
+  geometry.setAttribute('position', positionAttribute);
+
+  // 初始化材質 (PointsMaterial)
+  const material = new THREE.PointsMaterial({
+    color: new THREE.Color(getThemeColor()),
+    size: particleSize,
+    sizeAttenuation: true, // 粒子大小隨距離衰減，產生 3D 透視感
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending, // 混合疊加發光效果
+    depthWrite: false, // 關閉深度寫入，解決透明粒子重疊黑邊問題
+  });
+
+  // 粒子 Points 物件
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+
+  // 6. 燈光設置
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
 
-  // 平行光 (DirectionalLight)：模擬太陽光，打出物體的立體亮暗面與陰影
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
-  dirLight.position.set(5, 5, 5); // 由右上方斜射
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  dirLight.position.set(5, 5, 5);
   scene.add(dirLight);
 
-  // 8. 軌道控制 (OrbitControls)
-  // 讓使用者可以用滑鼠點擊拖曳來旋轉視角
+  // 7. 軌道控制 (OrbitControls)
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;   // 啟用阻尼 (物理滑動緩衝感)
+  controls.enableDamping = true;
   controls.dampingFactor = 0.05;
-  controls.enableZoom = false;     // 關鍵：關閉縮放，避免干擾網頁原本的滾動條
-  controls.enablePan = false;      // 關閉右鍵平移，讓正方體始終保持在中心
+  controls.enableZoom = false; // 關閉縮放以防干擾網頁滾動
+  controls.enablePan = false;
 
-  // 9. 監聽響應式視窗大小調整 (Resize Event)
+  // 8. 射線追蹤與滑鼠懸停檢測 (Raycaster)
+  const raycaster = new THREE.Raycaster();
+  // 調大 Points 檢測閾值，讓滑鼠即使在邊緣也能敏銳觸發爆炸
+  raycaster.params.Points.threshold = 0.18; 
+
+  const mouse = new THREE.Vector2(-9999, -9999); // 初始放置在極遠處
+  let isHovered = false;
+
+  // 監聽滑鼠移動事件 (計算相對於該 3D 容器的 NDC 座標)
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+    isHovered = true;
+  });
+
+  // 監聽滑鼠離開事件
+  container.addEventListener('mouseleave', () => {
+    mouse.set(-9999, -9999); // 將滑鼠移出檢測區
+    isHovered = false;
+  });
+
+  // 9. 參數控制面板滑桿事件綁定
+  sliderExplosion.addEventListener('input', (e) => {
+    explosionStrength = parseFloat(e.target.value);
+    valExplosion.textContent = e.target.value;
+  });
+
+  sliderSize.addEventListener('input', (e) => {
+    particleSize = parseFloat(e.target.value);
+    material.size = particleSize;
+    valSize.textContent = e.target.value;
+  });
+
+  // 10. 響應式視窗縮放處理
   window.addEventListener('resize', () => {
-    // 重新抓取父容器最新的寬高
     width = container.clientWidth;
     height = container.clientHeight;
 
-    // 更新相機長寬比與投影矩陣
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
 
-    // 更新渲染器尺寸與像素比
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   });
 
-  // 10. 動畫渲染迴圈 (RequestAnimationFrame Loop)
-  const tick = () => {
-    // 讓正方體在每一幀都產生微小的自轉，製造動態感
-    cube.rotation.x += 0.005;
-    cube.rotation.y += 0.005;
+  // 11. 動畫渲染迴圈 (Physics Update & Render)
+  const tempPos = new THREE.Vector3();
+  let themeUpdateTimer = 0;
 
-    // 每一幀都必須更新 OrbitControls
+  const tick = () => {
+    // 物理引擎更新：射線檢測
+    if (isHovered) {
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(points);
+      // 若射線有穿過粒子群，觸發爆裂
+      var isExploding = intersects.length > 0;
+    } else {
+      var isExploding = false;
+    }
+
+    const positionsArray = positionAttribute.array;
+
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      tempPos.set(positionsArray[i3], positionsArray[i3 + 1], positionsArray[i3 + 2]);
+
+      if (isExploding) {
+        // 爆炸狀態：當前座標朝目標位置(原始位置 + 爆炸速度向量 * 爆炸強度)飛行
+        // 設計了「爆炸目標點」，可避免粒子無限制飛散至視窗外
+        const target = originalPositions[i].clone().addScaledVector(velocities[i], explosionStrength);
+        tempPos.lerp(target, 0.08); // 平滑朝爆炸位置過渡
+      } else {
+        // 收回狀態：粒子平滑地朝原始正方體座標 Lerp 收回
+        tempPos.lerp(originalPositions[i], 0.06);
+      }
+
+      positionsArray[i3] = tempPos.x;
+      positionsArray[i3 + 1] = tempPos.y;
+      positionsArray[i3 + 2] = tempPos.z;
+    }
+
+    // 關鍵：標記頂點屬性需要更新，Three.js 才會重新繪製
+    positionAttribute.needsUpdate = true;
+
+    // 粒子星團的微幅自轉，提供流暢的動態美感
+    points.rotation.y += 0.0015;
+    points.rotation.x += 0.0005;
+
+    // 每 30 幀動態同步一次主題顏色，減少 CPU 負擔
+    themeUpdateTimer++;
+    if (themeUpdateTimer % 30 === 0) {
+      material.color.set(getThemeColor());
+    }
+
+    // 更新軌道控制
     controls.update();
 
-    // 執行渲染
+    // 渲染畫面
     renderer.render(scene, camera);
 
-    // 遞迴請求下一影格
+    // 循環請求下一幀
     window.requestAnimationFrame(tick);
   };
 
-  // 啟動動畫迴圈
+  // 啟動動畫
   tick();
 });
