@@ -72,6 +72,10 @@
         "answer": "答：被連線的主機（伺服器端）必須安裝並啟動 OpenSSH Server 服務。**完整啟用步驟**：\n1. 更新套件源並安裝服務：`sudo apt update && sudo apt install openssh-server -y`\n2. 啟動並設定開機自啟：`sudo systemctl enable --now ssh`\n3. 檢查運作狀態：`sudo systemctl status ssh`（應顯示 active/running）\n4. 防火牆放行 Port 22：`sudo ufw allow 22/tcp`\n5. 查詢 IP 位址：執行 `ip a` 找到伺服器的區域網路 IP（例如 `192.168.1.120`）。之後外部電腦即可使用 `ssh <username>@192.168.1.120` 進行連線。"
       },
       {
+        "question": "問：執行 SSH 連線時顯示 'connection timed out' (連線逾時)，這是成功了嗎？該如何排查？",
+        "answer": "答：很抱歉，這代表連線失敗了。這意味著你的客戶端電腦發出了連線請求，但在規定時間內完全沒有收到那台 Linux 電腦的任何回應。**請依序排查以下四個最常見的原因**：\n\n1. **檢查兩台電腦是否連在同一個 Wi-Fi 下 (區域網路)**：\n   遠端連線的前提是兩端設備必須在同一個網路網段內。若一台連手機熱點、一台連家用 Wi-Fi，是絕對無法連上的。\n\n2. **檢查 Linux 伺服器的 IP 是否打錯**：\n   區域網路 IP 會隨開機或更換網路而改變。請至 Linux 主機前執行 `ip a` 或 `hostname -I` 重新確認類似 `192.168.x.x` 的 IP。\n\n3. **檢查 Linux 電腦的 SSH 門 (服務) 是否有啟動**：\n   在 Linux 電腦執行 `sudo systemctl status ssh`。若顯示 inactive (dead)，請輸入 `sudo systemctl start ssh` 啟動服務。\n\n4. **使用 ping 指令測試網路是否相通**：\n   在你的筆電終端機執行 `ping <Linux伺服器IP>`。\n   - 若有時間回覆（例如 time=5ms），代表網路互通，通常是 Linux 防火牆阻擋了連線，請在 Linux 端執行 `sudo ufw allow 22/tcp`。\n   - 若顯示「要求等候逾時」，則代表網路物理上不通，須回到第一步重新檢查 Wi-Fi 與 IP 設定。"
+      },
+      {
         "question": "問：為什麼我的 SSH 連線放著一段時間沒動，就會自動斷線卡死？",
         "answer": "答：這是因為網路路由器或防火牆會自動清除長時間沒有資料傳輸的閒置連線。**解決方案**：在本地端電腦的 `~/.ssh/config` 檔案中加入以下設定，讓 SSH 每 60 秒自動傳送一次心跳包 (KeepAlive)：\n```bash\nHost *\n  ServerAliveInterval 60\n  ServerAliveCountMax 3\n```"
       },
