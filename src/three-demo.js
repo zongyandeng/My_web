@@ -17,7 +17,7 @@ function getThemeColor() {
   return style.getPropertyValue('--accent-1').trim() || '#3b82f6';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+const initThreePlayground = () => {
   // 1. 取得 DOM 容器與 Canvas
   const container = document.getElementById('three-container');
   const canvas = document.getElementById('webgl-canvas');
@@ -100,9 +100,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const points = new THREE.Points(geometry, material);
   scene.add(points);
 
-  // 隱形交互輔助 Mesh (用於穩定的 Raycaster 檢測)
+  // 隱形交互輔助 Mesh (用於穩定的 Raycaster 檢測，必須 visible: true 且透明度為 0，否則 Raycaster 會直接跳過它)
   const interactGeometry = new THREE.BoxGeometry(1.6, 1.6, 1.6);
-  const interactMaterial = new THREE.MeshBasicMaterial({ visible: false });
+  const interactMaterial = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0,
+    depthWrite: false
+  });
   const interactMesh = new THREE.Mesh(interactGeometry, interactMaterial);
   scene.add(interactMesh);
 
@@ -239,4 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 啟動動畫
   tick();
-});
+};
+
+// 優化 DOM 生命週期防錯載入機制
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initThreePlayground);
+} else {
+  initThreePlayground();
+}
