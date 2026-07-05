@@ -100,6 +100,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const points = new THREE.Points(geometry, material);
   scene.add(points);
 
+  // 隱形交互輔助 Mesh (用於穩定的 Raycaster 檢測)
+  const interactGeometry = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+  const interactMaterial = new THREE.MeshBasicMaterial({ visible: false });
+  const interactMesh = new THREE.Mesh(interactGeometry, interactMaterial);
+  scene.add(interactMesh);
+
   // 6. 燈光設置
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
@@ -169,8 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 物理引擎更新：射線檢測
     if (isHovered) {
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(points);
-      // 若射線有穿過粒子群，觸發爆裂
+      const intersects = raycaster.intersectObject(interactMesh);
+      // 若射線有穿過隱形包圍盒，觸發爆裂
       var isExploding = intersects.length > 0;
     } else {
       var isExploding = false;
@@ -200,9 +206,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // 關鍵：標記頂點屬性需要更新，Three.js 才會重新繪製
     positionAttribute.needsUpdate = true;
 
-    // 粒子星團的微幅自轉，提供流暢的動態美感
+    // 粒子星團的微幅自轉，提供流暢 of 動態美感
     points.rotation.y += 0.0015;
     points.rotation.x += 0.0005;
+
+    // 同步隱形 Mesh 的旋轉，使其與粒子完全契合
+    interactMesh.rotation.y = points.rotation.y;
+    interactMesh.rotation.x = points.rotation.x;
 
     // 每 30 幀動態同步一次主題顏色，減少 CPU 負擔
     themeUpdateTimer++;
