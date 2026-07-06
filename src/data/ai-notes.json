@@ -56,6 +56,14 @@
       {
         "question": "問：LLM 雖然拿到了正確的 Context，但依然會自己胡說八道（幻覺）怎麼辦？",
         "answer": "答：這與 Temperature 設定以及 System Prompt 有關。**解決方案**：1. 將 LLM 的 Temperature 設為 0，使其輸出高度確定。2. 在 System Prompt 中嚴格限制：'You must ONLY answer the question based on the provided context. If the answer cannot be found in the context, reply \"I don't know\". Do not make up information.'"
+      },
+      {
+        "question": "問：目前常見的大語言模型 (LLM) 都有內建 RAG 的概念在裡面嗎？",
+        "answer": "答：答案是沒有。底層大語言模型（如 GPT-4、Claude 3、Llama 3 的原始權重）本質上只是「經過海量數據訓練後的機率預測引擎」，其知識已被壓縮在參數中，模型本身無法上網或閱讀新文件。RAG（檢索增強生成）是一種系統架構，它是將檢索到的外部知識作為背景上下文送給模型。我們在 ChatGPT、Gemini 網頁版感到它有 RAG，是因為產品端在模型外部封裝了檢索搜尋的管道，純粹的 API 或開源模型本身是沒有包含此機制的。"
+      },
+      {
+        "question": "問：如果我要使用 RAG，用在本地開源模型（地端）上是最有效的嗎？",
+        "answer": "答：這取決於對「有效」的定義。若從「隱私安全與成本」維度來看，本地 RAG（如 Ollama + Llama 3 8B）最有效，資料 100% 地端保存絕不外洩，且推論免 Token 費；但若從「回答準確度與歸納推理能力」維度來看，雲端 API 模型（如 GPT-4o、Claude 3.5 Sonnet）更有效。地端小型開源模型在閱讀 RAG 檢索出的龐雜外部資料時，較容易因理解能力限制而產生偏差或幻覺，且上下文視窗 (Context Window) 受顯卡 VRAM 限制較短；而雲端大模型則擁有強大的長文本歸納能力，能精確提煉繁雜 Context 的重點。"
       }
     ]
   },
