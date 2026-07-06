@@ -445,5 +445,64 @@
         "answer": "答：兩者在架構與實務定位上完全不同。Meta SAM 屬於「通用大模型」，擁有無與倫比的 Zero-shot 泛化能力，無須經過任何微調，僅憑提示點或畫框就能分割未知物體，但其模型體積龐大且推理速度慢（通常需在雲端伺服器運行），非常適合做半自動資料標註或精細去背；而 YOLOv8-seg 屬於「即時落地型模型」，參數量極小且推理速度極快，能輕鬆在邊緣運算裝置（如 Jetson Nano、工業 IPC）上達到數十幀以上的即時處理，是自動駕駛、生產線即時檢測的首選。"
       }
     ]
+  },
+  {
+    "id": "qs_attendance_antigravity",
+    "title": "QS 考勤與 Antigravit 2.0 雙軌系統架構 (Double-Track System)",
+    "englishTitle": "QS Attendance & Antigravit 2.0 Dual Architecture",
+    "description": "本單元為「前台考勤管理系統」與「後台 Antigravit 2.0 AI 文檔處理管道」的雙軌架構整合報告。系統設計結合 Vue 3 磨砂玻璃前端、Express BFF 後台 API、Redis 7 任務佇列與 Celery 異步 AI RAG ChromaDB 文件向量化管道，並透過 Telegram Webhook 進行多維度角色推播與 Materialized Path 部門物化路徑查詢，實作高安全性的企業級管理系統。",
+    "steps": [
+      {
+        "name": "1. 專案定位與雙軌系統架構融合 (Overview)",
+        "details": "本架構結合「前台考勤管理」與「後台 Antigravit 2.0 AI 文檔處理管道」兩大子系統。前台提供標準考勤打卡、遲到防呆、以及補簽與加班審核鏈結；後台對接 LlamaIndex 知識庫，可自動解析系統設計文檔，並向 Express 發送 POST 請求實現數據自動回填，同時以 Telegram Webhook 進行多維度即時通知。"
+      },
+      {
+        "name": "2. 系統核心技術棧 (Technology Stack)",
+        "details": "前台客戶端採用 Vue 3 (Vite) + Pinia 狀態管理 + Vuetify 3 磨砂玻璃設計 (Glassmorphism)。後台 API 服務採用 Node.js (Express) + Sequelize ORM (BFF 模式、RESTful APIs) 進行數據橋接。AI 數據管道與快取使用 Python (Celery) + Redis 7 (任務佇列) + ChromaDB (向量資料庫) + LlamaIndex (RAG 檢索)。"
+      },
+      {
+        "name": "3. 考勤子系統核心業務 (Attendance Logic)",
+        "details": "標準上班時間為 09:00，寬限期至 09:10。09:11 後打卡判定為遲到 (LATE)，強制要求輸入事由 (Notes) 否則 API 阻斷 (400 Bad Request)，兼助 (PTAssistant) 不受此限。補打卡與加班申請通過審核後自動更新流水帳，報表匯出支援部門遞迴篩選與帶有 UTF-8 BOM 的 CSV 下載，防止 Excel 亂碼。"
+      },
+      {
+        "name": "4. Antigravit 2.0 異步處理管道 (AI RAG Pipeline)",
+        "details": "利用 Celery 異步任務與 Redis 7 Broker 處理長耗時文檔向量化。使用 pypdf 提取 .pdf 內容，利用 sentence-transformers 將其轉化為語意嵌入向量 (Embeddings)，寫入本地 ChromaDB 進行相似度检索。解析結果自動發送 POST 請求至 Express API 接口，實現數據無縫自動流轉。"
+      },
+      {
+        "name": "5. Telegram 雙軌角色推播通知子系統 (Telegram Notifications)",
+        "details": "個人通道：員工綁定 telegram_chat_id 後可一對一接收打卡結果、審核通過/駁回及備註等隱私訊息。管理通道：透過 TELEGRAM_ADMIN_CHAT_ID 廣播所有打卡動態。安全性上，BFF 強制驗證 JWT 並鎖定 req.user.id，防範越權 (IDOR) 篡改，且以 regex 限制 Chat ID 格式防範 SQL 注入。"
+      },
+      {
+        "name": "6. 資料庫模型設計與部門物化路徑 (Database Schema)",
+        "details": "部門表使用「物化路徑 (Materialized Path)」設計 path 欄位（例如 1/2/3），實現 O(1) 複雜度子部門遞迴查詢。系統狀態與角色採用資料庫原生 ENUM 嚴格化（user_role, attendance_status, makeup_status），並配置 idx 索引優化與外鍵級聯 (Cascade) 約束確保數據一致性。"
+      },
+      {
+        "name": "7. 系統安全審計與防禦機制 (Security Audit)",
+        "details": "CORS 限縮允許來源以杜絕萬用字元跨來源存取。設置 X-Content-Type-Options: nosniff 與 X-Frame-Options: DENY 防堵 MIME 嗅探與點擊劫持。新帳戶強制首次登入必須變更密碼，使用 Bcrypt (Salt=10) 雜湊。JWT HS256 金鑰驗證拒絕 'none' 演算法，並嚴密排除資料庫密碼欄位回傳。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "RAG 語意向量相似度計算公式",
+        "latex": "\\mathbf{e}_i = \\text{Encoder}(\\text{Chunk}_i) \\quad \\text{where} \\quad \\text{Similarity} = \\cos(\\mathbf{e}_q, \\mathbf{e}_d) = \\frac{\\mathbf{e}_q \\cdot \\mathbf{e}_d}{\\|\\mathbf{e}_q\\| \\|\\mathbf{e}_d\\|}",
+        "description": "後台 AI 管道中，文檔 Chunk 經編碼轉為高維嵌入向量，並與 Query 向量在 ChromaDB 中進行 Cosine 相似度計算以檢索出最相關的資料來源。"
+      },
+      {
+        "name": "Bcrypt 加密哈希強度指標",
+        "latex": "\\text{Hash} = \\text{bcrypt}(\\text{password}, \\text{salt\\_round}=10)",
+        "description": "對使用者密碼使用安全隨機 Salt 和 10 次工作因子進行哈希加密，防範彩虹表與暴力破解。"
+      }
+    ],
+    "code": "// Express BFF 控制器：安全過濾並綁定個人 Telegram Chat ID\nconst express = require('express');\nconst router = express.Router();\nconst { User } = require('../models'); // Sequelize 使用者模型\n\nrouter.post('/api/user/telegram-bind', async (req, res) => {\n  try {\n    const { telegramChatId } = req.body;\n\n    // 1. 欄位格式校驗：限制格式為數字，防止 SQL 注入與非法輸入\n    const chatIdRegex = /^-?\\d+$/;\n    if (!telegramChatId || !chatIdRegex.test(telegramChatId)) {\n      return res.status(400).json({ error: '無效的 Telegram Chat ID 格式' });\n    }\n\n    // 2. 防範 IDOR 越權修改：強制使用 JWT 解析出的伺服器端 req.user.id，而非由 body 傳入的 ID\n    const userId = req.user.id; \n\n    // 3. 使用 Sequelize ORM 更新資料庫\n    const user = await User.findByPk(userId);\n    if (!user) {\n      return res.status(404).json({ error: '找不到該使用者' });\n    }\n\n    user.telegram_chat_id = telegramChatId;\n    await user.save();\n\n    return res.status(200).json({ \n      message: 'Telegram 帳號綁定成功', \n      chatId: telegramChatId \n    });\n  } catch (error) {\n    console.error('綁定 Telegram 發生錯誤:', error);\n    return res.status(500).json({ error: '伺服器內部錯誤' });\n  }\n});\n\nmodule.exports = router;",
+    "faq": [
+      {
+        "question": "問：什麼是部門 Materialized Path (物化路徑)？相比傳統 Parent ID 遞迴有何優勢？",
+        "answer": "答：物化路徑是將層級關係直接以路徑字串的形式存儲（例如部門 A 的 path 是 '1'，其子部門 B 的 path 是 '1/2'，B 的子部門 C 的 path 是 '1/2/3'）。傳統 Parent ID 設計在查詢某部門的所有下屬子部門時，必須使用遞迴 CTE (Common Table Expression)，在資料量大時會造成資料庫負擔；而物化路徑可以使用簡單的 SQL 模糊查詢（如 `WHERE path LIKE '1/2%'`），以 $O(1)$ 的查詢複雜度快速把所有子部門拉出來，對資料庫非常友善。"
+      },
+      {
+        "question": "問：系統是如何利用 BFF (Backend-for-Frontend) 模式來強化整體安全審計的？",
+        "answer": "答：BFF 模式充當了 Vue 3 前台與微服務/資料庫之間的「安全門神」。第一，它在後台 API 回傳前，會主動過濾並剔除 `password_hash` 等敏感欄位，避免洩露；第二，它強制校驗 JWT 簽名且不接受 `alg: \"none\"`，並在伺服器端解出 `req.user.id`，所有敏感操作都基於此 ID，杜絕前端篡改 ID 來實施 IDOR 越權攻擊；第三，它統一管理 CORS 來源，避免跨站點偽造請求 (CSRF) 威脅。"
+      }
+    ]
   }
 ]
