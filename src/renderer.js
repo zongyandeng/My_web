@@ -198,6 +198,29 @@ function renderSingleAINote(note) {
         }).join('')}
       </div>
     `;
+  } else if (note.id === 'image_segmentation') {
+    stepsHTML = `
+      <div class="flowchart">
+        ${note.steps.map((step, idx) => {
+          let stepImgHTML = '';
+          if (idx === 2) {
+            // U-Net 架構圖
+            stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/unet_architecture.png" alt="U-Net 影像分割神經網路架構圖" class="note-img"></div>`;
+          }
+          return `
+            <div class="flowchart-node detection-node">
+              <div class="node-num">${idx + 1}</div>
+              <div class="node-text" style="width: 100%;">
+                <div class="node-title">${step.name}</div>
+                <div class="node-desc">${step.details}</div>
+                ${stepImgHTML}
+              </div>
+            </div>
+            ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
+          `;
+        }).join('')}
+      </div>
+    `;
   }
 
   // 混淆矩陣互動特有區塊

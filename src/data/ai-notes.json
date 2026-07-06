@@ -403,7 +403,7 @@
       },
       {
         "name": "3. 從 CNN 經典到 Transformer 基礎模型 (SAM)",
-        "details": "技術演進上，從傳統卷積神經網路的 U-Net（醫學分割標竿）與 Mask R-CNN，演進至當前基於 Transformer 的「基礎模型（Foundation Models）」時代。Meta 推出的 Segment Anything (SAM / SAM 2) 具備強大的零樣本（Zero-shot）泛化能力，透過點擊、畫框或提示詞，即可即時分割出模型從未見過的未知物件。"
+        "details": "在語意分割的技術演進中，傳統 CNN 的 U-Net 奠定了經典架構標竿。U-Net 採用左右對稱的 U 字型結構：左側為收縮路徑 (Contracting Path / Encoder)，負責重複進行 3x3 卷積與 Max Pooling 以提取高維特徵；右側為擴張路徑 (Expansive Path / Decoder)，負責進行上採樣與反卷積逐步還原空間尺寸。其核心靈魂在於引入了「跳躍連接 (Skip Connection)」，直接將編碼器的淺層高解析度幾何特徵在通道維度上與解碼器的深層特徵進行拼接，從而完美保留邊緣輪廓與幾何細節。隨後，技術演進至 Mask R-CNN，以及當前基於 Transformer 且擁有 Zero-shot 泛化能力的 Segment Anything (SAM) 基礎大模型。"
       },
       {
         "name": "4. 【實作步驟一】建立 Ubuntu 虛擬環境 (venv) 進行防撞隔離",
@@ -431,6 +431,11 @@
       }
     ],
     "formulas": [
+      {
+        "name": "U-Net 特徵拼接與跳躍連接 (Skip Connection) 公式",
+        "latex": "\\mathbf{X}_{\\text{decoder}}^{l} = \\left[ \\mathbf{X}_{\\text{encoder}}^{l} \\,;\\, \\text{UpSample}(\\mathbf{X}_{\\text{decoder}}^{l+1}) \\right]",
+        "description": "解碼器第 $l$ 層的特徵圖是將編碼器同層的特徵圖 $\\mathbf{X}_{\\text{encoder}}^{l}$ 與解碼器下一層上採樣後的特徵圖進行通道維度上的拼接 (Concatenate)，從而融合淺層細節與深層語意特徵。"
+      },
       {
         "name": "交除併 (Intersection over Union, IoU) 公式",
         "latex": "\\text{IoU} = \\frac{|A \\cap B|}{|A \\cup B|}",
