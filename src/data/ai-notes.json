@@ -414,11 +414,19 @@
         "details": "影像分割的大模型運算耗時長，網路中斷會導致 SSH 指令中斷。因此必須安裝 Tmux 作為「防斷線保護罩」：執行 `sudo apt install tmux` 後，利用 `tmux new -s ai_run` 開啟虛擬會話。在此保護罩下，執行 `pip install ultralytics` 一鍵安裝 YOLO、PyTorch 與 OpenCV。若需退回背景，可按下快捷鍵 `Ctrl + b` 後按 `d` (Detach)；需要返回時，只需輸入 `tmux attach -t ai_run` 即可。"
       },
       {
-        "name": "6. 【實作步驟三】隔空傳圖與 YOLOv8-seg CLI 一鍵分割",
-        "details": "實例分割需要測試圖片。若是懶人下載，直接在伺服器端用 `wget https://ultralytics.com/images/bus.jpg -O test.jpg` 下載官方經典測試圖；若是要傳送自己筆電的圖片，則在新開啟的本機終端機中，執行 `scp ~/Desktop/test.jpg 帳號@伺服器IP:~/AI_Practice/`。圖片到位後，於伺服器端虛擬環境中輸入 `yolo predict model=yolov8n-seg.pt source=test.jpg`，系統會自動下載 Nano 分割模型並執行一鍵分割，結果將完美塗滿像素邊緣，儲存在 `runs/segment/predict/` 中。"
+        "name": "6. 【實作步驟三】隔空傳圖與 Wget/SCP 圖片抓取",
+        "details": "實作需要測試圖片。若是直接抓取網路圖，可執行 `wget https://ultralytics.com/images/bus.jpg -O test.jpg`；若是從本機 Windows 傳送，則打開本機新終端機執行 `scp ~/Desktop/test.jpg 帳號@伺服器IP:~/AI_Practice/`，透過 SSH 加密通道將圖片安全傳送至伺服器端。"
       },
       {
-        "name": "7. 模型評估指標：交除併 (IoU) 與 Dice 係數",
+        "name": "7. 【實作步驟四】二值遮罩 (Tensor) 提取與縮排地獄除錯",
+        "details": "在 Python 中，`results[0].masks.data` 的輸出張量格式為 `torch.Size([N, H, W])`（如 `[5, 640, 480]`），代表圖片已被拆解成 N 層二維矩陣，1 代表物體，0 代表背景。利用 `cv2.imwrite` 保存 `mask * 255` 即可輸出可視化的黑白灰階遮罩。在編寫程式時，需嚴格防範 Tab 與空白鍵混用導致的 `TabError` 縮排錯誤，統一使用 4 個空白鍵是防錯鐵則。"
+      },
+      {
+        "name": "8. 【實作步驟五】信心門檻調優與一對一迴圈重構",
+        "details": "當遇到模型將影子誤判為物件的 False Positive 問題時，可在預測時加入 `conf=0.4`（及格分數提升）來過濾低信心度雜訊；同時，為解決雙層迴圈輸出雜亂的缺點，利用 `masks[i]` 與 `boxes[i]` 的一對一映射關係，重構為單個 `for i in range(len(masks))` 迴圈，一次整齊印出遮罩路徑、類別與置信度。"
+      },
+      {
+        "name": "9. 模型評估指標：交除併 (IoU) 與 Dice 係數",
         "details": "評估分割準確度的核心數學指標是 IoU (交除併)。它計算的是模型預測的像素掩碼與真實標籤掩碼的交集面積除以聯集面積。在醫學分割或細微目標分割中，也經常使用 Dice Coefficient (等同於像素級 F1-Score) 來加強評估重合的精度。"
       }
     ],
@@ -434,15 +442,15 @@
         "description": "常用於醫學影像分割的評估指標。Dice 係數對交集部分的權重更大，能更敏感地反映小目標（如微小腫瘤）分割的實際準確度。"
       }
     ],
-    "code": "# 使用 Ultralytics YOLOv8-seg 進行實例分割與多邊形繪製的完整實作\nfrom ultralytics import YOLO\nimport cv2\nimport numpy as np\n\n# 1. 載入預訓練的 YOLOv8-segmentation 模型 (自動下載奈米級權重)\nmodel = YOLO(\"yolov8n-seg.pt\")\n\n# 2. 傳入測試圖片進行推論，設定置信度門檻\nimage_path = \"input_image.jpg\"\nresults = model(image_path, conf=0.25)\n\n# 3. 讀取原始圖片以進行視覺化繪製\nimg = cv2.imread(image_path)\n\n# 4. 遍歷推論結果，解析分割多邊形頂點\nfor result in results:\n    if result.masks is not None:\n        # xy 格式包含了所有檢測到物件的多邊形頂點坐標點對\n        for mask_xy, cls_id in zip(result.masks.xy, result.boxes.cls):\n            points = np.array(mask_xy, dtype=np.int32)\n            \n            # 建立半透明覆蓋圖層 (Overlay)\n            overlay = img.copy()\n            # 用綠色 (0, 255, 0) 填充多邊形區域\n            cv2.fillPoly(overlay, [points], (0, 255, 0))\n            \n            # 將半透明遮罩融合回原圖 (權重 0.4)\n            cv2.addWeighted(overlay, 0.4, img, 0.6, 0, img)\n            \n            # 繪製物件的精確邊緣線\n            cv2.polylines(img, [points], isClosed=True, color=(0, 255, 0), thickness=2)\n\n# 5. 儲存影像分割成果\ncv2.imwrite(\"output_segmented.jpg\", img)\nprint(\"影像分割推論完成！結果已儲存至 output_segmented.jpg\")",
+    "code": "# 使用 Ultralytics YOLOv8-seg 進行實例分割與遮罩一對一映射保存實作\nfrom ultralytics import YOLO\nimport cv2\nimport os\n\n# 1. 載入模型 (確保你有 yolov8n-seg.pt 在該目錄下)\nmodel = YOLO('yolov8n-seg.pt')\n\n# 2. 對測試圖片進行推論，設定信心門檻與重疊度門檻\n# 確保目錄下有一張叫 test.jpg 的照片\nresults = model.predict(source='test.jpg', save=False, conf=0.4, iou=0.7)\nprint(\"輸出 masks 張量尺寸:\", results[0].masks.data.shape) # torch.Size([N, H, W])\n\n# 3. 視覺化並儲存框選圖結果\nfor r in results:\n    # r.plot() 會回傳包含偵測框與分割遮罩的影像\n    res_plotted = r.plot()\n    cv2.imwrite('result_output.jpg', res_plotted)\n    print(\"分割完成，整體結果已儲存為 result_output.jpg\")\n\n# 確保有一個資料夾存放結果\nif not os.path.exists('masks'):\n    os.makedirs('masks')\n\n# 取得所有的 masks 與 boxes 資訊\nmasks = results[0].masks.data\nboxes = results[0].boxes\n\n# 使用單一迴圈，透過索引 i 同時對應 mask 與 box (一對一映射)\nfor i in range(len(masks)):\n    # 1. 處理遮罩圖片，將 0/1 二值張量乘以 255 保存為可視化灰階圖\n    mask = masks[i].cpu().numpy()\n    cv2.imwrite(f'masks/mask_{i}.png', mask * 255)\n\n    # 2. 取得對應物件的類別 ID 與信心度\n    cls_id = int(boxes.cls[i].item())\n    conf = boxes.conf[i].item()\n\n    # 3. 合併印出乾淨俐落的終端機訊息\n    print(f\"已儲存第 {i} 個遮罩 (類別 ID: {cls_id}, 信心度: {conf:.2f}) -> 存於 masks/mask_{i}.png\")",
     "faq": [
       {
-        "question": "問：如果我想用自己的資料集「訓練」一個自定義的 YOLO 分割模型，具體實作步驟是什麼？",
-        "answer": "答：自定義訓練分割模型主要有 3 個實作步驟：第一是「數據標註」，可使用 Roboflow 或 Labelme 工具，沿著影像中目標物體的邊界繪製多邊形，並匯出為 YOLO Segmentation 格式（文字檔內包含類別 ID 與多邊形標準化頂點坐標對）；第二是「撰寫 dataset.yaml 配置文件」，在裡面指定訓練集和驗證集圖片的資料夾路徑，並列出所有類別名稱；第三是「在 Python 中啟動訓練」，執行 `model = YOLO('yolov8n-seg.pt'); model.train(data='dataset.yaml', epochs=100, imgsz=640)`，即可在本地訓練出專屬的分割權重模型。"
+        "question": "問：如果在實作中遇到影像分割模型將「影子」等背景雜訊誤判為物件（False Positive），該如何優化？",
+        "answer": "答：這在實務上可以透過調優「信心門檻（Confidence Threshold, conf）」來解決。例如在 model.predict() 中加上 `conf=0.4` 或 `conf=0.5`，這相當於提升了 AI 判定的及格分數，能非常有效地過濾掉因光影、遮擋產生的低信心度影子雜訊；同時，亦可配置 `iou`（重疊門檻）參數，調優 NMS 重合判定邊界。"
       },
       {
-        "question": "問：Segment Anything (SAM) 與 YOLOv8-seg 在產業落地時該如何抉擇？",
-        "answer": "答：兩者在架構與實務定位上完全不同。Meta SAM 屬於「通用大模型」，擁有無與倫比的 Zero-shot 泛化能力，無須經過任何微調，僅憑提示點或畫框就能分割未知物體，但其模型體積龐大且推理速度慢（通常需在雲端伺服器運行），非常適合做半自動資料標註或精細去背；而 YOLOv8-seg 屬於「即時落地型模型」，參數量極小且推理速度極快，能輕鬆在邊緣運算裝置（如 Jetson Nano、工業 IPC）上達到數十幀以上的即時處理，是自動駕駛、生產線即時檢測的首選。"
+        "question": "問：在 Python 提取 YOLO-seg 二值遮罩時，數據形狀 torch.Size([N, H, W]) 代表什麼？如何進行資料視覺化？",
+        "answer": "答：這代表一個三維張量 (Tensor)，其中 N 代表影像中偵測到的物件數量，H 與 W 代表遮罩的寬高解析度（例如 640x480）。每一層（如 `masks[i]`）都是一個二值矩陣，數值 1 代表該像素屬於物件，0 代表背景。資料視覺化時，需先將其透過 `.cpu().numpy()` 轉為 NumPy 陣列，隨後乘以 255（使 1 轉為 255 白色，0 保持黑色），即可透過 `cv2.imwrite` 保存為直觀黑白的灰階遮罩圖片。"
       }
     ]
   },
