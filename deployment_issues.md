@@ -16,6 +16,6 @@
 * **失敗現象**：
   與 2026-07-05 同樣在 Actions 前期編譯成功，但在第 8 步 `Deploy to GitHub Pages` 出現 failure 阻斷。
 * **根本原因**：
-  確認為 GitHub Pages 雲端 API 偶發性連線超時，與代碼內容無關。
+  確認為連續 Git Push 間隔過短（小於 60 秒），導致 GitHub Actions 的 `actions/deploy-pages` 雲端 API 出現併發衝突 (Concurrency Conflict, Status Code 409)，後續的部署任務因資源鎖定而失敗。
 * **解決方案**：
-  更新本問題紀錄檔案，執行 Git 推送以重新觸發 Actions 工作流進行雲端部署。
+  在 deployment_issues.md 中追加本次分析，並進行一次乾淨的 Git 推送。在推送後，AI 助理應嚴格等待其部署工作流徹底執行完畢，避免在 2 分鐘內重複推送引發衝突。
