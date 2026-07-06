@@ -428,6 +428,10 @@
       {
         "name": "9. 模型評估指標：交除併 (IoU) 與 Dice 係數",
         "details": "評估分割準確度的核心數學指標是 IoU (交除併)。它計算的是模型預測的像素掩碼與真實標籤掩碼的交集面積除以聯集面積。在醫學分割或細微目標分割中，也經常使用 Dice Coefficient (等同於像素級 F1-Score) 來加強評估重合的精度。"
+      },
+      {
+        "name": "10. 遙測實務應用：河川水體語意分割 (River Segmentation)",
+        "details": "在遙測與防災監測中，河川辨識不採用粗糙的方框偵測，而是語意分割（將圖像像素分類為水體或陸地），用以精準計算枯水期與豐水期的河道寬度變化與暴雨洪澇溢出面積。辨識上主要有傳統光學水體指標（如 NDWI 正規化差值水體指標）與深度學習模型（如 U-Net / YOLO-seg）兩大路線。實作時同樣面臨山體與雲層陰影誤判（False Positive）以及黃濁泥沙河道在信心門檻設定下的漏判兩難。"
       }
     ],
     "formulas": [
@@ -435,6 +439,11 @@
         "name": "U-Net 特徵拼接與跳躍連接 (Skip Connection) 公式",
         "latex": "\\mathbf{X}_{\\text{decoder}}^{l} = \\left[ \\mathbf{X}_{\\text{encoder}}^{l} \\,;\\, \\text{UpSample}(\\mathbf{X}_{\\text{decoder}}^{l+1}) \\right]",
         "description": "解碼器第 $l$ 層的特徵圖是將編碼器同層的特徵圖 $\\mathbf{X}_{\\text{encoder}}^{l}$ 與解碼器下一層上採樣後的特徵圖進行通道維度上的拼接 (Concatenate)，從而融合淺層細節與深層語意特徵。"
+      },
+      {
+        "name": "正規化差值水體指標 (Normalized Difference Water Index, NDWI)",
+        "latex": "\\text{NDWI} = \\frac{\\text{Green} - \\text{NIR}}{\\text{Green} + \\text{NIR}}",
+        "description": "利用綠光波段 (Green) 與近紅外光波段 (NIR) 的反射率差值比率來放大水體特徵。由於水體在近紅外波段的反射率極低，NDWI 值大於一定臨界值的像素即被判定為水體。"
       },
       {
         "name": "交除併 (Intersection over Union, IoU) 公式",
@@ -456,6 +465,10 @@
       {
         "question": "問：在 Python 提取 YOLO-seg 二值遮罩時，數據形狀 torch.Size([N, H, W]) 代表什麼？如何進行資料視覺化？",
         "answer": "答：這代表一個三維張量 (Tensor)，其中 N 代表影像中偵測到的物件數量，H 與 W 代表遮罩的寬高解析度（例如 640x480）。每一層（如 `masks[i]`）都是一個二值矩陣，數值 1 代表該像素屬於物件，0 代表背景。資料視覺化時，需先將其透過 `.cpu().numpy()` 轉為 NumPy 陣列，隨後乘以 255（使 1 轉為 255 白色，0 保持黑色），即可透過 `cv2.imwrite` 保存為直觀黑白的灰階遮罩圖片。"
+      },
+      {
+        "question": "問：在進行遙測河川分割時，山體/雲層陰影誤判與泥沙濁流漏判該如何調優？",
+        "answer": "答：這在遙測領域是極具代表性的 False Positive（誤判）與 False Negative（漏判）權衡問題。高山或雲層的陰影與深色水體反射率相似，conf 設得過低會導致陰影被誤判為河川；反之，若暴雨後河道夾帶大量泥沙（如黃河）呈黃褐色，其光學特徵偏離標準水域，conf 設得過高則會漏判。實務上除了在 model.predict() 中動態調優信心門檻外，更會引入 NDWI 光學指標作為先驗知識 (Prior Knowledge) 限制模型搜尋區域，或融合多時段 (Multi-temporal) 衛星影像以濾除瞬時陰影干擾。"
       }
     ]
   },
