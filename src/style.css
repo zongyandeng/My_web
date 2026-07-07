@@ -19,6 +19,7 @@
   --font-mono: 'JetBrains Mono', monospace;
   --transition-speed: 0.4s;
   --glass-blur: blur(12px) saturate(160%);
+  --bg-navbar: rgba(3, 7, 18, 0.85);
 }
 
 [data-theme="cyberpunk"] {
@@ -36,6 +37,7 @@
   --glow-color: rgba(0, 240, 255, 0.25);
   --shadow-color: rgba(255, 0, 127, 0.1);
   --glass-blur: blur(8px) saturate(180%);
+  --bg-navbar: rgba(11, 12, 16, 0.85);
 }
 
 /* --- 全域重設 & 基礎樣式 --- */
@@ -53,6 +55,12 @@ body {
   overflow-x: hidden;
   position: relative;
   transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 /* 動態流光背景 */
@@ -125,7 +133,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0 40px;
-  background: rgba(var(--bg-primary), 0.5);
+  background: var(--bg-navbar);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border-color);
@@ -956,6 +964,11 @@ pre[class*="language-"] {
   .sidebar {
     position: static;
     margin-bottom: 30px;
+  }
+  .gpu-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
