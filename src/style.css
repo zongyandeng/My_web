@@ -449,7 +449,7 @@ h1, h2, h3, h4, h5, h6 {
 /* --- AI 學習實驗室排版 --- */
 .notes-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 40px;
   align-items: start;
 }
@@ -781,7 +781,7 @@ h1, h2, h3, h4, h5, h6 {
 /* --- 指令查詢模擬終端機 --- */
 .terminal-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 40px;
   align-items: start;
 }
@@ -959,7 +959,7 @@ pre[class*="language-"] {
     grid-template-columns: repeat(2, 1fr);
   }
   .notes-layout, .terminal-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .sidebar {
     position: static;
