@@ -551,5 +551,64 @@
         "answer": "答：BFF 模式充當了 Vue 3 前台與微服務/資料庫之間的「安全門神」。第一，它在後台 API 回傳前，會主動過濾並剔除 `password_hash` 等敏感欄位，避免洩露；第二，它強制校驗 JWT 簽名且不接受 `alg: \"none\"`，並在伺服器端解出 `req.user.id`，所有敏感操作都基於此 ID，杜絕前端篡改 ID 來實施 IDOR 越權攻擊；第三，它統一管理 CORS 來源，避免跨站點偽造請求 (CSRF) 威脅。"
       }
     ]
+  },
+  {
+    "id": "sam3_segment_anything",
+    "title": "SAM 3 前沿分割大模型與河川監測實務 (SAM 3 & Remote Sensing)",
+    "englishTitle": "SAM 3 Architecture & River Monitoring Application",
+    "description": "本單元探討 Meta 前沿 Segment Anything Model 3 (SAM 3) 的解耦架構。系統深入解析開放詞彙、聯合嵌入空間、以及交叉注意力機制的向量內積底層數學。並以 Presence Head (存在預測) 與 Mask Head (遮罩還原) 解析模型如何降低邊緣運算負載，同時給出在河川廢水/油汙監測、水波反光消除與時空記憶追蹤上的實戰工程對接指引。",
+    "steps": [
+      {
+        "name": "1. SAM 3 核心概念與幾何語意雙驅動 (Overview)",
+        "details": "SAM 3 是將電腦視覺從「幾何座標驅動（點擊、拉框）」推向「概念/語意驅動（自然語言、視覺範例）」的基礎大模型。它突破性地支持開放詞彙（Open-vocabulary）分割，能辨識並定位無固定形狀（如水面泡沫、油汙）的複雜目標，且在架構上將辨識與定位進行了「解耦 (Decouple)」。"
+      },
+      {
+        "name": "2. 聯合嵌入空間與高維度投影 (Joint Embedding Space)",
+        "details": "影像（二維像素矩陣）與文字（一維自然語言字串）屬於截然不同的資料維度。SAM 3 透過對稱的 Vision-Text 雙塔編碼器，將兩者同時投影至同一個高維的「聯合嵌入空間」中，從而建立共同的對齊與比較基準，解決了跨模態特徵比對的難題。"
+      },
+      {
+        "name": "3. 交叉注意力與向量內積運算 (Cross-Attention)",
+        "details": "模型使用交叉注意力機制，計算文字 Query 向量與影像局部 Key 向量的內積（Dot Product）相似度。當內積數值極大時，代表特徵對齊（如文字「泡沫」對應圖像中的白色廢水區塊），注意力隨之高度聚焦；當內積趨近於零時表示概念正交（直接忽略），此為 RAG 與檢索的核心數學。"
+      },
+      {
+        "name": "4. 關鍵解耦架構之一：統一的 Vision-Language 骨幹網路",
+        "details": "SAM 3 在特徵提取極早期的階段即將視覺與文本語意進行融合。這使得模型在掃描圖片時，已自動攜帶著「我要尋找什麼目標」的具體語意引導，有效防止了特徵提取階段的盲目掃描與幻覺產生。"
+      },
+      {
+        "name": "5. 關鍵解耦架構之二：Presence Head (存在預測頭)",
+        "details": "充當分割計算的前哨站。Presence Head 僅執行輕量級的二元分類，預測目標物體是否存在於畫面中並輸出機率值。只有當該機率值高於設定的閥值（例如 80%）時，才會放行給後續龐大的 Mask Head，在無目標物時能節省 90% 的無效幾何運算。"
+      },
+      {
+        "name": "6. 關鍵解耦架構之三：Mask Head (遮罩預測頭)",
+        "details": "在收到 Presence Head 的確認放行信號後方啟動。Mask Head 將注意力集中的特徵區域解碼還原成精確的空間幾何邊界掩碼（Mask），實現像素級的輪廓描繪與水體/泡沫範圍定位。"
+      },
+      {
+        "name": "7. 實務工程對接：河川廢水與水波反光監測",
+        "details": "將 SAM 3 特性對接至河川監測專案中：針對無固定邊界的油汙與泡沫，透過聯合嵌入空間進行紋理檢索；大量利用 Presence Head 充當邊緣設備門神（機率 > 80% 才畫遮罩警報）；引入影片時空記憶機制（Temporal Memory）比對歷史向量以消除水波紋與陽光反光產生的閃爍誤判；並優先採用視覺範例 (Image Exemplars) 作為 Prompt 以取得最高精度。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "縮放點積交叉注意力 (Scaled Dot-Product Cross-Attention) 公式",
+        "latex": "\\text{Attention}(\\mathbf{Q}, \\mathbf{K}, \\mathbf{V}) = \\text{softmax}\\left( \\frac{\\mathbf{Q} \\mathbf{K}^T}{\\sqrt{d_k}} \\right) \\mathbf{V}",
+        "description": "SAM 3 計算文本語意特徵 Query 向量與圖像局部 Key 向量的點積，除以維度縮放因子以防梯度消失，再透過 softmax 計算注意力矩陣，對特徵 Value 向量進行加權提取。"
+      },
+      {
+        "name": "Presence Head 二元交叉熵損失函數 (Binary Cross-Entropy)",
+        "latex": "\\mathcal{L}_{\\text{presence}} = - \\left[ y \\log(p) + (1-y) \\log(1-p) \\right]",
+        "description": "存在預測頭 (Presence Head) 對目標是否存在進行極輕量級的二元分類優化，其輸出的機率值 $p$ 為後端 Mask Head 啟動的關鍵放行閾值。"
+      }
+    ],
+    "code": "# SAM 3 解耦架構 (Decoupled Architecture) 在邊緣設備端的算力優化實作模擬\\nimport time\\n\\nclass SAM3EdgePipeline:\\n    def __init__(self, threshold=0.80):\\n        self.threshold = threshold\\n\\n    def extract_joint_features(self, frame, prompt_text):\\n        # 1. 模擬 Vision-Language Backbone 提取聯合嵌入空間特徵\\n        print(\\\"-> 1. 提取 Vision-Language 骨幹特徵...\\\")\\n        time.sleep(0.01) # 輕量級特徵提取\\n        return {\\\"features\\\": \\\"joint_embedding_vector\\\"}\\n\\n    def presence_head_predict(self, features):\\n        # 2. Presence Head 僅預測目標存在機率 (極低算力)\\n        presence_probability = 0.85 \\n        print(f\\\"-> 2. Presence Head 預測目標存在機率: {presence_probability * 100:.1f}%\\\")\\n        return presence_probability\\n\\n    def mask_head_segment(self, features):\\n        # 3. 只有當存在機率達標，才啟動耗時的 Mask Head 進行分割\\n        print(\\\"-> 3. [高算力] 啟動 Mask Head 繪製精細二値遮罩並推播警報！\\\")\\n        time.sleep(0.1) # 模擬高載像素分割計算\\n        return \\\"binary_mask_matrix\\\"\\n\\n    def process_frame(self, frame, prompt_text):\\n        # 單幀影像處理流水線\\n        features = self.extract_joint_features(frame, prompt_text)\\n        prob = self.presence_head_predict(features)\\n        \\n        # 算力優化門神判定\\n        if prob >= self.threshold:\\n            print(\\\"   [放行] 機率達標，啟動精細分割。\\\")\\n            mask = self.mask_head_segment(features)\\n            return mask\\n        else:\\n            print(\\\"   [阻斷] 機率未達門檻，跳過繁重分割計算，節省 90% 邊緣端算力。\\\")\\n            return None\\n\\n# 初始化邊緣監測管道，設定存在機率門檻為 80%\\npipeline = SAM3EdgePipeline(threshold=0.80)\\npipeline.process_frame(\\\"river_frame.jpg\\\", \\\"chemical foam\\\")",
+    "faq": [
+      {
+        "question": "問：為什麼說 SAM 3 實現了辨識與定位的「解耦 (Decoupling)」？這對邊緣運算有何好處？",
+        "answer": "答：傳統 YOLO 模型在偵測時，會將「這是什麼類別」與「物體框在哪裡」緊密結合在一起進行運算；而 SAM 3 則將其拆解為兩步。它先使用極其輕量的 Presence Head 來判斷「畫面中有沒有出現我們要的語意特徵（如化學油汙）」，輸出一個機率值。只有當機率大於閾值時，才啟動極耗算力的 Mask Head 去勾勒邊界。這種解耦設計使得我們在邊緣設備（如無人機、地端 IPC）上，能以極低的待機功耗進行監控，只有在真正檢測到異常水體時才進行精細計算，從而極大地節省了能耗與算力。"
+      },
+      {
+        "question": "問：如何利用 SAM 3 影片時空記憶機制來克服河川監測中的水波紋與反光干擾？",
+        "answer": "答：在戶外遙測與河川監測中，陽光在水面上產生的波光粼粼與水波紋，常被單幀 (Single Frame) 模型誤判為化學泡沫或油汙。SAM 3 引入了時空記憶機制（Temporal Memory），模型能跨時間維度緩存過去幾幀的特徵向量。當當前幀檢測到疑似油汙特徵時，模型會比對記憶庫：如果是短暫反光，特徵向量在時間軸上是不連續、快速漂移的；而真實化學油汙具備時間與空間的連續軌跡。藉此，模型能有效濾除陽光反光的閃爍誤報，穩定追蹤真實廢水。"
+      }
+    ]
   }
 ]
