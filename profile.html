@@ -12,6 +12,8 @@
   <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
 </head>
 <body>
+  <!-- 引入全域進入動畫引擎 -->
+  <script type="module" src="src/intro.js"></script>
 
   <!-- 動態流光背景 -->
   <div class="dynamic-bg"></div>
@@ -29,8 +31,8 @@
       <li><a href="hardware.html">硬體研究</a></li>
       <li><a href="commands.html">指令查詢</a></li>
     </ul>
-    <button class="theme-toggle-btn" id="theme-toggle">
-      🌌 Deep Space
+    <button class="settings-btn" id="settings-toggle">
+      ⚙️ 設定
     </button>
   </nav>
 
@@ -92,6 +94,7 @@
   </main>
 
   <script type="module" src="src/renderer.js"></script>
+  <script type="module" src="src/settings.js"></script>
   <script type="module" src="src/assistant.js"></script>
 </body>
 </html>

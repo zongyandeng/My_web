@@ -1206,104 +1206,281 @@ body.hide-cursor * {
   box-shadow: 0 0 15px var(--glow-color);
 }
 
-/* 4. 特效控制面板 (Effects Panel) */
-.effects-panel {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  z-index: 1001;
+/* ==========================================================================
+   ⚙️ 全域設定面板 (Settings Modal) 與按鈕
+   ========================================================================== */
+
+/* 1. 設定按鈕樣式與齒輪旋轉 */
+.settings-btn {
   background: var(--bg-card);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  width: 170px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px var(--shadow-color);
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease;
-}
-
-.effects-panel:hover {
-  border-color: var(--border-hover);
-}
-
-.panel-header {
-  padding: 12px 16px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  cursor: pointer;
-  user-select: none;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.panel-header span {
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 0.5px;
-}
-
-.panel-toggle-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 0.65rem;
-  transition: transform 0.3s ease;
-}
-
-.panel-body {
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 250px;
-  transition: max-height 0.3s cubic-bezier(0.25, 1, 0.5, 1), padding 0.3s ease, opacity 0.3s ease;
-  opacity: 1;
-}
-
-.panel-body.collapsed {
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.effect-btn {
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-muted);
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
+  color: var(--text-main);
+  padding: 8px 16px;
+  border-radius: 20px;
   font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.effect-btn:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-main);
-  padding-left: 15px;
+.settings-btn:hover {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 15px var(--glow-color);
+  transform: translateY(-2px);
 }
 
-.effect-btn.active {
-  background: rgba(255, 255, 255, 0.08);
+.settings-btn .settings-icon {
+  display: inline-block;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.settings-btn:hover .settings-icon {
+  transform: rotate(180deg);
+}
+
+/* 2. 設定彈窗 (Settings Modal) 基礎結構 */
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100000;
+  display: none; /* 由 JS 控制 display: flex */
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.settings-modal.open {
+  opacity: 1;
+}
+
+.settings-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(4, 6, 14, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1;
+}
+
+.settings-modal-content {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 500px;
+  background: rgba(10, 14, 28, 0.75);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(59, 130, 246, 0.1);
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease;
+}
+
+.settings-modal.open .settings-modal-content {
+  transform: scale(1) translateY(0);
+}
+
+[data-theme="cyberpunk"] .settings-modal-content {
+  background: rgba(18, 10, 24, 0.8);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(244, 63, 94, 0.15);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+.settings-modal-content:hover {
   border-color: var(--border-hover);
-  color: var(--text-main);
-  font-weight: 600;
-  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.02);
 }
+
+/* 3. Modal Header */
+.settings-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+}
+
+.settings-modal-header h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.settings-modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.settings-modal-close:hover {
+  color: var(--accent-2);
+  transform: scale(1.1) rotate(90deg);
+}
+
+/* 4. Modal Body & Sections */
+.settings-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* 美化滾動條 */
+.settings-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.settings-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.settings-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.section-subtitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* 5. 選項按鈕排版與樣式 */
+.settings-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-opt-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.settings-opt-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.settings-opt-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-1);
+  color: var(--text-main);
+  font-weight: 700;
+  box-shadow: 0 0 15px var(--glow-color);
+}
+
+/* 進入動畫特定排版 */
+.intro-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.intro-option-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.intro-option-row .settings-opt-btn {
+  flex-grow: 1;
+  justify-content: flex-start;
+}
+
+.settings-preview-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.settings-preview-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+/* ==========================================================================
+   🌌 進入動畫 Overlay 與效果樣式 (Intro Styles)
+   ========================================================================== */
+
+#intro-overlay.flash-effect {
+  animation: flash-white 0.12s ease-out;
+}
+
+/* 大爆炸白色閃光動畫 */
+@keyframes flash-white {
+  0% { background-color: #ffffff; }
+  100% { background-color: #05070f; }
+}
+
+/* 終端機閃爍 Glitch 效果 */
+.terminal-glitch {
+  animation: terminal-flicker-anim 0.15s infinite alternate;
+}
+
+@keyframes terminal-flicker-anim {
+  0% { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+
 
 /* YOLO 物件偵測卡片與圖片美化樣式 */
 .detection-node {
