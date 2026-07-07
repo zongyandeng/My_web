@@ -135,16 +135,20 @@
     "description": "在神經網路訓練過程中，我們會將每個 Epoch 的訓練集損失 (Train Loss) 與驗證集損失 (Val Loss)、精度 (Accuracy) 記錄下來繪製成折線圖。這是診斷模型是處於過擬合、欠擬合還是正常收斂的最直接手段。",
     "steps": [
       {
-        "name": "1. 正常收斂 (Good Fit)",
-        "details": "隨著 Epoch 增加，Train Loss 與 Val Loss 皆穩定下降，且兩者差距不大，最後趨於平緩。Val Accuracy 則穩定上升並趨於穩定。"
+        "name": "1. 正常收斂與泛化平衡 (Good Fit)",
+        "details": "在健康的收斂折線圖中，隨著 Epoch 增加，Train Loss 與 Val Loss 皆穩定同步下降，最後雙雙趨於平緩。這代表模型在偏誤 (Bias) 與變異數 (Variance) 之間取得平衡，成功學會了資料背後的真實分佈律，具備良好的泛化能力。"
       },
       {
-        "name": "2. 過擬合 (Overfitting)",
-        "details": "Train Loss 持續下降，甚至接近 0。但 Val Loss 在下降到某個點後，開始反彈上升。這代表模型「死記硬背」了訓練集的特徵，失去了對新資料的推廣泛化能力。"
+        "name": "2. 過擬合 (Overfitting) - 高變異數 (High Variance) 的陷阱",
+        "details": "Train Loss 持續降低並接近零，但 Val Loss 在降至某個最低拐點後，開始「反彈上升」，兩者的 Generalization Gap 逐漸擴大。此時模型將訓練集中的特定雜訊與邊角細節當成了通用規律背下來，導致遇到新資料時判斷失準。通常因模型容量過大、正則化不足或訓練 Epoch 過長引起。"
       },
       {
-        "name": "3. 欠擬合 (Underfitting)",
-        "details": "Train Loss 與 Val Loss 都維持在很高的數值降不下來，或者下降非常緩慢。這代表模型連訓練集的特徵都學不好，通常是因為模型容量不足或學習率太大。"
+        "name": "3. 欠擬合 (Underfitting) - 高偏誤 (High Bias) 的困境",
+        "details": "Train Loss 與 Val Loss 都維持在很高的數值且降不下來，或者下降速度極為遲緩。這意味著模型架構太過簡單（如用線性分類器處理非線性問題），根本無法捕捉資料庫的潛在特徵結構，連訓練集都學不好，通常需透過增加模型深度、引入更多特徵或延長訓練時間來解決。"
+      },
+      {
+        "name": "4. 早停防線 (Early Stopping) - 防範過擬合的自動煞車",
+        "details": "在訓練過程中引入 Early Stopping 機制，實時監控每個 Epoch 的 Val Loss。當 Val Loss 達到最低點且連續設定的耐心值（Patience）個 Epoch 內沒有進一步改善，甚至開始有反彈過擬合趨勢時，系統會立即自動中斷訓練，並回滾保留 Val Loss 最低時的模型權重，從而省下無效算力並確保最佳泛化性能。"
       }
     ],
     "formulas": [
@@ -152,13 +156,18 @@
         "name": "多分類交叉熵損失 (Cross-Entropy Loss)",
         "latex": "\\mathcal{L}_{CE} = -\\frac{1}{N} \\sum_{i=1}^{N} \\sum_{c=1}^{C} y_{i,c} \\log(\\hat{y}_{i,c})",
         "description": "用於分類任務中衡量模型預測機率分布 $\\hat{y}$ 與真實標籤 one-hot 分布 $y$ 之間的差異。模型預測越準，Loss 越接近 0。"
+      },
+      {
+        "name": "早停機制 (Early Stopping) 觸發判定公式",
+        "latex": "\\text{Trigger Stop if} \\quad t - t_{\\text{best}} \\ge P \\quad \\text{where} \\quad \\mathcal{L}_{\\text{val}, t_{\\text{best}}} = \\min_{i \\le t} (\\mathcal{L}_{\\text{val}, i})",
+        "description": "在 Epoch $t$ 時監控驗證集損失。若當前 Epoch $t$ 與歷史最低驗證損失 Epoch $t_{\\text{best}}$ 的差值達到或大於預設的耐心值 (Patience, $P$)，則觸發中斷，防止模型進一步過擬合。"
       }
     ],
-    "code": "import torch\nimport torch.nn as nn\nimport torch.optim as optim\n\n# 假設模型、資料載入器已定義\nmodel = nn.Linear(10, 2)\ncriterion = nn.CrossEntropyLoss()\noptimizer = optim.Adam(model.parameters(), lr=0.001)\n\ntrain_losses = []\nval_losses = []\n\n# 訓練 Loop 範例\nfor epoch in range(100):\n    model.train()\n    # ... 載入 train_loader 計算 loss ...\n    loss = criterion(outputs, targets)\n    optimizer.zero_grad()\n    loss.backward()\n    optimizer.step()\n    \n    # 記錄每個 Epoch 的 Loss 以繪製折線圖\n    train_losses.append(loss.item())\n    \n    # 驗證模式\n    model.eval()\n    with torch.no_grad():\n        # ... 計算 val_loss ...\n        val_losses.append(val_loss.item())",
+    "code": "# PyTorch 神經網路訓練與地端早停機制 (Early Stopping) 實作範例\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport numpy as np\n\nclass EarlyStopping:\n    def __init__(self, patience=7, delta=0, path='best_model.pth'):\n        self.patience = patience\n        self.delta = delta\n        self.path = path\n        self.counter = 0\n        self.best_score = None\n        self.early_stop = False\n        self.val_loss_min = np.Inf\n\n    def __call__(self, val_loss, model):\n        score = -val_loss\n        if self.best_score is None:\n            self.best_score = score\n            self.save_checkpoint(val_loss, model)\n        elif score < self.best_score + self.delta:\n            self.counter += 1\n            print(f\"早停計數器: {self.counter} / {self.patience} (未能在 delta={self.delta} 內降低)\")\n            if self.counter >= self.patience:\n                self.early_stop = True\n        else:\n            self.best_score = score\n            self.save_checkpoint(val_loss, model)\n            self.counter = 0\n\n    def save_checkpoint(self, val_loss, model):\n        print(f\"驗證集損失降低 ({self.val_loss_min:.6f} --> {val_loss:.6f}). 儲存最佳模型...\")\n        torch.save(model.state_dict(), self.path)\n        self.val_loss_min = val_loss\n\n# 訓練 Loop 呼叫範例\nmodel = nn.Linear(10, 2)\ncriterion = nn.CrossEntropyLoss()\noptimizer = optim.Adam(model.parameters(), lr=0.001)\nearly_stopping = EarlyStopping(patience=10)\n\nfor epoch in range(100):\n    # 1. 訓練模式\n    model.train()\n    # loss = criterion(outputs, targets) ... 反向傳播與優化 ...\n    \n    # 2. 驗證模式\n    model.eval()\n    with torch.no_grad():\n        # val_loss = criterion(val_outputs, val_targets) ...\n        val_loss = 0.5 # 這裡為假資料\n        \n    # 3. 調用早停檢查\n    early_stopping(val_loss, model)\n    if early_stopping.early_stop:\n        print(\"驗證集損失已連續 10 個 Epoch 未能改善，觸發自動中斷！\")\n        break",
     "faq": [
       {
-        "question": "問：我的模型過擬合 (Overfitting) 了，折線圖中 Val Loss 狂飆，該如何解決？",
-        "answer": "答：**常見對策**：1. **Dropout**：在神經網路層間加入 Dropout Layer，訓練時隨機關閉部分神經元。2. **權重衰減 (Weight Decay)**：在優化器中開啟 L2 正則化（例如 `optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)`）。3. **早停法 (Early Stopping)**：當 Val Loss 連續數個 Epoch 沒有下降時，提前終止訓練並保存最佳模型。4. **數據增強 (Data Augmentation)**：增加訓練資料的多樣性。"
+        "question": "問：過擬合 (Overfitting) 與欠擬合 (Underfitting) 的物理直覺與根本成因是什麼？",
+        "answer": "答：這可以用「偏誤與變異數權衡 (Bias-Variance Tradeoff)」來理解。1. **欠擬合 (高偏誤 High Bias)**：模型太過簡單（如用直線去擬合曲線），對資料有強烈的錯誤假設，導致不論在訓練集或驗證集，其 Loss 都維持高檔。這就像背公式時只記下了最粗淺的皮毛。2. **過擬合 (高變異數 High Variance)**：模型過於複雜（如用高次多項式完美穿過所有點），對資料的微小擾動極為敏感，導致 Train Loss 接近零，而 Val Loss 卻反彈。這就像死記硬背了訓練集的每一道題（包括題目的手寫雜訊），導致遇到考題稍微變動時就完全答不上來。"
       },
       {
         "question": "問：Train Loss 比 Val Loss 還要高是正常的嗎？",
@@ -167,6 +176,10 @@
       {
         "question": "問：在 YOLO 訓練折線圖中，定位與分類的 box_loss、cls_loss、dfl_loss 代表什麼？",
         "answer": "答：物件偵測模型需要同時學習物體的「位置」與「類別」，其訓練指標通常包含三個損失：<br>1. <strong>box_loss (定位損失)</strong>：計算預測框與真實標註框的交併重合度。此數值一般與 1 - IoU 呈正比，數值越低代表定位越貼合。<br>2. <strong>cls_loss (分類損失)</strong>：使用交叉熵判定框內物件的分類正確性，當類別判定越精準，Loss 越低。<br>3. <strong>dfl_loss (Distribution Focal Loss)</strong>：用於學習邊界框的連續概率分佈，能大幅精細化物件邊界的預測，對重疊、遮擋或極小目標定位非常有幫助。"
+      },
+      {
+        "question": "問：早停機制 (Early Stopping) 的耐心值 (Patience) 參數該如何合理配置？",
+        "answer": "答：Patience 的配置取決於學習率 (Learning Rate) 以及 Loss 的波動幅度：1. **Patience 太小**：例如設為 2，在 Loss 因為 Mini-batch 採樣產生正常擾動（暫時性反彈）時，模型就會被提早「誤殺」中止，導致模型根本還沒有收斂。2. **Patience 太大**：例如設為 50，當模型早已嚴重過擬合時，系統還在浪費算力空轉等待，失去了早停的意義。實務上，若學習率較大且採用 Cosine Annealing 等衰減調度，Patience 建議設為 7 ~ 15，以留給模型足夠的跨越局部極小值（Local Minima）的調整週期。"
       }
     ]
   },
