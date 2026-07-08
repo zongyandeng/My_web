@@ -585,6 +585,10 @@
       {
         "name": "7. 實務對接：連續串流的 80% 算力節省 (PoC Evaluation)",
         "details": "在連續影片串流下，利用 Presence Head 先行過濾掉 90% 乾淨 of 河川畫面，系統將能節省 80% 的影像分割算力，這使得邊緣設備（如 Raspberry Pi 或地端 IPC）也有機會流暢運行大模型智慧監控。"
+      },
+      {
+        "name": "8. 前置大腦延伸：SAM 3 的五大前沿應用場景 (Extended Applications)",
+        "details": "SAM 3 精準度極高且能理解開放語意，已成為高階 AI 應用的超強大前置大腦。這涵蓋了：影像編輯 (結合 Stable Diffusion Inpainting 局部填充)、自動化標註工廠 (Auto-Annotation 以大模型教小模型)、機器人與無人機視覺 (UAV 巡檢與物理邊界抓取)、醫學影像分析 (腫瘤細胞不規則分割) 以及動態物件追蹤 (跨影格時空鎖定)。"
       }
     ],
     "formulas": [
