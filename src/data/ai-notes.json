@@ -622,5 +622,60 @@
         "answer": "答：在專案早期，技術可行性與算力開銷是最大的未知數。如果直接做 DEMO，雖然 UI 炫麗，但無法實質驗證「在樹莓派上流暢跑大模型」等核心難關。而寫一個 PoC 腳本，可用不到 100 行代碼、以極低成本模擬出『Presence Head 阻斷後節省 80% 算力』的真實數據流，向技術團隊證明此架構設計的可行性，進而拍板技術路線，避免後續推倒重來的巨大損失。"
       }
     ]
+  },
+  {
+    "id": "vit_detr_tensor_breakdown",
+    "title": "ViT 與 DETR 核心概念：張量維度與原理解析 (ViT & DETR Concepts)",
+    "englishTitle": "ViT & DETR Architecture & Tensor Shape Breakdown",
+    "description": "本單元拆解現代電腦視覺的兩大基礎建設：Vision Transformer (ViT) 與 DETR (Detection Transformer)。系統透過觀察矩陣維度 (Tensor Shapes) 的變化，來理解抽象的數學運算，並深入剖析 Patch Embedding 影像切塊、位置編碼、Object Queries (物件查詢) 的注意力點積機制，提供完整的 PyTorch 核心模組張量維度演變模擬程式碼與深度 FAQ 問答。",
+    "steps": [
+      {
+        "name": "1. ViT 核心痛點與 Patch Embedding 圖塊嵌入 (Patching)",
+        "details": "Transformer 最初是設計來處理「一維文字序列」，但圖片為「二維像素矩陣」。Patch Embedding 透過步幅 (stride) 與卷積核核心大小相同的 nn.Conv2d 將圖片切成多個圖塊 (Patches)，將二維網格拉平成一維序列，使一張 [1, 3, 224, 224] 的圖片變成長度為 196 的一維 Token 序列 (196個單字，每個單字256維向量)。"
+      },
+      {
+        "name": "2. ViT 位置編碼的空間維度校正 (Positional Encoding)",
+        "details": "拉平成一維序列後，圖塊會失去原本「上下左右」的空間幾何位置關係。因此，必須給這 196 個向量加上座標位置編碼 (self.pos_embed)，模型才知道哪塊是天空、哪塊是河水，補齊 Transformer 缺乏空間順序概念的短板。"
+      },
+      {
+        "name": "3. DETR Object Queries 物件查詢機制 (特工準備)",
+        "details": "完全捨棄傳統 YOLO 的預設 Anchor 箱與人工 NMS 排除規則。DETR 初始化固定數量（如 100 個）的隨機 Object Queries 向量，將其當作派出執行搜尋的「虛擬特工」，帶有 256 維的語意理解大腦，準備深入圖片尋標。"
+      },
+      {
+        "name": "4. Cross-Attention 特徵對齊與點積相似度 (Cross-Attention)",
+        "details": "特工 Query (Q) 去跟 ViT 輸出的圖片特徵 Key (K) 算矩陣內積。內積結果代表特工 Q 與圖像局部 K 的特意對齊程度，生成 [1, 100, 196] 的注意力分佈權重矩陣，精確顯示每個特工把注意力放在哪些圖塊上。"
+      },
+      {
+        "name": "5. 帶著戰利品歸來：特徵提取與預報頭解碼",
+        "details": "100 個特工吸取了目標區域的影像特徵 Value (V) 後，回傳為 [1, 100, 256] 形狀物件特徵。接下來只要接上簡單的 MLP 解碼網路，就能讓特工吐出最終的「物件類別」與「邊界座標 (Mask)」。"
+      },
+      {
+        "name": "6. 兩者在 SAM 3 中的完美合體與實務鏈接",
+        "details": "在 SAM 3 中，ViT 負責將連續影像轉換成高維特徵圖塊；您輸入的「文字提示」或「點擊座標」被轉換為 Object Queries (特工)；特工帶著您的指令，在交叉注意力中尋找內積最大區域，精準描繪出河川上的不規則油汙與廢水遮罩！"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "Patch Embedding 張量扁平化變換過程",
+        "latex": "\\mathbf{X}_{\\text{raw}} \\in \\mathbb{R}^{B \\times 3 \\times H \\times W} \\xrightarrow{\\text{Conv2d}} \\mathbf{X}_{\\text{proj}} \\in \\mathbb{R}^{B \\times C \\times \\frac{H}{P} \\times \\frac{W}{P}} \\xrightarrow{\\text{Flatten \\& Transpose}} \\mathbf{X}_{\\text{seq}} \\in \\mathbb{R}^{B \\times N \\times C}",
+        "description": "原始 [Batch, 3, 224, 224] 影像經過卷積切塊投影成 [Batch, 256, 14, 14]，接著拉平 (Flatten) 網格維度並與特徵維度進行轉置 (Transpose)，最終產生 [Batch, 196, 256] 的一維序列以餵入 Transformer。"
+      },
+      {
+        "name": "交叉注意力 Object Queries 特徵融合",
+        "latex": "\\mathbf{A} = \\text{softmax}\\left( \\frac{\\mathbf{Q} \\mathbf{K}^T}{\\sqrt{d_k}} \\right) \\in \\mathbb{R}^{B \\times 100 \\times 196} , \\quad \\mathbf{O} = \\mathbf{A} \\mathbf{V} \\in \\mathbb{R}^{B \\times 100 \\times 256}",
+        "description": "特工 Query (Q) 與影像特徵 Key (K) 進行內積運算並縮放，計算 softmax 得到 [1, 100, 196] 的注意力分佈圖，與 Value (V) 相乘後將影像關鍵特徵吸回，融合成 [1, 100, 256] 的物件特徵矩陣。"
+      }
+    ],
+    "code": "# ==========================================\n# 專案名稱：方向 A - ViT 與 DETR 核心張量拆解模擬\n# 目的：透過 PyTorch 張量形狀變化，理解 Transformer 如何處理影像與尋找物件\n# ==========================================\nimport torch\nimport torch.nn as nn\n\n# ==========================================\n# 第一關：ViT (Vision Transformer) 核心 - 圖片切塊 (Patch Embedding)\n# ==========================================\nclass MinimalViTPatchEmbedding(nn.Module):\n    def __init__(self, image_size=224, patch_size=16, in_channels=3, embed_dim=256):\n        super().__init__()\n        self.patch_size = patch_size\n        # 數學魔法：用一個 stride 和 kernel_size 一樣大的卷積，完美實現圖片「切塊並拉平」\n        self.proj = nn.Conv2d(in_channels, embed_dim, kernel_size=patch_size, stride=patch_size)\n        \n        # 假設 224x224 的圖片，切成 16x16 的塊，會有 (224/16) * (224/16) = 14 * 14 = 196 個塊\n        self.num_patches = (image_size // patch_size) ** 2\n        \n        # 位置編碼 (Positional Encoding)：因為 Transformer 沒有順序概念，必須給每個塊一個座標序號\n        self.pos_embed = nn.Parameter(torch.randn(1, self.num_patches, embed_dim))\n\n    def forward(self, x):\n        # x 的形狀: [Batch, Channels, Height, Width] -> [1, 3, 224, 224]\n        x = self.proj(x) \n        # proj 後形狀: [1, 256, 14, 14] (已經變成 14x14 的網格了)\n        \n        x = x.flatten(2) \n        # flatten 後形狀: [1, 256, 196] (把 14x14 拉平變成 196 個 \"單字\")\n        \n        x = x.transpose(1, 2) \n        # transpose 後形狀: [1, 196, 256] (這就是標準 Transformer 吃進去的形狀：196個單字，每個單字256維向量)\n        \n        # 加上位置編碼\n        x = x + self.pos_embed\n        return x\n\n# ==========================================\n# 第二關：DETR 核心 - 物件查詢與交叉注意力 (Object Queries & Cross-Attention)\n# ==========================================\nclass MinimalDETRCrossAttention(nn.Module):\n    def __init__(self, embed_dim=256, num_queries=100):\n        super().__init__()\n        self.num_queries = num_queries\n        \n        # 核心魔法：Object Queries (物件查詢)\n        # 想像成派出 100 個「特工」，一開始他們腦袋空空 (隨機初始化)，模型訓練會讓他們學會找不同的東西\n        self.query_embed = nn.Parameter(torch.randn(1, num_queries, embed_dim))\n        \n        # 標準的 Multi-Head Attention (Q 來自特工，K、V 來自圖片)\n        self.cross_attn = nn.MultiheadAttention(embed_dim, num_heads=8, batch_first=True)\n\n    def forward(self, image_features):\n        # image_features 就是 ViT 吐出來的結果，形狀: [1, 196, 256]\n        \n        # Q (查詢): 特工的特徵 [1, 100, 256]\n        query = self.query_embed\n        \n        # K, V (鍵, 值): 圖片的特徵 [1, 196, 256]\n        key = image_features\n        value = image_features\n        \n        # 執行注意力計算：特工 (Q) 去跟圖片所有區塊 (K) 算內積，然後把相符的特徵 (V) 吸過來\n        attn_output, attn_weights = self.cross_attn(query, key, value)\n        \n        # attn_output 包含了這 100 個特工各自從圖片中吸取到的「線索」\n        # attn_weights 則是他們把注意力放在圖片 196 個區塊的哪裡\n        return attn_output, attn_weights\n\n\ndef main():\n    print(\"🚀 開始進行 ViT 與 DETR 張量拆解模擬 🚀\\n\")\n    \n    # 假設這是一張從河川監視器抓下來的照片 (Batch=1, RGB 3通道, 高224, 寬224)\n    dummy_image = torch.randn(1, 3, 224, 224)\n    print(f\"1️⃣ 原始輸入圖片的形狀 (張量維度) : {dummy_image.shape}  -> [批次, 通道, 高, 寬]\")\n\n    # ==========================\n    # 執行第一關：ViT 圖片切塊\n    # ==========================\n    vit_patcher = MinimalViTPatchEmbedding()\n    image_sequence = vit_patcher(dummy_image)\n    print(f\"2️⃣ 經過 ViT 切塊後的形狀      : {image_sequence.shape} -> [批次, 序列長度(單字數), 向量維度]\")\n    print(f\"   💡 這裡完成了關鍵跨越：2D 的圖片被切成了 196 塊 (14x14)，變成像是長度為 196 的「一句話」！\\n\")\n\n    # ==========================\n    # 執行第二關：DETR 交叉注意力\n    # ==========================\n    detr_decoder = MinimalDETRCrossAttention(num_queries=100)\n    \n    # 特工 (Queries) 進入 Transformer 尋找目標\n    agent_results, attention_map = detr_decoder(image_sequence)\n    \n    print(f\"3️⃣ 特工(Object Queries)初始形狀: [1, 100, 256] -> 100 個特工等著找東西\")\n    print(f\"4️⃣ Cross-Attention 輸出的形狀 : {agent_results.shape} -> 100 個特工帶著找完的結果回來了！\")\n    print(f\"5️⃣ 注意力權重矩陣的形狀        : {attention_map.shape} -> [批次, 100個特工, 196個影像區塊]\")\n    print(f\"   💡 矩陣 [1, 100, 196] 的意義：告訴你『第 n 個特工，把注意力放在圖片的哪一個區塊』！\")\n\nif __name__ == \"__main__\":\n    main()",
+    "faq": [
+      {
+        "question": "問：在 ViT 中，為什麼 Patch Embedding 的過程可以使用 Conv2d (二維卷積) 來完成？它的數學等價性是什麼？",
+        "answer": "答：在 ViT 設計中，Patch Embedding 是要把圖片切成 PxP (如 16x16) 的塊，並拉平為向量。這在數學上等價於使用一個輸入通道為 3、輸出通道為 embed_dim、卷積核心大小為 P、且步幅 (stride) 也為 P 的 Conv2d 卷積。卷積的滑動視窗因為 stride=P，所以在圖像上是互不重疊地滑動，完美起到了「切塊」的效果；而卷積核的輸出通道數 embed_dim 則直接完成了對每個切塊提取特徵並做線性投影 (Linear Projection) 的工作，這是一石二鳥的軟體工程優雅實作。"
+      },
+      {
+        "question": "問：DETR 裡的 Object Queries (物件查詢/特工) 一開始是隨機初始化的，它是如何學會「定位特定物體」的？",
+        "answer": "答：Object Queries (特工) 是一組可學習的參數。在模型訓練初期，這 100 個特工確實是隨機且腦袋空空的。但在隨後的反向傳播 (Backpropagation) 中，模型透過匈牙利演算法 (Hungarian Loss) 將特工的預測框與 Ground Truth 進行一對一配對。在海量資料訓練後，特工們會產生分工：有的特工學會了「我專門注意畫面左上角的小物體」，有的學會了「我專門注意中間的大物體」，有的則對「帶有藍色語意特徵（如水體）」極為敏感。因此，他們能各司其職，在交叉注意力中精準吸取對應的特徵。"
+      }
+    ]
   }
 ]
