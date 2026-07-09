@@ -677,5 +677,68 @@
         "answer": "答：Object Queries (特工) 是一組可學習的參數。在模型訓練初期，這 100 個特工確實是隨機且腦袋空空的。但在隨後的反向傳播 (Backpropagation) 中，模型透過匈牙利演算法 (Hungarian Loss) 將特工的預測框與 Ground Truth 進行一對一配對。在海量資料訓練後，特工們會產生分工：有的特工學會了「我專門注意畫面左上角的小物體」，有的學會了「我專門注意中間的大物體」，有的則對「帶有藍色語意特徵（如水體）」極為敏感。因此，他們能各司其職，在交叉注意力中精準吸取對應的特徵。"
       }
     ]
+  },
+  {
+    "id": "lab_vpn_backend_architecture",
+    "title": "實驗室系統通道與 Node.js 後端架構實務 (Lab Connection & Backend)",
+    "englishTitle": "WireGuard VPN Tunneling & Node.js Backend分層架構",
+    "description": "本單元拆解實驗室專屬通道 WireGuard VPN 的加密金鑰路由與無狀態漫遊設計，深入剖析 Node.js 後端專案 (DB_Template) 的分層架構（資料層、控制層、設定層），並整理了安裝依賴、配置環境變數與啟動伺服器的標準操作流程 (S.O.P.)。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">WireGuard VPN 核心設計特質對比</h3><table class=\"gpu-table\"><thead><tr><th>特性名稱</th><th>運作邏輯</th><th>帶來的好處</th></tr></thead><tbody><tr><td style=\"font-weight:700;\">加密金鑰路由</td><td>放棄傳統帳密，直接將「公鑰」映射為「內部IP」，拒絕無效簽名。</td><td>認證極快，伺服器不浪費資源處理無效請求。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">無狀態設計</td><td>不維持持續的連線對話。只要封包簽名正確，即便網路切換也瞬間更新位置。</td><td>網路切換（如 Wi-Fi 轉 4G）時「無縫漫遊」，不頻繁重連。</td></tr><tr><td style=\"font-weight:700;\">內核層級執行</td><td>程式碼僅約 4000 行，直接在作業系統底層 Kernel Space 執行加密運算。</td><td>消除資料跨層傳遞延遲，高頻傳輸下依舊極速且省電。</td></tr></tbody></table>",
+    "steps": [
+      {
+        "name": "1. WireGuard VPN 專屬加密通道建立 (VPN Setup)",
+        "details": "透過 WireGuard 客戶端匯入學長提供的 .conf 設定檔。點擊「啟動」後，系統會在本地與伺服器間建立一條極速且加密的 Tunneling，綠色狀態指示燈與數據包跳動代表安全通道建立成功。"
+      },
+      {
+        "name": "2. Node.js 後端專案 DB_Template 特徵識別 (Backend Info)",
+        "details": "專案根目錄下存在 package.json（相依套件清單）以及 .js 結尾的模組檔案，此為典型的 Node.js 後端伺服器專案特徵，負責提供資料接口 API，為前端 Web 提供數據支撐。"
+      },
+      {
+        "name": "3. 資料庫版本與運算層：Models, Migrations & Repositories",
+        "details": "models 定義資料庫表格欄位與資料維度型態；migrations 對資料庫 schema 的變更歷史進行版本控制；repositories 封裝與資料庫底層互動的 SQL/ORM 查詢語句，三者共同構成資料處理的核心。"
+      },
+      {
+        "name": "4. 流程與控制路由層：Routers & Controllers (The Logic)",
+        "details": "routers 發揮「總機」作用，將前端請求的路徑（如 /api/data）分發指派給對應的控制器；controllers 負責處理商業核心邏輯運算，向 repository 調用數據後加工回傳前端。"
+      },
+      {
+        "name": "5. 設定與引擎啟動層：Config, .env & Entries",
+        "details": ".env 管理環境變數（如資料庫密碼與 IP 連線字串），config 負責加載；app.js 或 serve.js 作為主程式的 Entry Points，負責實例化 Express 應用並開機啟動 Server。"
+      },
+      {
+        "name": "6. 專案部署開機 S.O.P. 第一步：npm install 安裝相依套件",
+        "details": "切換終端機路徑至專案資料夾底下，執行 npm install。系統會自動讀取 package.json 中聲明的 dependencies 清單，從 npm 倉庫下載所需套件至 node_modules。"
+      },
+      {
+        "name": "7. 專案部署開機 S.O.P. 第二步：複製與配置環境變數 .env",
+        "details": "複製 .env.example 並命名為 .env。將專案所需的資料庫連線 IP、Port 等敏感「系統邊界條件」獨立抽離，使程式碼邏輯與配置參數解耦，保證安全性。"
+      },
+      {
+        "name": "8. 專案部署開機 S.O.P. 第三步：node serve.js 開機運行",
+        "details": "執行 node serve.js (或 node app.js)，呼叫 Node.js Runtime 開始執行伺服器邏輯，綁定指定通訊埠 (Port)，開始接收並回應來自 VPN 通道的前端 HTTP/API 請求。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "WireGuard 雜湊鏈與 ECDH 金鑰交換 (Curve25519) 原理",
+        "latex": "K_{\\text{shared}} = \\text{ECDH}(d_{\\text{local}}, Q_{\\text{remote}}) = \\text{Curve25519}(d_{\\text{local}}, Q_{\\text{remote}})",
+        "description": "WireGuard 採用 Noise 協定框架，雙方使用 Curve25519 橢圓曲線進行 Diffie-Hellman 金鑰交換 (ECDH)，將本地私鑰與遠端公鑰做標量乘法，計算出共享金鑰以進行對稱式流加密，杜絕密碼爆破。"
+      },
+      {
+        "name": "Node.js 網路請求 Express 中間件管道模型",
+        "latex": "\\text{Response} = (f_n \\circ f_{n-1} \\circ \\dots \\circ f_1)(\\text{Request})",
+        "description": "Node.js 後端常以中間件 (Middleware) 鏈狀調用。請求 (Request) 依序經過 JWT 安全校驗、Cors 跨域處理、Body-Parser 轉換等中間件函數 f_i，最終由 Controller 產生 Response 回傳前端。"
+      }
+    ],
+    "code": "// ==========================================\n// 專案名稱：Node.js 後端伺服器 (DB_Template) 啟動 Entry Point 範例\n// 目的：加載環境變數、配置 Express 中間件管道並啟動監聽\n// ==========================================\nconst express = require('express');\nconst path = require('path');\nrequire('dotenv').config(); // 載入 .env 設定值到 process.env\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\nconst DB_HOST = process.env.DB_HOST || '127.0.0.1';\n\n// 1. 安全過濾與解碼中間件\napp.use(express.json()); // 解析 JSON 格式 request body\n\n// 2. 測試 API 接口：模仿 Controller 回應\napp.get('/api/health', (req, res) => {\n    res.json({\n        status: 'ok',\n        database: `Connected to ${DB_HOST}`,\n        timestamp: new Date().toISOString()\n    });\n});\n\n// 3. 啟動伺服器並綁定埠口\napp.listen(PORT, () => {\n    console.log('==========================================');\n    console.log(`🚀 實驗室 API 伺服器已成功開機！`);\n    console.log(`📡 運行埠口 (Port) : http://localhost:${PORT}`);\n    console.log(`🔒 內部 VPN 連線IP: ${DB_HOST}`);\n    console.log('==========================================');\n});",
+    "faq": [
+      {
+        "question": "問：為什麼 WireGuard 狀態亮了綠燈，我卻依然無法存取實驗室的內部 API 或是網頁伺服器？",
+        "answer": "答：當 WireGuard 綠燈亮起時，僅代表您的公私鑰通過了伺服器的驗證並成功建立安全隧道，這屬於網路第三層（IP層）的通連。如果您依然打不開網頁或連不上資料庫，可能有三個原因：第一，.conf 設定檔中的 DNS 解析配置錯誤，導致無法解析內部域名；第二，專案中的 .env 環境變數，其 DB_HOST 沒有改為實驗室內部 IP，依然連著 localhost；第三，實驗室伺服器端的 node serve.js 尚未啟動，您的 API 請求到達後沒有人接聽回應。請依序排查這三處設定。"
+      },
+      {
+        "question": "問：在後端專案中，使用 Migrations (資料庫遷移) 來管理資料庫架構有什麼好處？直接在 SQL 軟體裡改表不行嗎？",
+        "answer": "答：直接在 GUI 軟體中點擊修改資料表結構（如新增欄位），雖然快速，但在團隊協作中會造成災難。因為其他開發者的本地資料庫、測試主機以及生產環境的資料庫，並不會自動更新。而使用 Migrations (如 Knex.js 或 Sequelize-cli), 每一次的欄位增刪都會被寫成一個版本控制檔案。這樣團隊成員只要拉取程式碼並執行 npx knex migrate:latest，所有人的資料庫架構就會同步升級，且能支援一鍵復原 (Rollback)，保障了資料庫 Schema 的一致性。"
+      }
+    ]
   }
 ]
