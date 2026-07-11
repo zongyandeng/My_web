@@ -740,5 +740,60 @@
         "answer": "答：直接在 GUI 軟體中點擊修改資料表結構（如新增欄位），雖然快速，但在團隊協作中會造成災難。因為其他開發者的本地資料庫、測試主機以及生產環境的資料庫，並不會自動更新。而使用 Migrations (如 Knex.js 或 Sequelize-cli), 每一次的欄位增刪都會被寫成一個版本控制檔案。這樣團隊成員只要拉取程式碼並執行 npx knex migrate:latest，所有人的資料庫架構就會同步升級，且能支援一鍵復原 (Rollback)，保障了資料庫 Schema 的一致性。"
       }
     ]
+  },
+  {
+    "id": "cv_architecture_evolution",
+    "title": "電腦視覺架構演進：從 CNN 到 Foundation Models (CV Evolution)",
+    "englishTitle": "Computer Vision Architecture Evolution: CNN, Transformer & SAM 3",
+    "description": "本單元梳理電腦視覺從 CNN 局部空間特徵（Faster R-CNN、YOLO、U-Net）跨越到 Transformer 全局感知（ViT）與大一統基礎大模型（DETR、SAM 3）的演進歷程。探討如何用更優雅的全局注意力矩陣取代繁瑣的人工 Anchor Boxes 與 NMS 篩選規則，並以表格對比三大流派特質與資料流模擬。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">Faster R-CNN vs. YOLO vs. DETR 實戰架構比較</h3><table class=\"gpu-table\"><thead><tr><th>架構特性</th><th>Faster R-CNN (Two-Stage)</th><th>YOLO (One-Stage)</th><th>DETR (Transformer)</th></tr></thead><tbody><tr><td style=\"font-weight:700;\">設計哲學</td><td>先找候選區 (RPN)，再精細分類</td><td>網格劃分，一次看全圖密集預測</td><td>全局交叉注意力，集合預測</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">依賴人工設計</td><td>高 (Anchor, NMS)</td><td>中 (Anchor, NMS)</td><td>極低 (無 Anchor, 無 NMS)</td></tr><tr><td style=\"font-weight:700;\">對小物件偵測</td><td>強 (RoI Align 對齊保留細節)</td><td>較弱</td><td>弱 (特徵圖解析度受限)</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">對大物件/遮擋</td><td>一般</td><td>一般</td><td>極強 (全局上下文語意理解)</td></tr><tr><td style=\"font-weight:700;\">部署推理速度</td><td>慢 (難以做到即時)</td><td>極快 (邊緣設備首選)</td><td>中等 (算力要求高)</td></tr></tbody></table>",
+    "steps": [
+      {
+        "name": "1. CNN Two-Stage 經典：Faster R-CNN (RPN & RoI Align)",
+        "details": "先找位置再認東西的兩階段設計。透過 RPN 網路產生稀疏候選框，再利用 RoI Align 對齊保留細節特徵，最後交由全連接層進行分類與精細微調，精準度高但推理慢。"
+      },
+      {
+        "name": "2. CNN One-Stage 革命：YOLO (Dense Grid Prediction)",
+        "details": "位置與大腦並行的一階段設計。將圖片劃分為 SxS 網格，直接在網格上進行密集預測一次性輸出邊界框與類別，再依賴非極大值抑制 (NMS) 排除重複框，速度極快。"
+      },
+      {
+        "name": "3. 影像分割的空間修復神作：U-Net 跳躍連結 (Skip Connection)",
+        "details": "為解決 CNN 降維後特徵邊緣模糊問題，U-Net 引入跳躍連結，將 Encoder 降維前的高解析度空間資訊直接與 Decoder 拼接，完美還原精確幾何邊界，是語意分割的奠基石。"
+      },
+      {
+        "name": "4. 典範轉移：ViT 自注意力與全局視野 (Self-Attention)",
+        "details": "捨棄局部卷積掃描。將影像切塊成 Patch Embedding 序列（圖塊單字），利用 Self-Attention 計算點積找出圖塊間的全局關聯，使模型自第一層起就具備全局上下文感知能力。"
+      },
+      {
+        "name": "5. 集合預測大一統：DETR 匈牙利匹配與 NMS 解除",
+        "details": "將偵測視為「集合預測」問題。利用固定 Object Queries 作為特工，透過 Bipartite Matching Loss (二分圖匹配損失) 與匈牙利演算法建立一對一對應關係，徹底拔除 Anchor 箱與 NMS 規則。"
+      },
+      {
+        "name": "6. 語意與幾何解耦：SAM 3 通用可提示基礎模型 (Promptable)",
+        "details": "進入可提示分割時代。將任務解耦為：ViT 提取特徵，Presence Head 判斷「有沒有（What）」，Mask Head 負責「精準幾何分割（Where）」，在邊緣端能依靠 Presence Head 成功省下 80% 算力。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "二分圖匹配與匈牙利演算法代價函數 (DETR) 匹配最佳化",
+        "latex": "\\hat{\\sigma} = \\arg\\min_{\\sigma \\in \\mathfrak{S}_N} \\sum_{i=1}^{N} \\mathcal{L}_{\\text{match}}(y_i, \\hat{y}_{\\sigma(i)})",
+        "description": "DETR 通過匈牙利演算法尋找一個最優置換 \\sigma，使預測集合 \\hat{y} 與真實 Ground Truth 集合 y 的匹配代價最小，實現精確的一對一匹配，從根本上消除了對 NMS 的依賴。"
+      },
+      {
+        "name": "U-Net Skip Connection 特徵拼接算子",
+        "latex": "\\mathbf{X}_{\\text{decoder}}^{(l)} = \\text{DecoderBlock}\\left( \\left[ \\mathbf{X}_{\\text{encoder}}^{(l)} , \\, \\text{UpSample}\\left(\\mathbf{X}_{\\text{decoder}}^{(l+1)}\\right) \\right] \\right)",
+        "description": "U-Net 在第 l 層將 Decoder 上採樣得到的特徵，與 Encoder 對應層的原始高解析度特徵沿著通道維度 (Channel Dimension) 進行直接拼接 (Concatenation)，保留了寶貴的空間細節。"
+      }
+    ],
+    "code": "# ==========================================\n# 這是為了展示 Faster R-CNN, YOLO, DETR 架構差異的概念模擬代碼\n# 並非可直接運行的模型推論代碼，重點在於理解數據流的結構\n# ==========================================\nimport numpy as np\n\nclass FasterRCNN_Simulator:\n    def __init__(self):\n        self.name = \"Faster R-CNN (Two-Stage)\"\n        self.num_anchors_per_pixel = 9\n        \n    def predict(self, image_tensor):\n        print(f\"--- 執行 {self.name} 模擬 ---\")\n        # 1. Backbone: 提取特徵圖\n        feature_map = np.random.rand(1, 256, 32, 32)\n        print(\"1. Backbone 輸出特徵圖維度:\", feature_map.shape)\n        \n        # 2. RPN (區域生成網路): 產生初步候選框\n        num_proposals = 300\n        proposals = np.random.rand(num_proposals, 4) # (x1, y1, x2, y2)\n        print(f\"2. RPN 產生了 {num_proposals} 個候選區域 (Regions of Interest)\")\n        \n        # 3. RoI Align & 最終預測\n        num_classes = 80\n        class_probs = np.random.rand(num_proposals, num_classes)\n        refined_boxes = np.random.rand(num_proposals, 4)\n        \n        # 4. NMS 後處理\n        final_boxes = 5 # 假設 NMS 後剩下 5 個目標\n        print(f\"3. 經過精細分類與 NMS，最終輸出 {final_boxes} 個目標框\\n\")\n        return final_boxes\n\n\nclass YOLO_Simulator:\n    def __init__(self):\n        self.name = \"YOLO (One-Stage)\"\n        self.grid_size = 7\n        self.boxes_per_grid = 2\n        self.num_classes = 80\n        \n    def predict(self, image_tensor):\n        print(f\"--- 執行 {self.name} 模擬 ---\")\n        # 1. 網路一次性輸出所有網格的預測\n        output_dim = self.boxes_per_grid * 5 + self.num_classes\n        predictions = np.random.rand(self.grid_size, self.grid_size, output_dim)\n        print(f\"1. 網路並行輸出張量維度: ({self.grid_size}, {self.grid_size}, {output_dim})\")\n        print(f\"   (代表 {self.grid_size}x{self.grid_size} 個網格同時進行密集預測)\")\n        \n        # 2. 解析預測與 NMS 後處理\n        total_boxes_predicted = self.grid_size * self.grid_size * self.boxes_per_grid\n        print(f\"2. 總共產生了 {total_boxes_predicted} 個初始預測框\")\n        final_boxes = 5 # 假設篩選後剩下 5 個\n        print(f\"3. 經過信心度篩選與 NMS，最終輸出 {final_boxes} 個目標框\\n\")\n        return final_boxes\n\n\nclass DETR_Simulator:\n    def __init__(self):\n        self.name = \"DETR (Transformer)\"\n        self.num_queries = 100 # 固定預測數量\n        self.num_classes = 80\n        \n    def predict(self, image_tensor):\n        print(f\"--- 執行 {self.name} 模擬 ---\")\n        # 1. Backbone + Transformer Encoder\n        feature_sequence = np.random.rand(1, 1024, 256) # 序列化的特徵\n        print(\"1. 取得具備全局注意力的序列化特徵維度:\", feature_sequence.shape)\n        \n        # 2. Transformer Decoder 與 Object Queries\n        print(f\"2. {self.num_queries} 個 Object Queries 同時進行推理\")\n        pred_logits = np.random.rand(self.num_queries, self.num_classes + 1) # +1 包含背景\n        pred_boxes = np.random.rand(self.num_queries, 4)\n        print(\"3. 直接輸出預測維度: 類別\", pred_logits.shape, \"邊界框\", pred_boxes.shape)\n        \n        # 3. 無需 NMS，直接過濾掉被預測為「背景」的框\n        final_boxes = 5 \n        print(f\"4. 過濾掉 '背景' 類別，無需 NMS，最終直接輸出 {final_boxes} 個目標框\\n\")\n        return final_boxes\n\n\nif __name__ == \"__main__\":\n    dummy_image = np.random.rand(1, 3, 640, 640)\n    \n    faster_rcnn = FasterRCNN_Simulator()\n    yolo = YOLO_Simulator()\n    detr = DETR_Simulator()\n    \n    faster_rcnn.predict(dummy_image)\n    yolo.predict(dummy_image)\n    detr.predict(dummy_image)",
+    "faq": [
+      {
+        "question": "問：為什麼 YOLO 的速度極快，但在密集小物件偵測上普遍比 Faster R-CNN 弱？",
+        "answer": "答：YOLO 採用單階段密集預測，將特徵圖劃分為 SxS 網格。如果多個小物件（例如遠處的一群人群）高度重疊落入同一個網格內，受限於網格預測框數量的限制，YOLO 極易漏檢；而 Faster R-CNN 透過 RPN 網路產生不限於網格的稀疏 RoI 候選區，並且經過 RoI Align 放大對齊後，能保證每個小物體都能獲得專屬的特徵分辨率來進行獨立分類，對密集小物體表現更佳。"
+      },
+      {
+        "question": "問：DETR 雖然消除了 Anchor 和 NMS，但為什麼它的訓練難度如此之高（資料飢渴）且小物件效果差？",
+        "answer": "答：因為 DETR 徹底放棄了局部卷積（CNN）的誘導偏置 (Inductive Bias，如平移不變性與局部相關性)，完全依靠全局 Self-Attention 從零學習空間關係。這導致模型需要海量的訓練資料與 Epoch 才能收斂；同時，因為 Transformer Decoder 直接對高倍下採樣後的特徵圖進行 Object Query 交叉注意力運算，遺失了細粒度的局部特徵，使得早期 DETR 在缺乏多尺度特徵圖 (Multi-Scale) 輔助時，對極小物件的尋標能力較弱。"
+      }
+    ]
   }
 ]
