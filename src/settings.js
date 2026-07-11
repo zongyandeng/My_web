@@ -660,6 +660,15 @@ class SettingsManager {
             </div>
           </div>
 
+          <!-- 區塊 4: 音效設定 -->
+          <div class="settings-section">
+            <h3 class="section-subtitle">🔊 動畫音效設定</h3>
+            <div class="settings-options audio-options">
+              <button class="settings-opt-btn" data-audio-val="true">🔊 開啟音效</button>
+              <button class="settings-opt-btn" data-audio-val="false">🔇 關閉音效</button>
+            </div>
+          </div>
+
         </div>
       </div>
     `;
@@ -688,6 +697,10 @@ class SettingsManager {
     // 3. 套用進入動畫
     const savedIntro = localStorage.getItem('intro-animation') || 'space-warp';
     this.updateActiveBtn('.intro-options .settings-opt-btn', 'data-intro-val', savedIntro);
+
+    // 4. 套用音效設定
+    const savedAudio = localStorage.getItem('intro-audio-enabled') !== 'false' ? 'true' : 'false';
+    this.updateActiveBtn('.audio-options .settings-opt-btn', 'data-audio-val', savedAudio);
   }
 
   updateActiveBtn(selector, attrName, activeValue) {
@@ -785,6 +798,16 @@ class SettingsManager {
             this.modal.classList.add('open');
           }
         }, 300);
+      });
+    });
+
+    // 5. 音效設定切換綁定
+    const audioBtns = this.modal.querySelectorAll('.audio-options .settings-opt-btn');
+    audioBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const audioVal = btn.getAttribute('data-audio-val');
+        localStorage.setItem('intro-audio-enabled', audioVal);
+        this.updateActiveBtn('.audio-options .settings-opt-btn', 'data-audio-val', audioVal);
       });
     });
   }

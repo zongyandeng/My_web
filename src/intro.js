@@ -1,10 +1,10 @@
 /**
  * Edison.Dev - 全域進入動畫控制器 (Intro Animations Controller)
- * 支援 4 種科技感與宇宙深空主題的進入動畫：
- * 1. space-warp (星流躍遷 Canvas 動畫)
- * 2. system-boot (模擬終端開機文字動畫)
- * 3. neural-network (AI 神經網路 Canvas 動畫)
- * 4. supernova (引力坍縮超新星大爆炸 Canvas 動畫)
+ * 支援 4 種科技感與宇宙深空主題的進入動畫與 Web Audio API 聲效合成：
+ * 1. space-warp (星流躍遷 Canvas 動畫 + 躍遷引擎上揚風嘯聲)
+ * 2. system-boot (模擬終端開機文字動畫 + 鍵盤 Click 聲與開機和弦音)
+ * 3. neural-network (AI 神經網路 Canvas 動畫 + 禪意五聲音階彈撥琴音)
+ * 4. supernova (引力坍縮超新星大爆炸 Canvas 動畫 + 坍縮低音與白噪聲爆炸巨響)
  */
 
 // 獲取當前 CSS 主題顏色 (適配 Deep Space / Cyberpunk)
@@ -29,6 +29,243 @@ function getIntroThemeColors() {
   }
 }
 
+// ==========================================
+// 🔌 Web Audio API 科技音效即時合成器 (Sound Synthesizer)
+// ==========================================
+class IntroAudioSynthesizer {
+  constructor() {
+    this.ctx = null;
+  }
+
+  // 檢查是否啟用音效設定 (預設為開啟 'true')
+  get enabled() {
+    return localStorage.getItem('intro-audio-enabled') !== 'false';
+  }
+
+  // 延遲初始化 AudioContext，以避開瀏覽器限播政策警報
+  initContext() {
+    if (!this.enabled) return false;
+    try {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+      return true;
+    } catch (e) {
+      console.warn('[IntroAudio] 無法建立 AudioContext:', e);
+      return false;
+    }
+  }
+
+  // 1. 鍵盤 Click 聲 (System Boot 打字音)
+  playTyping() {
+    if (!this.initContext()) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      
+      osc.type = 'triangle';
+      // 隨機高頻模擬打字清脆 Click
+      osc.frequency.setValueAtTime(850 + Math.random() * 550, now);
+      
+      gain.gain.setValueAtTime(0.012, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+      
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      
+      osc.start(now);
+      osc.stop(now + 0.03);
+    } catch (e) {
+      // 靜默忽略 Autoplay 政策擋下的錯誤
+    }
+  }
+
+  // 2. 系統啟動成功音 (Beep Success Chords)
+  playBootSuccess() {
+    if (!this.initContext()) return;
+    try {
+      const now = this.ctx.currentTime;
+      
+      const playTone = (freq, startTime, duration, vol) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(vol, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
+
+      // 叮-咚-叮 科技感向上和弦
+      playTone(523.25, now, 0.35, 0.05);        // C5
+      playTone(783.99, now + 0.07, 0.35, 0.04);   // G5
+      playTone(1046.50, now + 0.16, 0.55, 0.06);  // C6
+    } catch (e) {
+      // 靜默忽略
+    }
+  }
+
+  // 3. 星流躍遷風嘯聲 (Space Warp Engine)
+  playSpaceWarp() {
+    if (!this.initContext()) return;
+    try {
+      const now = this.ctx.currentTime;
+      
+      // A. 低頻躍遷引擎噪聲
+      const osc = this.ctx.createOscillator();
+      const filter = this.ctx.createBiquadFilter();
+      const gain = this.ctx.createGain();
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(50, now);
+      osc.frequency.exponentialRampToValueAtTime(350, now + 2.0); // 頻率迅速上揚
+      
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(120, now);
+      filter.frequency.exponentialRampToValueAtTime(1400, now + 2.0);
+      
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.035, now + 1.2);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+      
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      
+      osc.start(now);
+      osc.stop(now + 2.2);
+      
+      // B. 1.2 秒加速突破瞬間的「咻」高發光風聲
+      setTimeout(() => {
+        if (!this.initContext()) return;
+        const now2 = this.ctx.currentTime;
+        const osc2 = this.ctx.createOscillator();
+        const gain2 = this.ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(320, now2);
+        osc2.frequency.exponentialRampToValueAtTime(1800, now2 + 0.8);
+        gain2.gain.setValueAtTime(0.04, now2);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, now2 + 0.8);
+        
+        osc2.connect(gain2);
+        gain2.connect(this.ctx.destination);
+        osc2.start(now2);
+        osc2.stop(now2 + 0.8);
+      }, 1200);
+    } catch (e) {
+      // 靜默忽略
+    }
+  }
+
+  // 4. 神經網絡隨機音符彈撥 (Neural Pluck)
+  playNeuralPluck(freq) {
+    if (!this.initContext()) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      
+      gain.gain.setValueAtTime(0.03, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.75); // 空靈淡出
+      
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      
+      osc.start(now);
+      osc.stop(now + 0.75);
+    } catch (e) {
+      // 靜默忽略
+    }
+  }
+
+  // 5. 超新星大爆炸音效 (Supernova Explosion)
+  playSupernova() {
+    if (!this.initContext()) return;
+    try {
+      const now = this.ctx.currentTime;
+      
+      // A. 前半段引力坍縮低頻墜落 (Gravity Collapse)
+      const collOsc = this.ctx.createOscillator();
+      const collGain = this.ctx.createGain();
+      collOsc.type = 'sine';
+      collOsc.frequency.setValueAtTime(160, now);
+      collOsc.frequency.linearRampToValueAtTime(35, now + 1.2);
+      
+      collGain.gain.setValueAtTime(0.06, now);
+      collGain.gain.linearRampToValueAtTime(0.14, now + 1.1);
+      collGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
+      
+      collOsc.connect(collGain);
+      collGain.connect(this.ctx.destination);
+      collOsc.start(now);
+      collOsc.stop(now + 1.3);
+      
+      // B. 1.3 秒大爆炸轟鳴與白噪聲 (Explosion Boom & Noise)
+      setTimeout(() => {
+        if (!this.initContext()) return;
+        const boomNow = this.ctx.currentTime;
+        
+        // 1. 低頻震盪轟鳴 (Bass Boom)
+        const bassOsc = this.ctx.createOscillator();
+        const bassGain = this.ctx.createGain();
+        bassOsc.type = 'triangle';
+        bassOsc.frequency.setValueAtTime(100, boomNow);
+        bassOsc.frequency.exponentialRampToValueAtTime(22, boomNow + 1.3);
+        
+        bassGain.gain.setValueAtTime(0.22, boomNow);
+        bassGain.gain.exponentialRampToValueAtTime(0.0001, boomNow + 1.5);
+        
+        bassOsc.connect(bassGain);
+        bassGain.connect(this.ctx.destination);
+        bassOsc.start(boomNow);
+        bassOsc.stop(boomNow + 1.5);
+        
+        // 2. 爆炸氣流與殘響 (White Noise)
+        const bufferSize = this.ctx.sampleRate * 1.8;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const bufferData = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          bufferData[i] = Math.random() * 2 - 1;
+        }
+        
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(650, boomNow);
+        filter.frequency.exponentialRampToValueAtTime(50, boomNow + 1.5);
+        
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.12, boomNow);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, boomNow + 1.7);
+        
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+        
+        noise.start(boomNow);
+        noise.stop(boomNow + 1.7);
+      }, 1300);
+    } catch (e) {
+      // 靜默忽略
+    }
+  }
+}
+
+// ==========================================
+// 🌌 進入動畫控制器主邏輯 (Intro Controller)
+// ==========================================
 class IntroController {
   constructor() {
     this.animationType = localStorage.getItem('intro-animation') || 'space-warp';
@@ -39,13 +276,15 @@ class IntroController {
     this.animationId = null;
     this.startTime = null;
     this.colors = getIntroThemeColors();
+    
+    // 初始化音效合成器
+    this.audio = new IntroAudioSynthesizer();
 
     // 檢查是否為預覽模式 (URL 包含 #preview-intro)
     this.isPreviewMode = window.location.hash === '#preview-intro';
   }
 
   init() {
-    // 1. 如果設定為「無動畫」，或是本次會話 (Session) 已經播放過且非預覽模式，則直接跳過
     const hasPlayed = sessionStorage.getItem(this.playedKey) === 'true';
     if (this.animationType === 'none' && !this.isPreviewMode) {
       return;
@@ -54,10 +293,10 @@ class IntroController {
       return;
     }
 
-    // 2. 建立 Overlay 遮罩層
+    // 建立 Overlay 遮罩層
     this.createOverlay();
 
-    // 3. 根據設定播放動畫
+    // 根據設定播放動畫
     if (this.animationType === 'space-warp') {
       this.playSpaceWarp();
     } else if (this.animationType === 'system-boot') {
@@ -67,11 +306,9 @@ class IntroController {
     } else if (this.animationType === 'supernova') {
       this.playSupernova();
     } else {
-      // 若為 none 但在預覽模式下
       this.finish(500);
     }
 
-    // 4. 標記已播放 (非預覽模式下)
     if (!this.isPreviewMode) {
       sessionStorage.setItem(this.playedKey, 'true');
     }
@@ -81,7 +318,6 @@ class IntroController {
     this.overlay = document.createElement('div');
     this.overlay.id = 'intro-overlay';
     
-    // 設定 Overlay 基礎樣式 (確保在 style.css 載入前就立即可用，防止閃爍)
     Object.assign(this.overlay.style, {
       position: 'fixed',
       top: '0',
@@ -134,7 +370,6 @@ class IntroController {
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    // 初始化 3D 空間粒子
     const numStars = 220;
     const stars = [];
     for (let i = 0; i < numStars; i++) {
@@ -147,8 +382,10 @@ class IntroController {
       });
     }
 
-    // 建立中央標題文字容器
     const titleEl = this.createCenteredTitle('🌌 EDISON.DEV');
+    
+    // 啟動躍遷音效
+    this.audio.playSpaceWarp();
     
     let speed = 7;
     
@@ -156,13 +393,12 @@ class IntroController {
       if (!this.startTime) this.startTime = timestamp;
       const elapsed = timestamp - this.startTime;
       
-      this.ctx.fillStyle = 'rgba(5, 7, 15, 0.18)'; // 拖尾尾跡
+      this.ctx.fillStyle = 'rgba(5, 7, 15, 0.18)'; 
       this.ctx.fillRect(0, 0, width, height);
       
       const cx = width / 2;
       const cy = height / 2;
       
-      // 在 1.2 秒後開始大幅加速
       if (elapsed > 1200) {
         speed += 0.8;
         titleEl.style.opacity = Math.min((elapsed - 1200) / 600, 1);
@@ -170,25 +406,21 @@ class IntroController {
       }
       
       stars.forEach(star => {
-        // 投影舊位置
         const kx = (star.x / star.z) * width + cx;
         const ky = (star.y / star.z) * height + cy;
         
         star.z -= speed;
         
-        // 投影新位置
         const nx = (star.x / star.z) * width + cx;
         const ny = (star.y / star.z) * height + cy;
         
         if (star.z <= 0 || nx < 0 || nx > width || ny < 0 || ny > height) {
-          // 重新生成在遠處
           star.x = (Math.random() - 0.5) * width * 2;
           star.y = (Math.random() - 0.5) * height * 2;
           star.z = 1000;
           star.px = nx;
           star.py = ny;
         } else {
-          // 繪製拉長的光線
           if (star.px !== 0 && star.py !== 0) {
             this.ctx.beginPath();
             this.ctx.moveTo(star.px, star.py);
@@ -243,7 +475,6 @@ class IntroController {
     });
     this.overlay.appendChild(termContainer);
 
-    // 日誌內容
     const logs = [
       { text: '> Connecting to Edison.Dev neural core...', delay: 100 },
       { text: '> Checking database and cache integrity... [OK]', delay: 250 },
@@ -264,11 +495,12 @@ class IntroController {
         line.textContent = '';
         termContainer.appendChild(line);
 
-        // 字符打字效果
         let charIndex = 0;
         const typeChar = () => {
           if (charIndex < item.text.length) {
             line.textContent += item.text[charIndex++];
+            // 播放鍵盤敲擊音效
+            this.audio.playTyping();
             setTimeout(typeChar, 12);
           } else {
             logIndex++;
@@ -277,19 +509,19 @@ class IntroController {
         };
         typeChar();
       } else {
-        // 完成日誌打印，過渡到 Logo 閃爍
         setTimeout(() => {
           termContainer.style.opacity = '0';
           setTimeout(() => {
             termContainer.remove();
             
-            // 秀出炫酷閃爍標題
             const titleEl = this.createCenteredTitle('💻 EDISON.DEV');
             titleEl.style.opacity = '1';
-            titleEl.classList.add('terminal-glitch'); // 在 CSS 中加入輕微 Glitch 閃爍
+            titleEl.classList.add('terminal-glitch');
+            
+            // 播放成功開機和弦音
+            this.audio.playBootSuccess();
             
             setTimeout(() => {
-              // 往上推開
               this.overlay.style.transform = 'translateY(-100%)';
               this.overlay.style.opacity = '0';
               setTimeout(() => this.cleanup(), 600);
@@ -310,7 +542,6 @@ class IntroController {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    // 初始化節點
     const numNodes = 75;
     const nodes = [];
     for (let i = 0; i < numNodes; i++) {
@@ -325,6 +556,10 @@ class IntroController {
 
     const titleEl = this.createCenteredTitle('🧠 EDISON.DEV');
     
+    // 定義禪意五聲音階 C5, D5, E5, G5, A5, C6
+    const pentatonic = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+    let lastPluckTime = 0;
+
     const animate = (timestamp) => {
       if (!this.startTime) this.startTime = timestamp;
       const elapsed = timestamp - this.startTime;
@@ -335,16 +570,20 @@ class IntroController {
       const cx = width / 2;
       const cy = height / 2;
 
-      // 1.5 秒後，開始點亮中央標題，並將節點吸往中心
+      // 隨機彈奏五聲和弦，前 1.2 秒隨機撥放
+      if (elapsed < 1200 && timestamp - lastPluckTime > 180 + Math.random() * 140) {
+        const randomNote = pentatonic[Math.floor(Math.random() * pentatonic.length)];
+        this.audio.playNeuralPluck(randomNote);
+        lastPluckTime = timestamp;
+      }
+
       if (elapsed > 1200) {
         titleEl.style.opacity = Math.min((elapsed - 1200) / 600, 1);
         titleEl.style.transform = `scale(${1 - (elapsed - 1200) * 0.00015})`;
       }
 
-      // 更新並繪製節點
       nodes.forEach(node => {
         if (elapsed > 1200) {
-          // 向中心牽引
           const dx = cx - node.x;
           const dy = cy - node.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
@@ -358,7 +597,6 @@ class IntroController {
         node.x += node.vx;
         node.y += node.vy;
 
-        // 邊界反射
         if (node.x < 0 || node.x > width) node.vx *= -1;
         if (node.y < 0 || node.y > height) node.vy *= -1;
 
@@ -368,7 +606,6 @@ class IntroController {
         this.ctx.fill();
       });
 
-      // 繪製連線
       this.ctx.lineWidth = 0.5;
       for (let i = 0; i < numNodes; i++) {
         for (let j = i + 1; j < numNodes; j++) {
@@ -382,7 +619,6 @@ class IntroController {
           if (dist < maxDist) {
             let alpha = (maxDist - dist) / maxDist * 0.25;
             
-            // 隨著時間，連線朝中心匯聚，變得越亮
             if (elapsed > 1200) {
               alpha = Math.min(alpha * (1 + (elapsed - 1200) * 0.0025), 0.7);
             }
@@ -417,12 +653,11 @@ class IntroController {
     const cx = width / 2;
     const cy = height / 2;
 
-    // 粒子
     const numParticles = 280;
     const particles = [];
     for (let i = 0; i < numParticles; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const dist = Math.random() * 260 + 60; // 環繞奇點半徑
+      const dist = Math.random() * 260 + 60; 
       particles.push({
         angle: angle,
         orbitRadius: dist,
@@ -439,7 +674,9 @@ class IntroController {
     const titleEl = this.createCenteredTitle('💥 EDISON.DEV');
     titleEl.style.textShadow = `0 0 25px ${this.colors.glow}`;
     
-    // 用於記錄大爆炸觸發狀態
+    // 啟動超新星坍縮與大爆炸合成音效
+    this.audio.playSupernova();
+    
     let exploded = false;
 
     const animate = (timestamp) => {
@@ -449,13 +686,10 @@ class IntroController {
       this.ctx.fillStyle = this.colors.bg;
       this.ctx.fillRect(0, 0, width, height);
 
-      // 階段 1：重力坍縮 (0 ~ 1300ms)
       if (elapsed <= 1300) {
         particles.forEach(p => {
-          // 繞軌道旋轉
           p.angle += p.speed;
           
-          // 半徑快速收縮
           const shrinkFactor = (1300 - elapsed) / 1300;
           const currentRadius = p.orbitRadius * shrinkFactor;
           
@@ -468,28 +702,23 @@ class IntroController {
           this.ctx.fill();
         });
       } 
-      // 階段 2：大爆炸瞬間閃爍 (1300ms)
       else if (elapsed > 1300 && elapsed <= 1400) {
         if (!exploded) {
           exploded = true;
-          // 大爆炸力學：為所有粒子計算爆炸速度向量 (放射狀噴發)
           particles.forEach(p => {
             const angle = Math.random() * Math.PI * 2;
-            const force = Math.random() * 12 + 4; // 高速炸出
+            const force = Math.random() * 12 + 4; 
             p.vx = Math.cos(angle) * force;
             p.vy = Math.sin(angle) * force;
-            p.x = cx; // 從奇點炸出
+            p.x = cx; 
             p.y = cy;
           });
-          // 給 overlay 加上白色發光閃爍的 CSS Class
           this.overlay.classList.add('flash-effect');
         }
 
-        // 渲染高亮中心
         this.ctx.fillStyle = '#ffffff';
         this.ctx.fillRect(0, 0, width, height);
       } 
-      // 階段 3：粒子爆炸噴射與 Logo 顯現 (1400ms ~ 2500ms)
       else {
         this.overlay.classList.remove('flash-effect');
         titleEl.style.opacity = Math.min((elapsed - 1400) / 400, 1);
@@ -499,7 +728,6 @@ class IntroController {
           p.x += p.vx;
           p.y += p.vy;
           
-          // 速度減緩 (空氣阻力)
           p.vx *= 0.94;
           p.vy *= 0.94;
 
@@ -507,7 +735,6 @@ class IntroController {
           this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
           this.ctx.fillStyle = p.color;
           
-          // 爆炸後期粒子淡出
           const life = Math.max(0, (2500 - elapsed) / 1100);
           this.ctx.globalAlpha = life;
           this.ctx.fill();
@@ -528,7 +755,6 @@ class IntroController {
   // ==========================================
   // 共用輔助方法
   // ==========================================
-
   createCenteredTitle(text) {
     const title = document.createElement('div');
     title.className = 'intro-title';
@@ -553,7 +779,6 @@ class IntroController {
   }
 
   finish(fadeOutDuration = 600) {
-    // 漸變淡出 overlay
     if (this.overlay) {
       this.overlay.style.opacity = '0';
       setTimeout(() => {
@@ -576,10 +801,8 @@ class IntroController {
       this.overlay = null;
     }
     
-    // 如果是預覽模式，播完後將 hash 移除，避免重整時重複預覽
     if (this.isPreviewMode) {
       window.location.hash = '';
-      // 通知設定面板 (如果有在設定選單中預覽，可通知恢復顯示設定視窗)
       window.dispatchEvent(new CustomEvent('intro-preview-done'));
     }
   }
@@ -601,7 +824,6 @@ window.playIntroPreview = function(type) {
 (function() {
   const intro = new IntroController();
   window.activeIntroInstance = intro;
-  // 由於 DOM 結構可能還沒完全建立 (若 script 置於頂部)，使用事件等待 DOM body 就緒
   if (document.body) {
     intro.init();
   } else {
