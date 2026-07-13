@@ -795,5 +795,68 @@
         "answer": "答：因為 DETR 徹底放棄了局部卷積（CNN）的誘導偏置 (Inductive Bias，如平移不變性與局部相關性)，完全依靠全局 Self-Attention 從零學習空間關係。這導致模型需要海量的訓練資料與 Epoch 才能收斂；同時，因為 Transformer Decoder 直接對高倍下採樣後的特徵圖進行 Object Query 交叉注意力運算，遺失了細粒度的局部特徵，使得早期 DETR 在缺乏多尺度特徵圖 (Multi-Scale) 輔助時，對極小物件的尋標能力較弱。"
       }
     ]
+  },
+  {
+    "id": "lab_network_admin_guide",
+    "title": "實驗室網管學習指南：從零開始的循序漸進計畫 (Lab Network Guide)",
+    "englishTitle": "Laboratory Network Administrator Practical Guide & Roadmap",
+    "description": "本單元為實驗室網路環境部署與維護的必備手冊。從實體層 RJ45 網路線壓製線序、第二層與第三層網路觀念（IP、NAT、DHCP）、設備接入拓樸（AP/Switch 樹狀佈線）及 Wireshark 與 iPerf 測試工具，一路進階至 Nginx 反向代理、ACME 挑戰憑證申請及 WireGuard 安全遠端存取。並整理了 YouTube 圖文等高質量點擊跳轉學習資源。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">網管系統核心實務學習路線</h3><div style=\"background:rgba(255,255,255,0.02); border:1px solid var(--border-color); border-radius:12px; padding:20px; color:var(--text-main); font-family:var(--font-mono); line-height:1.8;\">[實體層壓線與 RJ45] ➔ [IP 分配/NAT/連接埠轉送] ➔ [設備架構與樹狀拓樸(防Loop)] ➔ [測試工具 (Wireshark/iPerf)] ➔ [Nginx代理與HTTPS憑證] ➔ [安全遠端存取(WireGuard VPN)]</div>",
+    "steps": [
+      {
+        "name": "1. 階段 1：實體層 RJ45 線序與手動壓線實作 (Physical Layer)",
+        "details": "網路實作第一步。學習壓製 RJ45 網路線，了解 T568B（白橙/橙/白綠/藍/白藍/綠/白棕/棕）主流線序。不當壓製會導致訊號衰減、封包流失甚至使 1Gbps 自動降速為 100Mbps 傳輸瓶頸。"
+      },
+      {
+        "name": "2. 階段 2：IP 分配、NAT 轉換與 Port Forwarding 觀念 (Routing & NAT)",
+        "details": "看懂網路交通規則。區分 PPPoE 撥號、Static 固定 IP、與 DHCP 動態分發；理解 NAT 讓內網多設備共享單一公網 IP 上網；配置 Port Forwarding (連接埠轉送) 將外網請求導流至特定內網伺服器。"
+      },
+      {
+        "name": "3. 階段 3：Router, Switch & AP 拓樸與 Loop 環路避免 (Topology)",
+        "details": "設備角色分工與佈線。Router 跨網段路由，Switch 同網段二層交換，AP 提供無線橋接。採用階層分明的樹狀拓樸 (Tree Topology)，嚴防貪食蛇接法 (Loop)，避免引發廣播風暴導致內網癱瘓。"
+      },
+      {
+        "name": "4. 階段 4：Wireshark 封包分析與 iPerf 頻寬測試實務 (Analysis Tools)",
+        "details": "網管除錯雙神兵。使用 Wireshark (Sniffer) 觀察 TCP 三向交握、DNS 請求及 TLS 握手包；利用 iPerf 測試局域網內網兩點間實際最大頻寬，找出是否因線路或硬體導致頻寬受阻。"
+      },
+      {
+        "name": "5. 階段 5：Nginx 反向代理、DNS 配置與 ACME 憑證驗證 (App Layer)",
+        "details": "將網站發布至公網。Nginx 作為反向代理 (Reverse Proxy) 發揮核心封包轉發，將 80/443 連接埠導流至後端容器；配置網域 DNS (A/CNAME) 解析；利用 Let's Encrypt 及 ACME 驗證自動簽發 SSL 憑證。"
+      },
+      {
+        "name": "6. 階段 6：VPN 隧道協定 (WireGuard / OpenVPN / IPsec)",
+        "details": "跨網段安全遠端連線。對照三大 VPN 技術：WireGuard 代碼極簡、速度極快、延遲與耗電極低，為首選；OpenVPN 高度安全、設定豐富但慢；IPsec 適合 Site-to-Site 企業級隧道連接。"
+      },
+      {
+        "name": "7. 推薦影音學習資源：YouTube 直觀設備與原理圖解 (Video)",
+        "details": "🎬 家用網路架構基礎教學：<a href=\"https://www.youtube.com/results?search_query=%E5%AE%B6%E7%94%A8%E7%B6%B2%E8%B7%AF%E6%9E%B6%E6%A7%8B%E5%9F%BA%E7%A4%9A%E6%95%99%E5%AD%B8+%E5%BC%B1%E9%9B%BB%E9%80%9A\" target=\"_blank\" style=\"color:var(--accent-2); font-weight:700;\">【弱電通】實體設備接線教學</a><br>🎬 路由器是怎麼工作的：<a href=\"https://www.youtube.com/results?search_query=%E8%B7%AF%E7%94%B1%E5%99%A8%E6%98%AF%E6%80%8E%E9%BA%BC%E5%B7%A5%E4%BD%9C%E7%9A%84+%E6%A5%B5%E5%AE%A2%E7%81%A3\" target=\"_blank\" style=\"color:var(--accent-2); font-weight:700;\">【極客灣】IP與NAT動畫原理解析</a><br>🎬 CCNA 網路實務教學系列：<a href=\"https://www.youtube.com/results?search_query=CCNA+%E7%B6%B2%E8%B7%AF%E5%AF%A6%E5%8B%99%E6%95%99%E5%AD%B8\" target=\"_blank\" style=\"color:var(--accent-2); font-weight:700;\">【蕭老師】系統化網路工程課程</a>"
+      },
+      {
+        "name": "8. 推薦圖文學習資源：Cloudflare 學習中心與鳥哥私房菜 (Docs)",
+        "details": "📄 基礎網路科普：<a href=\"https://www.cloudflare.com/zh-tw/learning/network-layer/what-is-an-ip-address/\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">Cloudflare IP地址</a> / <a href=\"https://www.cloudflare.com/zh-tw/learning/network-layer/what-is-a-router/\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">路由器原理</a><br>📄 系統網管聖經：<a href=\"https://linux.vbird.org/linux_server/0110network_basic.php\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">鳥哥 Linux 私房菜網路基礎篇</a><br>📄 新手入門經驗：<a href=\"https://ithelp.ithome.com.tw/articles?tab=iron\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">iT邦幫忙鐵人賽網管新手30天筆記</a>"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "DHCP 租約建立過程 (DORA 協定)",
+        "latex": "\\text{DHCP Client} \\xrightarrow{\\text{Discover (Broadcast)}} \\text{Server} \\xrightarrow{\\text{Offer (Unicast)}} \\text{Client} \\xrightarrow{\\text{Request (Broadcast)}} \\text{Server} \\xrightarrow{\\text{ACK (Unicast)}} \\text{Client}",
+        "description": "客戶端開機無 IP 時廣播 Discover，伺服器單播 Offer IP，客戶端廣播 Request 要求租用該 IP，伺服器單播 ACK 確認，完成 DORA 租約配置。"
+      },
+      {
+        "name": "NAT 私網至公網 IP 與 Port 靜態對映轉換",
+        "latex": "(\\text{IP}_{\\text{private}}, \\text{Port}_{a}) \\xrightarrow{\\text{NAT Translation (Router)}} (\\text{IP}_{\\text{public}}, \\text{Port}_{b})",
+        "description": "NAT 轉換表中，路由器將內部私有 IP 與埠號對映為外網唯一的公共 IP 與經過轉換的埠號，向外發送請求；收到回應後逆向解析送回私有設備。"
+      }
+    ],
+    "code": "# ==========================================\n# 專案名稱：Nginx 反向代理與 SSL 安全憑證配置範例\n# 目的：配置 80/443 連接埠轉發，並處理 Let's Encrypt ACME 驗證\n# ==========================================\nserver {\n    listen 80;\n    server_name water-monitor.lab.edu;\n\n    # 1. 處理 Let's Encrypt / ACME 挑戰驗證 (HTTP-01 Challenge)\n    location /.well-known/acme-challenge/ {\n        root /var/www/letsencrypt;\n        try_files $uri =404;\n    }\n\n    # 2. 自動將一般 HTTP 流量重導向至安全的 HTTPS\n    location / {\n        return 301 https://$host$request_uri;\n    }\n}\n\nserver {\n    listen 443 ssl;\n    server_name water-monitor.lab.edu;\n\n    # 3. SSL 安全憑證路徑設定 (Let's Encrypt 產出)\n    ssl_certificate /etc/letsencrypt/live/water-monitor.lab.edu/fullchain.pem;\n    ssl_certificate_key /etc/letsencrypt/live/water-monitor.lab.edu/privkey.pem;\n    ssl_protocols TLSv1.2 TLSv1.3;\n\n    # 4. 反向代理轉發：將流量安全導向實驗室內網 API\n    location / {\n        proxy_pass http://10.8.0.5:3000; # 實驗室 VPN 內網 Node.js API 伺服器\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n    }\n}",
+    "faq": [
+      {
+        "question": "問：什麼是廣播風暴？為什麼 Switch 網路中發生「Loop 環路」會直接讓整個實驗室內網癱瘓？",
+        "answer": "答：因為乙太網路第二層（資料連結層）在轉發廣播封包（如 ARP 查詢）時，如果網路中存在環路且沒有開啟生成樹協定 (STP)，該廣播封包就會在環路中無窮無盡地被複製並循環發送。因為沒有 TTL 機制，隨著更多封包進入，幾秒鐘內整個網絡的頻寬就會被百萬個重複的廣播封包徹底塞爆，導致 Switch 的 CPU 飆高到 100%，內網所有設備全部斷線癱瘓，這就是俗稱的貪食蛇接法環路效應。"
+      },
+      {
+        "question": "問：在 Nginx 配置中，為什麼我們要使用反向代理將 80/443 連接埠導流給後端 3000 連接埠，而不是直接讓後端 Node.js 監聽 80/443 埠口？",
+        "answer": "答：這出於三個核心的軟體架構與安全性考量。第一，在 Linux 系統中，監聽 1024 以下的特權埠口（如 80、443）必須使用 root 系統權限，如果直接讓 Node.js 監聽，一旦代碼存在安全漏洞，攻擊者便能直接取得伺服器 root 權限；第二，Nginx 具備極強的靜態檔案處理與 Caching 緩存能力，能替後端分擔效能開銷；第三，Nginx 能統一處理 SSL 握手與憑證管理，當內網有多個微服務容器時，只需一個 Nginx 就能完成集中式的反向代理路由。"
+      }
+    ]
   }
 ]

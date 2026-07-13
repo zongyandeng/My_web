@@ -38,7 +38,7 @@
 ---
 
 ## 5. 部署問題歷史紀錄維護 (Crucial)
-- 專案根目錄下設有 [deployment_issues.md](file:///d:/MyDesktop/antigravity2.0/My_web/deployment_issues.md) 檔案。
+- 專案根目錄下設有 [deployment_issues.md](file:///C:/Users/Edison/Desktop/antigravity/My_web/deployment_issues.md) 檔案。
 - **任何時候**，如果在此專案的開發與部署過程中遇到了新的部署失敗原因，且經過排查解決後，**必須**將該次失敗原因、根本原因及解決方案記錄至 `deployment_issues.md` 檔案的末尾，並視情況更新本 `AGENTS.md` 防錯規則，以防未來重複出錯！
 
 ---
@@ -47,3 +47,10 @@
 - **要求**：在每次成功執行 `git push` 到 GitHub 後，AI 助理**必須**主動使用系統提供的 `schedule`（排程/計時器）工具建立一個一次性的檢查提醒任務（One-shot timer，建議設為 120 秒之後，因為 GitHub Actions 編譯部署通常需要 1~2 分鐘）。
 - **計時器 Prompt**：排程的 Prompt 應設為：「檢查 GitHub Pages 部署狀態與 Actions 執行結果」。
 - **檢查機制**：當排程計時器觸發（或是在推送後等待期間），AI 助理應透過 git 或 GitHub 網頁確認部署狀態，以保證部署沒有失敗。
+
+---
+
+## 7. 電腦更換與 C 槽專屬部署備忘 (C-Drive Only Environment)
+- **環境現況**：本專案已自舊電腦的 D 槽遷移至新電腦的 **C 槽桌面**，路徑為 `C:\Users\Edison\Desktop\antigravity\My_web`。
+- **執行規則**：由於本台電腦僅有 C 槽，後續助理在閱讀或執行任何來自全域規範中「優先使用 D 槽儲存」的規則時，**一律忽略並直接在 C 槽專案目錄下進行所有新增、編輯與執行操作**。
+- **Git 與工具鏈**：當前新電腦之環境變數與 Git 推送工具皆基於 C 槽桌面目錄運行，請確保於此目錄下執行所有 git 同步指令。
