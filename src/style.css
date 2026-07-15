@@ -251,7 +251,7 @@ h1, h2, h3, h4, h5, h6 {
 /* 3D 卡片選單 */
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 30px;
   max-width: 1200px;
   width: 100%;

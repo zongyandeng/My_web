@@ -3,15 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>開發與伺服器指令集 | Edison.Dev</title>
-  <meta name="description" content="Edison 的 Ubuntu SSH 連線、Docker 容器操作、Git 常用指令與 PyTorch API 指令集查詢手冊。">
+  <title>網管學習實驗室 | Edison.Dev</title>
+  <meta name="description" content="Edison 的網路管理與網路工程學習筆記，包含實體層壓線、IP 定址、DHCP 協定、交換器與路由器、Nginx 反向代理、DNS配置、SSL/TLS加密與 VPN 隧道技術。">
   <link rel="stylesheet" href="src/style.css">
   <!-- 手機捷徑與 App 封面圖示 -->
   <link rel="apple-touch-icon" sizes="180x180" href="app_icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="app_icon.png">
   <link rel="icon" type="image/png" sizes="512x512" href="app_icon.png">
+  
+  <!-- CDN 載入 KaTeX 數學公式渲染 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
-  <!-- CDN 載入 Prism.js 程式碼語法高亮 (指令說明可能需要) -->
+  <!-- CDN 載入 Prism.js 程式碼語法高亮 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
@@ -34,58 +39,50 @@
       <li><a href="profile.html">個人經歷</a></li>
       <li><a href="ai-learning.html">AI 實驗室</a></li>
       <li><a href="hardware.html">硬體研究</a></li>
-      <li><a href="network-learning.html">網管學習</a></li>
-      <li><a href="commands.html" class="active">指令查詢</a></li>
+      <li><a href="network-learning.html" class="active">網管學習</a></li>
+      <li><a href="commands.html">指令查詢</a></li>
     </ul>
     <button class="settings-btn" id="settings-toggle">
       ⚙️ 設定
     </button>
   </nav>
 
-  <!-- 指令查詢主區塊 -->
+  <!-- 網管學習實驗室容器 -->
   <main class="container">
     <header class="page-header">
-      <h1 class="page-title">開發與伺服器指令集</h1>
+      <h1 class="page-title">網管學習實驗室</h1>
       <p class="page-desc">
-        本單元設計為仿真 Bash 終端機，方便複習並提供學弟妹快速上手指南。包含 Ubuntu SSH、Git 協作、Docker 環境隔離及 PyTorch API 常用指令。點擊綠色指令可直接模擬運行，或一鍵複製至剪貼簿。
+        這裡系統化地整理了我的網路管理與網路工程學習筆記，包含實體層雙絞線與光纖壓接、網路層 IP 定址與 DHCP/BOOTP 運作、傳輸層可靠性（TCP 三次交握）、網路設備（交換器/路由器/VLAN/QoS/PoE/CSMA-CD）、應用層服務（Nginx 反向代理、DNS 查詢、Let's Encrypt）以及隧道 VPN 技術。點選左側目錄即可開始探索。
       </p>
     </header>
 
-    <div class="terminal-layout">
+    <div class="notes-layout">
       <!-- 左側選單 -->
       <aside class="sidebar">
-        <h3 class="sidebar-title">指令單元</h3>
-        <ul class="sidebar-menu" id="cmd-sidebar-menu">
+        <h3 class="sidebar-title">筆記單元</h3>
+        <ul class="sidebar-menu" id="network-sidebar-menu">
           <!-- 由 renderer.js 動態產生 -->
           <li class="sidebar-item">Loading...</li>
         </ul>
       </aside>
 
-      <!-- 右側仿真終端機 -->
-      <section class="terminal-simulator">
-        <div class="terminal-header">
-          <div class="terminal-buttons">
-            <span class="terminal-dot red"></span>
-            <span class="terminal-dot yellow"></span>
-            <span class="terminal-dot green"></span>
-          </div>
-          <div class="terminal-title-text">lab_server - bash - 80x24</div>
-          <div style="width: 50px;"></div> <!-- 佔位符以保持置中 -->
-        </div>
-        <div class="terminal-body" id="terminal-body">
-          <!-- 由 renderer.js 動態渲染 -->
-          <div class="terminal-input-line">
-            <span class="terminal-prompt">user@lab:~$</span>
-            <span class="terminal-text" style="color:var(--text-muted)">正在初始化系統指令庫，請稍候...</span>
-          </div>
-        </div>
+      <!-- 右側內容區 -->
+      <section class="note-content-container" id="network-note-content">
+        <!-- 由 renderer.js 動態渲染 -->
+        <p style="color: var(--text-muted)">正在載入筆記內容，請稍候...</p>
       </section>
     </div>
   </main>
 
   <script type="module">
-    import { loadAndRenderCommands } from './src/renderer.js';
-    window.addEventListener('DOMContentLoaded', loadAndRenderCommands);
+    import { loadAndRenderNetworkNotes } from './src/renderer.js';
+    
+    // 確保 KaTeX 載入完成後再執行渲染
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        loadAndRenderNetworkNotes();
+      }, 100);
+    });
   </script>
   <script type="module" src="src/settings.js"></script>
   <script type="module" src="src/assistant.js"></script>

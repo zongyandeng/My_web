@@ -1,0 +1,242 @@
+[
+  {
+    "id": "cabling",
+    "title": "實體層與接線技術",
+    "englishTitle": "Physical Layer & Cabling Technology",
+    "description": "介紹實體層網路媒介、RJ45 水晶頭壓線標準（568A/568B）、雙絞線分類（UTP/STP）以及不同傳輸頻寬規格（Cat 5e ~ Cat 8）。同時說明設備連線規則（直線與跳線）與現代 Auto-MDIX 的演進，以及光纖的基本概念。",
+    "steps": [
+      {
+        "name": "1. 壓線標準 (EIA/TIA 568A vs 568B)",
+        "details": "壓接 RJ45 水晶頭時，網路線內 8 條不同顏色的細線必須依照標準順序排列：<br>• <strong>EIA/TIA 568A</strong>：白綠、綠、白橙、藍、白藍、橙、白棕、棕。<br>• <strong>EIA/TIA 568B</strong>：白橙、橙、白綠、藍、白藍、綠、白棕、棕（現代網路布線<strong>最常用標準</strong>）。"
+      },
+      {
+        "name": "2. 線路類型 (直線 Straight-through vs 跳線 Crossover)",
+        "details": "• <strong>直線網路線 (Straight-through)</strong>：兩端接線標準相同（皆為 568B 或皆為 568A）。用於連接<strong>不同類型的設備</strong>（如電腦連交換器）。<br>• <strong>跳線網路線 (Crossover)</strong>：一端為 568A，另一端為 568B。傳統上用於連接<strong>同類型的設備</strong>（如電腦連電腦、交換器連交換器）。<br>• <strong>設備對應連線表（直線 S 與跳線 C）</strong>：<br>  - 電腦(PC) $\\leftrightarrow$ 電腦(PC)：跳線 C<br>  - 路由器(Router) $\\leftrightarrow$ 路由器(Router)：跳線 C<br>  - 電腦(PC) $\\leftrightarrow$ 路由器(Router)：跳線 C<br>  - 交換器(Switch) $\\leftrightarrow$ 交換器(Switch)：跳線 C<br>  - 電腦(PC) $\\leftrightarrow$ 交換器(Switch)：直線 S<br>  - 路由器(Router) $\\leftrightarrow$ 交換器(Switch)：直線 S<br>• <strong>現代演進 (Auto-MDIX)</strong>：現代大多數網路設備均支援 <strong>Auto-MDIX</strong> 技術，網卡會自動偵測並切換收發腳位，因此不論同類或異類設備，直接使用直線（Straight-through）即可通訊。"
+      },
+      {
+        "name": "3. 雙絞線遮蔽分類 (UTP vs STP)",
+        "details": "• <strong>UTP (無遮蔽雙絞線)</strong>：線材外層僅有塑膠外殼，無金屬屏蔽層。價格便宜、線身柔軟易施工，常用於一般家庭與辦公室的終端設備連線（若單一線路損壞僅影響單台設備）。<br>• <strong>STP (遮蔽雙絞線)</strong>：線材外層與內部細線之間包裹了一層鋁箔或金屬編織網。能有效抵禦強烈電磁干擾，價格昂貴且較硬，常用於機房主幹線路、工業環境或連接口岸路由器等關鍵設備（確保整體網路骨幹不因干擾而癱瘓）。"
+      },
+      {
+        "name": "4. 乙太網路線規格等級 (Cat 5e ~ Cat 8)",
+        "details": "• <strong>Cat 5e</strong>：最高傳輸速度 1 Gbps，傳輸頻寬 100 MHz。便宜實惠，適合基礎家用上網或監控設備。<br>• <strong>Cat 6</strong>：最高傳輸速度 1 Gbps，傳輸頻寬 250 MHz。內部有十字骨架隔離細線以降低串音干擾，是目前一般家庭與中小企業最主流的布線選擇。<br>• <strong>Cat 6A</strong>：最高傳輸速度 10 Gbps，傳輸頻寬 500 MHz。具備極佳的抗干擾能力，適合電競、高速寬頻及企業辦公室。<br>• <strong>Cat 7</strong>：最高傳輸速度 10 Gbps，傳輸頻寬 600 MHz。要求每個線對都有金屬屏蔽，接頭必須使用專用金屬接頭，主要用於專業高抗噪環境。<br>• <strong>Cat 8</strong>：最高傳輸速度高達 25 Gbps / 40 Gbps，傳輸頻寬達 2000 MHz。具備極高等級的金屬遮蔽層，主要應用於高階專業機房、企業伺服器等極度要求低延遲的環境，傳輸距離限制在 30 米內。"
+      },
+      {
+        "name": "5. 光纖傳輸基礎 (Single-mode vs Multi-mode)",
+        "details": "除了銅線雙絞線，高頻寬與長距離傳輸會使用光纖：<br>• <strong>單模光纖 (Single-mode, SMF)</strong>：纖芯極細（約 9μm），光線以單一平行路徑傳播。使用雷射光源，訊號衰減極低，適用於數十公里以上的超長距離傳輸（如跨國海纜、都市骨幹）。<br>• <strong>多模光纖 (Multi-mode, MMF)</strong>：纖芯較粗（約 50μm），光線以多重反射角度傳播。使用 LED 光源，光源設備成本較低，但由於多重光路造成的「模態色散」，傳輸距離通常限制在數百米內，適用於機房內伺服器與交換器間互連。"
+      },
+      {
+        "name": "6. 水晶頭壓接實務步驟",
+        "details": "<strong>步驟 1</strong>：使用撥線鉗撥開外皮，露出 4 對絞線。<br><strong>步驟 2</strong>：將線理直，並按照 EIA/TIA 568B 順序排好（白橙、橙、白綠、藍、白藍、綠、白棕、棕）。<br><strong>步驟 3</strong>：將線排列整齊並剪平，保留約 1.5 公分裸露細線。<br><strong>步驟 4</strong>：水晶頭金屬彈片面朝上（平滑面朝自己），將網路線用力插到底。<br><strong>步驟 5</strong>：檢查水晶頭頂部與側面，確認每根銅線都已推至最前端，且線皮被包入夾口內。<br><strong>步驟 6</strong>：放入壓線鉗，用力壓緊即完成。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "為什麼排好線之後，剪線要保留 1.5 公分？不能太長或太短嗎？",
+        "answer": "保留 1.5 公分是為了確保水晶頭壓接時，網路線的『外部塑膠外外皮』能被水晶頭尾部的卡榫牢牢夾住。如果太長（如超過 2 公分），外皮夾不到，線材容易拉扯脫落且細線外露干擾增加；如果太短，細線無法頂到水晶頭最前端的金屬片，會造成接觸不良。"
+      },
+      {
+        "question": "直線網路線和跳線在現代還分得那麼細嗎？",
+        "answer": "現代設備 99% 都支援 <strong>Auto-MDIX (Automatic Medium-Dependent Interface Crossover)</strong>。它能自動在硬體層偵測並翻轉接收/發送通道，因此在實際工作中，即使你用直線連接兩台交換器，它們也能正常通訊。跳線目前僅在一些非常老舊的設備、工業級舊型 PLC 或特殊串接情境中才需要手動製作。"
+      }
+    ]
+  },
+  {
+    "id": "ip_addressing",
+    "title": "網路層與 IP 定址技術",
+    "englishTitle": "Network Layer & IP Addressing & DHCP",
+    "description": "深入解析網路層 IP 位址、子網路結構、私有 IP 網段，以及自動化 IP 配置協定（DHCP/BOOTP）的詳細運作機制、衝突檢查原理與 NAT 轉換流程。",
+    "steps": [
+      {
+        "name": "1. IP 位址與私有 IP 範圍",
+        "details": "IP 位址（目前主流為 IPv4，如 192.168.1.1）是設備在網路上的邏輯身分證。為了緩解公網 IP 短缺，RFC 1918 定義了三大私有 IP 區間，這些 IP 無法直接在網際網路上路由，僅供內網使用：<br>• <strong>Class A 私網</strong>：<code>10.0.0.0</code> ~ <code>10.255.255.255</code> (常用於大型企業，最大容納 1677 萬台電腦)<br>• <strong>Class B 私網</strong>：<code>172.16.0.0</code> ~ <code>172.31.255.255</code> (最大容納 6.5 萬台電腦)<br>• <strong>Class C 私網</strong>：<code>192.168.0.0</code> ~ <code>192.168.255.255</code> (最常見的家用/小企業網段，單網段容納 254 台電腦)"
+      },
+      {
+        "name": "2. DHCP 與 BOOTP 的關係與差異",
+        "details": "• <strong>BOOTP (引導程式協定)</strong>：1985 年提出，主要用於無硬碟工作站透過網路下載開機映像檔並獲取 IP。它採用靜態對照表（一對一綁定），IP 配置是永久性的，不支援動態 IP 回收。<br>• <strong>DHCP (動態主機配置協定)</strong>：基於 BOOTP 擴充而來，底層封包格式高度相似。它引入了<strong>租約時間 (Lease Time)</strong> 與<strong>動態 IP 儲存池 (IP Pool)</strong> 概念，能夠在客戶端下線後自動回收 IP，達到重複利用的效果。現代 DHCP 伺服器均能完全向下相容 BOOTP 請求。"
+      },
+      {
+        "name": "3. DHCP 運作四步驟 (D.O.R.A.)",
+        "details": "當設備（DHCP Client）連上內網時，會執行以下四步驟獲取 IP：<br><strong>1. Discover (廣播)</strong>：客戶端廣播尋找網路上的 DHCP 伺服器。目的地 MAC 為 <code>FF:FF:FF:FF:FF:FF</code>，IP 為 <code>255.255.255.255</code>。<br><strong>2. Offer (單播)</strong>：DHCP 伺服器收到後，從 IP 池挑選一個可用 IP 放在 Offer 封包中發給客戶端，並帶有子網掩碼、網關與 DNS 資訊。<br><strong>3. Request (廣播)</strong>：客戶端選擇該 IP（若有多個 Offer），並廣播告知所有 DHCP 伺服器自己決定使用此 IP，未被選中的伺服器藉此收回 Offer 中的 IP。<br><strong>4. Acknowledge (單播)</strong>：原伺服器發送 ACK 封包確認，並確定租約生效，客戶端正式啟用 IP。"
+      },
+      {
+        "name": "4. IP 衝突檢查機制 (Ping & G-ARP)",
+        "details": "為了避免兩台設備分到同一個 IP 造成斷線，系統會雙向檢查：<br>• <strong>伺服器端檢查</strong>：DHCP 伺服器在把 IP 發送出去（Offer）前，會先向該 IP 發送 <strong>ICMP Echo Request (Ping)</strong>。若有回應，表示該 IP 已被佔用，伺服器會將該 IP 標記為衝突，並挑選新 IP 發放。<br>• <strong>客戶端端檢查 (G-ARP)</strong>：客戶端收到 IP 並啟用網卡時，會立即發送 <strong>G-ARP (免費/無故 ARP)</strong> 封包。如果收到同一個 IP 的回應，代表內網有其他設備已使用此 IP，客戶端會發送 <strong>DHCP Decline</strong> 封包拒絕此 IP，並重新發起 Discover 請求。"
+      },
+      {
+        "name": "5. G-ARP (Gratuitous ARP) 的多重功用",
+        "details": "G-ARP 是一種源與目標 IP 皆為自己 IP 的特殊 ARP 請求。其主要作用有三：<br>• <strong>檢測 IP 衝突</strong>：宣告自己的 IP，看看有沒有人回覆。<br>• <strong>更新鄰居快取</strong>：主動告知內網所有主機自己的 MAC 位址已改變，讓它們更新 ARP Table。<br>• <strong>更新交換器 MAC 表</strong>：當設備熱插拔或重啟時，Link Up 發送 G-ARP，能讓交換器立即得知該 MAC 轉移到哪一個實體 Port 上，避免封包投遞出錯。若網路上頻繁出現 G-ARP，常暗示著實體線路品質不佳或設備網卡在頻繁重啟。"
+      },
+      {
+        "name": "6. NAT 網路位址轉換運作過程",
+        "details": "<strong>NAT (Network Address Translation)</strong> 用於將私有 IP 轉換為公有 IP 以連上網際網路。其核心是 <strong>NAT Table</strong>，用來記錄轉換前後的對應關係：<br>• <strong>Inside Local Address</strong>：內網設備未轉換前私有 IP 位址（例如 <code>192.168.1.10</code>）。<br>• <strong>Inside Global Address</strong>：經路由器轉換後，對外發送的公網 IP 位址（例如 <code>203.0.113.1</code>）。<br>當內網封包通過路由器時，路由器會將 IP 標頭的 Source IP 修改為 Inside Global IP 並記錄於表。當外部伺服器回傳封包時，路由器查表再將 Destination IP 修改回 Inside Local IP 轉發給內網電腦。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "當我的電腦顯示『IP 位址衝突』時，網路會發生什麼事？",
+        "answer": "當兩台電腦使用相同 IP 時，網路交換器（Switch）的 MAC Table 會因為兩台電腦交替發送封包而產生『MAC 漂移 (MAC Flapping)』。這會導致交換器無法確定該把回傳的封包送到哪一個實體 Port，結果就是兩台電腦都會出現嚴重的網路斷斷續續、丟包甚至完全斷線。"
+      },
+      {
+        "question": "G-ARP 為什麼叫『免費 / 無故』ARP？",
+        "answer": "一般的 ARP 是因為要傳送資料而『有目的性』地去詢問別人的 MAC 地址。而 G-ARP 是在沒有人詢問的情況下，『主動無故』地向整個網路廣播宣示自己的 IP-MAC 關係，因此英文叫 Gratuitous（意指免費、無償提供的、多餘的），目的在於讓大家自動更新快取，防止 IP 衝突。"
+      }
+    ]
+  },
+  {
+    "id": "transport_protocols",
+    "title": "傳輸層協定與可靠傳輸",
+    "englishTitle": "Transport Layer & TCP & UDP Protocols",
+    "description": "深入傳輸層，對比網際網路兩大核心協定 TCP 與 UDP 的設計哲学，詳細剖析 TCP 的三次交握連線建立機制與可靠性控制原理。",
+    "steps": [
+      {
+        "name": "1. TCP (傳輸控制協定) 核心特性",
+        "details": "TCP (Transmission Control Protocol) 是一種<strong>連線導向</strong>、<strong>可靠傳輸</strong>的位元流協定。其核心設計包含：<br>• <strong>保證可靠交付</strong>：所有封包皆有序號（Sequence Number），接收端必須回覆確認（ACK）。若逾時未收到 ACK，傳送端會自動重傳（Retransmission）。<br>• <strong>流量控制 (Flow Control)</strong>：利用<strong>滑動視窗 (Sliding Window)</strong> 機制，根據接收端的緩衝區大小動態調整傳送量，避免接收端來不及處理而掉包。<br>• <strong>壅塞控制 (Congestion Control)</strong>：透過慢啟動（Slow Start）、壅塞規避等演算法，自動調節傳輸速率，防止網際網路骨幹通道塞車。"
+      },
+      {
+        "name": "2. UDP (使用者資料包協定) 核心特性",
+        "details": "UDP (User Datagram Protocol) 是一種<strong>非連線導向</strong>、<strong>不可靠</strong>的資料包協定。它在傳輸前不建立連線，不進行封包重傳，也不做流量控制。因為沒有繁瑣的驗證交握，其<strong>傳輸速度極快、開銷極小</strong>，非常適合對時間敏感但允許少量掉包的應用（如視訊直播、線上遊戲、語音通話，或是單次查詢的 DNS）。"
+      },
+      {
+        "name": "3. TCP 三次交握流程 (Connection Establishment)",
+        "details": "TCP 在傳送實際資料前，雙方必須透過三次交換封包來確認彼此的收發能力正常並同步序號：<br><strong>Step 1: SYN (同步)</strong>：客戶端向伺服器發送 SYN 封包，並隨機初始化一個序號 $Seq = x$，此時客戶端進入 <code>SYN_SENT</code> 狀態。<br><strong>Step 2: SYN-ACK (同步確認)</strong>：伺服器收到後同意連線，回傳包含自己初始化序號 $Seq = y$ 且確認號 $Ack = x + 1$ 的 SYN-ACK 封包，伺服器進入 <code>SYN_RCVD</code> 狀態。<br><strong>Step 3: ACK (確認)</strong>：客戶端收到後，回傳確認號 $Ack = y + 1$ 的 ACK 封包。伺服器收到此封包後，雙方皆進入 <code>ESTABLISHED</code> 狀態，連線正式建立。"
+      },
+      {
+        "name": "4. TCP 四次揮手流程 (Connection Termination)",
+        "details": "由於 TCP 是全雙工，斷開連線時需要雙方各自發送 FIN 與 ACK 封包，共需四個步驟：<br><strong>Step 1: FIN (Client)</strong>：客戶端發送 FIN 封包，表示不再發送資料，進入 <code>FIN_WAIT_1</code> 狀態。<br><strong>Step 2: ACK (Server)</strong>：伺服器收到後回傳 ACK，表示收到中斷請求，此時客戶端進入 <code>FIN_WAIT_2</code>。但伺服器若還有剩餘資料未傳完，可繼續傳送（半關閉狀態）。<br><strong>Step 3: FIN (Server)</strong>：伺服器資料傳送完畢後，發送自己的 FIN 封包，進入 <code>LAST_ACK</code> 狀態。<br><strong>Step 4: ACK (Client)</strong>：客戶端收到後，回傳最後的 ACK。客戶端進入 <code>TIME_WAIT</code> 狀態，等待 2MSL (通常為 2 ~ 4 分鐘) 時間以確保伺服器有收到 ACK 且舊連線封包已在網路中消失，隨後關閉連線。伺服器收到 ACK 後立即關閉連線。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "為什麼 TCP 建立連線需要三次，不能只交握兩次嗎？",
+        "answer": "如果只交握兩次，假設客戶端發送的第一個 SYN 封包在網路中滯留延遲了，客戶端以為丟包而重發了第二個 SYN 並順利建立連線、完成傳輸後關閉。之後，那顆滯留的第一個 SYN 封包終於到達伺服器，伺服器會誤以為是客戶端又發起一次新連線，若只有兩次交握，伺服器回覆 ACK 後連線即建立，這會導致伺服器白白開著連線等待，浪費記憶體資源。三次交握能確保『已失效的連線請求』不會被伺服器誤接受。"
+      },
+      {
+        "question": "為什麼客戶端在第四次揮手後，必須要在 TIME_WAIT 狀態等待 2MSL 的時間？",
+        "answer": "主要有兩個原因：第一是『確保最後一個 ACK 能順利送達伺服器』。如果這個 ACK 丟包了，伺服器會重發 Step 3 的 FIN 封包，客戶端只有在 TIME_WAIT 期間內才能重新發送 ACK，否則伺服器無法正常關閉。第二是『防止失效的封包干擾新連線』。等待 2MSL 可讓本次連線產生的所有網路封包都在網路上自然消失，避免相同 IP 與 Port 的新連線收到舊連線的殘存封包。"
+      }
+    ]
+  },
+  {
+    "id": "network_devices",
+    "title": "網路設備與區域網路架構",
+    "englishTitle": "Network Devices & LAN Protocols & Architecture",
+    "description": "深入解析區域網路中的實體與邏輯設備、網路環路帶來的災難、以及企業網路設計中必備的二層與三層控制協定（VLAN、ACL、QoS、CSMA/CD、PoE 等）。",
+    "steps": [
+      {
+        "name": "1. 核心網路設備與運作層級",
+        "details": "• <strong>數據機 (Modem)</strong>：負責訊號轉換（調變與解調），將外部電信商的類比訊號轉為內網的數位訊號。<br>• <strong>集線器 (Hub)</strong>：實體層（L1）設備。無差別複製並廣播訊號，所有連接埠共享頻寬，且一次只能單向傳輸（半雙工），容易發生碰撞，目前已被淘汰。<br>• <strong>交換器 (Switch)</strong>：資料連結層（L2）設備。透過內建 <strong>MAC Table</strong> 記錄實體 Port 與設備 MAC 的對應，進行精準的點對點轉送。支援全雙工，每個 Port 都是獨立的碰撞網域。<br>• <strong>路由器 (Router)</strong>：網路層（L3）設備。根據 <strong>Routing Table</strong> 決定封包跨網段的路由路徑。具有阻擋廣播（切分廣播網域 Broadcast Domain）的功能，是內網連接外部網際網路的唯一通道。<br>• <strong>預設閘道 (Default Gateway)</strong>：內網設備要將資料傳送到其他外部網段時的『出口 IP』（通常是路由器的內網介面 IP）。"
+      },
+      {
+        "name": "2. 碰撞偵測機制 (CSMA/CD vs CSMA/CA)",
+        "details": "多台設備共享相同媒介傳輸時，需要碰撞避免機制：<br>• <strong>CSMA/CD (載波監聽多路存取/碰撞偵測)</strong>：用於<strong>有線乙太網路</strong>。設備發送前先監聽通道，若空閒則發送，並邊送邊聽。若偵測到碰撞，會發送 Jam 訊號告知整個網段，並隨機等待一段時間（指數退避演算法）後重傳。<br>• <strong>CSMA/CA (載波監聽多路存取/碰撞避免)</strong>：用於 <strong>Wi-Fi 無線網路</strong>。因為無線網卡無法在發送時同時接收，難以做到碰撞偵測。因此採用『避免』機制：發送前先傾聽，空閒時還要隨機等待一個隨機槽位時間，並使用 RTS/CTS（請求傳送/允許傳送）訊號來預約通道，確保無碰撞才發送。"
+      },
+      {
+        "name": "3. 網路環路 (Loop) 與廣播風暴 (Broadcast Storm)",
+        "details": "• <strong>成因</strong>：當多台交換器之間存在多條實體冗餘線路（為了防斷線備援），或是不小心將同一條網路線兩端插在同一台交換器上，就會形成實體環路。<br>• <strong>災難</strong>：當內網有任何設備發出廣播封包（如 ARP Request）時，交換器會將其複製並從所有 Port 轉送出去。在環路中，這些廣播封包會被無限循環轉送與複製，呈指數級暴增，吃光頻寬與交換器 CPU 資源，整個網路全面癱瘓。<br>• <strong>預防 (STP/RSTP)</strong>：<strong>生成樹協定 (Spanning Tree Protocol, IEEE 802.1D)</strong>。網管交換器會自動透過發送 BPDU 封包互相溝通，並在邏輯上『自動阻斷』其中一條備援路徑以消除環路。當主要路徑斷線時，STP 會在數秒內自動啟用備援路徑。"
+      },
+      {
+        "name": "4. 虛擬區域網路與存取控制 (VLAN & ACL)",
+        "details": "• <strong>VLAN (Virtual LAN, IEEE 802.1Q)</strong>：透過在交換器內部為 Port 標記不同的 Tag，將單一實體交換器邏輯上切分成多個獨立的區域網路。不同 VLAN 間的廣播封包互不相通，能有效切分廣播網域、提升安全性（如：財務部與訪客網路隔離）。VLAN 間若要通訊，必須經過路由器或三層交換器進行路由。<br>• <strong>ACL (存取控制清單)</strong>：網管在路由器或防火牆上設定的一組過濾規則。依據來源/目的 IP、Port 或協定，決定封包該予以通過（Permit）或丟棄（Deny），常用於內網邊界安全防護。"
+      },
+      {
+        "name": "5. 頻寬管理與設備供電 (QoS & PoE)",
+        "details": "• <strong>QoS (服務品質)</strong>：網路流量管理技術。當頻寬吃緊時，QoS 能根據設定，優先轉送對延遲敏感的流量（如 VoIP 語音電話、視訊會議），並限制佔用大頻寬的下載（如 P2P），保障關鍵業務的網路流暢度。<br>• <strong>PoE (乙太網路供電, IEEE 802.3af/at/bt)</strong>：透過普通的雙絞線網路線，在傳輸數據的同時，也為連接的終端設備提供直流電能。免除了為設備拉設電源線的麻煩，廣泛應用於 IP 電話、無線 AP、網路監視器等。"
+      },
+      {
+        "name": "6. 企業與資料中心網路拓樸架構",
+        "details": "• <strong>傳統三層式架構 (3-Tier)</strong>：<br>&nbsp;&nbsp;1. <em>核心層 (Core)</em>：負責網段間的極速資料交換與傳輸骨幹。<br>&nbsp;&nbsp;2. <em>匯聚層 (Distribution)</em>：連接核心與存取，負責實施安全策略、ACL、VLAN 間路由與流量控制。<br>&nbsp;&nbsp;3. <em>存取層 (Access)</em>：直接連接電腦、印表機等終端設備。<br>• <strong>Spine-Leaf 二層主幹支葉架構</strong>：現代雲端與資料中心首選。分為 Spine 交換器（主幹）與 Leaf 交換器（支葉）。任何兩台 Leaf 交換器之間都有多條平行路徑連接到 Spine，保證了扁平化、超低延遲且極易橫向擴充，非常適合虛擬機器間的東西向（East-West）流量傳輸。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "既然 VLAN 可以切分廣播網域，那不同 VLAN 之間完全沒辦法傳資料嗎？",
+        "answer": "在純二層交換器上是無法通訊的。但如果需要通訊，可以使用 L3 路由設備（如路由器或具備路由功能的三層交換器）。常見的作法是使用『單臂路由器 (Router-on-a-Stick)』，利用一條實體 Trunk 網路線連接交換器與路由器，路由器上設定子介面（Sub-interface）來分別作為各個 VLAN 的預設閘道，即可完成跨 VLAN 的安全通訊。"
+      },
+      {
+        "question": "PoE 供電會不會把我的舊電腦網卡燒壞？",
+        "answer": "不會。標準的 PoE 設備具備『主動偵測（PD Detection）』功能。當網路線插上時，供電端（PSE，如 PoE 交換器）會先發送一個微弱的電壓進行測試，確認對方設備是否支援 PoE 標準並回報所需的電量級別。若對方是不支援 PoE 的一般電腦或設備，交換器將僅進行資料傳輸，不會供電，因此非常安全。"
+      }
+    ]
+  },
+  {
+    "id": "app_layer",
+    "title": "應用層服務與安全性",
+    "englishTitle": "Application Layer & Nginx & DNS & SSL/TLS",
+    "description": "解析網際網路應用層服務的運作細節。包含網域系統（DNS）的解析過程、Nginx 作為反向代理的分流與加密機制，以及 SSL/TLS 與 ACME 憑證自動化驗證的原理。",
+    "steps": [
+      {
+        "name": "1. DNS 遞迴查詢與反覆查詢過程",
+        "details": "DNS (Domain Name System) 是網路的電話簿，將網域（如 google.com）解析為 IP 位址。當我們輸入網址時，會進行以下查詢：<br>• <strong>遞迴查詢 (Recursive Query)</strong>：用戶端向『本機 DNS 解析器（如 8.8.8.8）』發送請求。解析器必須對用戶端『負責到底』，如果自己沒有快取，就必須替用戶端去向外詢問，直到找到結果回傳給用戶端。<br>• <strong>反覆/迭代查詢 (Iterative Query)</strong>：本機 DNS 解析器向外詢問的過程。它會先問<strong>根網域伺服器 (.)</strong>，根伺服器回覆：『我不知道，但我知道 .com 頂級網域名稱伺服器（TLD）的 IP，你去問它』；解析器再去問 TLD 伺服器，TLD 伺服器回覆：『去問 google.com 的權威 DNS 伺服器』；最後解析器問權威 DNS 伺服器，順利拿到目標網站的實體 IP。"
+      },
+      {
+        "name": "2. Nginx 反向代理 (Reverse Proxy) 運作原理",
+        "details": "Nginx 是一款高效能的 Web 伺服器，主要作為『反向代理』部署在網路最前端，作為外網流量與內網微服務之間的中介總機：<br>• <strong>隱藏真實 IP</strong>：外部客戶端僅能接觸到 Nginx 公網 IP，無法得知後端真實應用程式伺服器（如 Node.js 或 Go 伺服器）的 IP 與埠號，大幅降低被攻擊的風險。<br>• <strong>SSL 集中卸載 (SSL Termination)</strong>：統一在 Nginx 伺服器配置與解密 SSL/TLS 憑證，後端應用程式伺服器僅需跑簡單的 HTTP 協定，減輕後端主機的加密計算負擔。<br>• <strong>負載平衡 (Load Balancing)</strong>：當大量請求湧入時，Nginx 依據輪詢（Round Robin）或權重，將流量分配給後端多台伺服器，避免單台主機負載過重而當機。"
+      },
+      {
+        "name": "3. SSL/TLS 與 HTTPS 加密交握機制",
+        "details": "HTTPS ＝ HTTP ＋ SSL/TLS。它在 TCP 建立連線後，透過以下交握步驟建立加密通道：<br><strong>1. Client Hello</strong>：客戶端提供支援的 TLS 版本、加密演算法列表與一組隨機數 $R_A$。<br><strong>2. Server Hello & Certificate</strong>：伺服器確認加密演算法，回傳隨機數 $R_B$，並附上該網域的<strong>數位憑證 (Certificate)</strong>（包含伺服器公鑰）。<br><strong>3. 驗證憑證</strong>：瀏覽器向系統內建的受信 CA 機構驗證憑證真偽。確認無誤後，生成第三個隨機數 <em>Pre-Master Secret</em>，並用憑證中的<strong>伺服器公鑰</strong>對其加密，傳送給伺服器。<br><strong>4. 產生對稱金鑰</strong>：伺服器用自己的<strong>私鑰</strong>解密得到 Pre-Master Secret。此時雙方皆擁有 $R_A, R_B$ 與 Pre-Master Secret，並以此共同計算出本次連線專屬的『對稱金鑰』。後續所有的網頁資料傳輸，皆使用此對稱金鑰進行極速加密傳輸。"
+      },
+      {
+        "name": "4. Let's Encrypt 與 ACME 挑戰驗證機制",
+        "details": "Let's Encrypt 提供免費且自動化的 SSL/TLS 憑證。在核發憑證前，發證機構會透過 <strong>ACME 協定</strong>對伺服器發起『挑戰 (Challenge)』，以驗證申請者確實擁有該網域的管理權：<br>• <strong>HTTP-01 挑戰</strong>：ACME 客戶端（如 Certbot）在伺服器網站特定路徑下放置一個特定亂數檔案（例如 <code>.well-known/acme-challenge/xxxx</code>）。發證伺服器會通過網際網路發送 HTTP 請求讀取該檔案，驗證成功即核發憑證。此挑戰要求伺服器必須對外公開 Port 80。<br>• <strong>DNS-01 挑戰</strong>：發證機構要求在網域 DNS 供應商（如 Cloudflare, GoDaddy）後台新增一筆特定的 <code>TXT</code> 記錄。發證機構會查詢該網域的 DNS 來驗證。此挑戰適用於不對外開放的內網伺服器，且<strong>唯一支援申請泛網域憑證 (*.yourdomain.com)</strong>。"
+      },
+      {
+        "name": "5. DDoS (分散式阻斷服務) 攻擊防護",
+        "details": "DDoS 是利用分布在世界各地的殭屍網路（Botnet）向目標伺服器發送海量請求，流量攻擊常用 UDP Flood 或 SYN Flood 等，填滿頻寬（L3/L4）。應用層攻擊如 HTTP Flood，針對資料庫或 API 發起大量查詢，癱瘓 CPU（L7）。<br>• <strong>防護方法</strong>：導入 Cloudflare 等 CDN 防護盾進行邊緣流量清洗，或在反向代理（Nginx）上配置速率限制（Rate Limiting）與使用 WAF。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "為什麼有了反向代理（Reverse Proxy），還有正向代理（Forward Proxy）？兩者有什麼差別？",
+        "answer": "兩者的方向與保護對象正好相反。<strong>正向代理</strong>保護並代表的是『客戶端（使用者）』。當你透過 VPN 翻牆或公司內網限制上網時，你是向正向代理伺服器發送請求，由它幫你去訪問外網，目標網站只會看到代理伺服器的 IP，不知道真實使用者的 IP。而<strong>反向代理</strong>保護並代表的是『伺服器端』，外部使用者根本不知道自己訪問的是後端哪一台實體伺服器。"
+      },
+      {
+        "question": "為什麼 Let's Encrypt 憑證有效期只有 90 天？這不是需要一直手動更新嗎？",
+        "answer": "這是出於安全考量。較短的有效期可以將憑證密鑰洩漏或網站被盜用後的損害時間降到最低。為了避免手動更新的麻煩，Let's Encrypt 的設計初衷就是『全自動化』。透過在伺服器設定排程（實作上使用 Certbot 的 Systemd Timer 或 Cron Job）定期運行 <code>certbot renew</code>，系統會在憑證過期前 30 天內自動完成 ACME 挑戰驗證並替換憑證，達到完全無感免手動維護的效果。"
+      }
+    ]
+  },
+  {
+    "id": "network_tools",
+    "title": "網路工具與隧道協定",
+    "englishTitle": "Network Tools & VPN Tunneling Protocols",
+    "description": "介紹實用的網路效能測試與抓包診斷工具，並全面對比 WireGuard、OpenVPN、IPsec 三大主流 VPN 隧道協定之架構與優缺點。",
+    "steps": [
+      {
+        "name": "1. Wireshark 封包抓取與過濾實務",
+        "details": "Wireshark 是一款強大的開源網路封包分析工具（俗稱抓包軟體），運作在混雜模式（Promiscuous Mode）下，能擷取網卡收發的所有原始位元流並翻譯成結構化欄位：<br>• <strong>抓取過濾器 (Capture Filter)</strong>：在抓包開始前設定（如 <code>host 192.168.1.100</code>），僅抓取符合條件的封包，避免記憶體被無用流量塞滿。<br>• <strong>顯示過濾器 (Display Filter)</strong>：在抓包後設定，用於快速篩選。例如：<br>&nbsp;&nbsp;- <code>ip.addr == 192.168.1.1</code> (篩選特定 IP)<br>&nbsp;&nbsp;- <code>http.request.method == \"POST\"</code> (篩選 HTTP POST 請求)<br>&nbsp;&nbsp;- <code>tcp.flags.syn == 1</code> (尋找 TCP 同步連線)"
+      },
+      {
+        "name": "2. iPerf 頻寬測試與 Speedtest 差異",
+        "details": "iPerf 是基於命令列的網路效能測試工具，採用主從架構（Server 監聽，Client 發送流量測試），能精準測量內網或特定連結點的最大頻寬、抖動（Jitter）與丟包率：<br>• <strong>為什麼不用 Speedtest？</strong> Speedtest 測試的是『你的設備到網際網路電信商伺服器』的速度，這會受到外網擁塞、ISP 頻寬限制與地理距離影響。而 iPerf 能讓你在區域網路內兩台電腦互測，完全排除外網干擾，測出網路卡、交換器或 Wi-Fi 分享器的最真實物理極限傳輸速率。"
+      },
+      {
+        "name": "3. OpenWRT 與軟路由系統",
+        "details": "• <strong>OpenWRT</strong>：基於 Linux 的嵌入式開源路由器作業系統。原廠路由器韌體通常功能受限，刷入 OpenWRT 後能完全擺脫原廠鎖定，獲得獨立檔案系統與套件庫（Opkg）。<br>• <strong>軟路由 (Soft Router)</strong>：不同於原廠專用硬體晶片（ASIC）的硬路由，軟路由是指使用一般的 x86 架構小電腦（如工控機、舊電腦、樹莓派）安裝 OpenWRT 等系統來擔任路由器。其 CPU 運算能力極強，能輕鬆處理大流量的加密 VPN 傳輸、部署 AdGuard Home 阻擋全網廣告、實施高階 QoS 限速或架設個人伺服器。"
+      },
+      {
+        "name": "4. WireGuard VPN 協定特性",
+        "details": "WireGuard 是一款極為現代且高效的開源 VPN 協定：<br>• <strong>優勢</strong>：程式碼極其精簡（僅約 4,000 行，而 OpenVPN 達數十萬行），直接運行在 Linux 核心空間內，因此<strong>速度極快、延遲極低、CPU 負載與耗電量極小</strong>。採用最新的現代加密演算法（如 ChaCha20、Curve25519），安全性高。<br>• <strong>劣勢</strong>：基於 UDP 傳輸，若 UDP 遭 ISP 限制可能影響連線；此外，為了極簡設計，其不具備動態 IP 分配與使用者權限管理功能，在大規模企業部署時需要額外的控制台套件（如 Netmaker 或 Tailscale）。"
+      },
+      {
+        "name": "5. OpenVPN VPN 協定特性",
+        "details": "OpenVPN 是一款歷經時間考驗、極為成熟的 L3 VPN 協定：<br>• <strong>優勢</strong>：相容性與靈活度極高。支援 TCP 與 UDP 傳輸，能透過模擬 Port 443（HTTPS）來穿透絕大多數嚴格的防火牆與網路審查。支援豐富的動態認證方式（如憑證、帳密、雙因子認證 MFA）。<br>• <strong>劣勢</strong>：運作在用戶空間（User Space），在核心空間與用戶空間來回複製資料會造成效能瓶頸，傳輸速度比 WireGuard 慢；且程式碼龐大，維護與漏洞檢查成本較高。"
+      },
+      {
+        "name": "6. IPsec VPN 協定特性",
+        "details": "IPsec (Internet Protocol Security) 是一組運行在 L3 網路層的安全性協定套件，常用於建立企業總部與分公司之間的 <strong>Site-to-Site VPN</strong>：<br>• <strong>特性</strong>：包含 ESP（加密與防竄改）、AH（來源驗證防竄改，無加密）與 IKE（密鑰安全交換）。通常與 L2TP 協定結合使用（L2TP/IPsec）。<br>• <strong>優勢</strong>：獲得各大作業系統與企業防火牆硬體（如 Cisco, Fortinet）的內建原生支援，非常適合企業級的骨幹網路互聯。<br>• <strong>劣勢</strong>：配置極為複雜繁瑣；且容易被嚴格的防火牆封鎖（因為使用特定的 IP 協定與 Port，如 UDP 500/4500）。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "Wireshark 提示找不到任何網卡介面，或抓不到任何封包？",
+        "answer": "這通常是因為權限不足或缺少封包驅動程式。在 Windows 系統上，Wireshark 依賴 Npcap 驅動程式來攔截網卡底層資料，安裝時必須勾選安裝 Npcap；且運行 Wireshark 時，建議『以管理員身分執行』。在 Linux 系統上，則必須使用 <code>sudo wireshark</code> 或將使用者加入 <code>wireshark</code> 群組才有權限存取網卡介面。"
+      },
+      {
+        "question": "在 WireGuard、OpenVPN 與 IPsec 之間，一般人或企業該如何選擇？",
+        "answer": "• <strong>個人使用 / 速度優先</strong>：強烈首選 <strong>WireGuard</strong>。它非常省電，在手機或家用路由器上運行速度快，斷線後重連僅需幾毫秒。<br>• <strong>需要穿透嚴格防火牆 / 複雜認證</strong>：選擇 <strong>OpenVPN</strong>，並配置為 TCP Port 443，這能將 VPN 流量偽裝成一般的 HTTPS 網頁瀏覽，繞過絕大多數封鎖。<br>• <strong>企業總部與分公司互聯 (Site-to-Site)</strong>：選擇 <strong>IPsec</strong>。各大廠牌路由器對其都有極佳的硬體加速優化與穩定支援。"
+      }
+    ]
+  }
+]

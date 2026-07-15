@@ -924,3 +924,128 @@ function escapeHTML(str) {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
 }
+
+// --- 4. 網管學習實驗室渲染邏輯 ---
+export async function loadAndRenderNetworkNotes() {
+  const sidebar = document.getElementById('network-sidebar-menu');
+  const contentContainer = document.getElementById('network-note-content');
+  if (!sidebar || !contentContainer) return;
+
+  try {
+    const response = await fetch('src/data/network-notes.json');
+    const data = await response.json();
+
+    // 1. 生成側邊欄選單
+    sidebar.innerHTML = '';
+    data.forEach((note, index) => {
+      const li = document.createElement('li');
+      li.className = `sidebar-item ${index === 0 ? 'active' : ''}`;
+      li.textContent = note.title;
+      li.addEventListener('click', () => {
+        document.querySelectorAll('#network-sidebar-menu .sidebar-item').forEach(item => item.classList.remove('active'));
+        li.classList.add('active');
+        renderSingleNetworkNote(note);
+
+        // 點擊切換時，精準滾動至內容區頂部
+        const contentContainer = document.getElementById('network-note-content');
+        if (contentContainer) {
+          const yOffset = -90;
+          const y = contentContainer.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: y, behavior: 'instant' });
+        }
+      });
+      sidebar.appendChild(li);
+    });
+
+    // 2. 決定預設要渲染哪一個筆記 (支援 URL 參數)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetNoteId = urlParams.get('note');
+    let matchedNote = null;
+    let matchedIndex = 0;
+
+    if (targetNoteId) {
+      matchedNote = data.find((note, idx) => {
+        if (note.id === targetNoteId) {
+          matchedIndex = idx;
+          return true;
+        }
+        return false;
+      });
+    }
+
+    if (matchedNote) {
+      document.querySelectorAll('#network-sidebar-menu .sidebar-item').forEach((item, idx) => {
+        if (idx === matchedIndex) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      renderSingleNetworkNote(matchedNote);
+      setTimeout(() => {
+        const contentContainer = document.getElementById('network-note-content');
+        if (contentContainer) {
+          const yOffset = -90;
+          const y = contentContainer.getBoundingClientRect().top + window.scrollY + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 100);
+    } else if (data.length > 0) {
+      renderSingleNetworkNote(data[0]);
+    }
+
+  } catch (error) {
+    console.error('載入網管筆記失敗:', error);
+    contentContainer.innerHTML = `<p style="color: var(--accent-2)">載入筆記資料失敗，請檢查 JSON 檔案或使用伺服器環境運行。</p>`;
+  }
+}
+
+function renderSingleNetworkNote(note) {
+  const container = document.getElementById('network-note-content');
+  if (!container) return;
+
+  let stepsHTML = '';
+  note.steps.forEach((step, idx) => {
+    stepsHTML += `
+      <div class="flowchart-node detection-node">
+        <div class="node-num">${idx + 1}</div>
+        <div class="node-text" style="width: 100%;">
+          <div class="node-title">${step.name}</div>
+          <div class="node-desc">${step.details}</div>
+        </div>
+      </div>
+      ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
+    `;
+  });
+
+  let faqHTML = '';
+  if (note.faq && note.faq.length > 0) {
+    faqHTML = `<div class="faq-section"><div class="faq-title">💡 常見問題與解決對策 (FAQ)</div>`;
+    note.faq.forEach(item => {
+      faqHTML += `
+        <div class="faq-card">
+          <div class="faq-q">${item.question}</div>
+          <div class="faq-a">${item.answer}</div>
+        </div>
+      `;
+    });
+    faqHTML += `</div>`;
+  }
+
+  container.innerHTML = `
+    <h2 style="font-size:2rem; margin-bottom:10px; color:var(--text-main); font-weight:800;">${note.title}</h2>
+    <p style="color:var(--accent-1); font-weight:600; font-size:1.1rem; margin-bottom:20px;">${note.englishTitle}</p>
+    <p style="color:var(--text-muted); line-height:1.6; margin-bottom:30px; font-size:1rem;">${note.description}</p>
+    
+    <h3>概念拆解與處理步驟 (Process Flow)</h3>
+    <div class="flowchart">
+      ${stepsHTML}
+    </div>
+    
+    ${faqHTML}
+  `;
+
+  // 觸發數學公式與代碼美化
+  triggerKaTeX('network-note-content');
+  triggerPrism();
+}

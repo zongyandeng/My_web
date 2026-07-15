@@ -40,6 +40,7 @@ export default defineConfig({
         profile: resolve(__dirname, 'profile.html'),
         ai: resolve(__dirname, 'ai-learning.html'),
         hardware: resolve(__dirname, 'hardware.html'),
+        network: resolve(__dirname, 'network-learning.html'),
         commands: resolve(__dirname, 'commands.html'),
       },
     },
