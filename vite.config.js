@@ -33,6 +33,9 @@ function copyStaticFiles() {
 export default defineConfig({
   base: './', // 確保打包後的資源路徑為相對路徑，以支援 GitHub Pages 等部署
   plugins: [copyStaticFiles()],
+  server: {
+    allowedHosts: ['watercolor.dev.local']
+  },
   build: {
     rollupOptions: {
       input: {
