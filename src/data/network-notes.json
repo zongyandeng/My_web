@@ -49,7 +49,7 @@
     "id": "ip_addressing",
     "title": "網路層與 IP 定址技術",
     "englishTitle": "Network Layer & IP Addressing & DHCP & ARP",
-    "description": "深入解析網路層 IP 位址、子網路遮罩工作原理、CIDR 無類別域間路由計算、ARP 位址解析協定之運作與交握、以及自動化 IP 配置協定（DHCP/BOOTP）的詳細運作機制、衝突檢查原理與 NAT 轉換流程。",
+    "description": "深入解析網路層 IP 位址、子網路遮罩工作原理、CIDR 無類別域間路由計算、ARP 位址解析協定之運作與交握、以及自動化 IP配置協定（DHCP/BOOTP）的詳細運作機制、衝突檢查原理與 NAT 轉換流程。",
     "steps": [
       {
         "name": "1. IP 位址與私有 IP 範圍",
@@ -73,7 +73,7 @@
       },
       {
         "name": "6. ARP 完整交握與傳輸流程",
-        "details": "當主機 A 需要將資料送給同網域內已知 IP（如 192.168.1.5）但未知 MAC 的主機 B 時：<br><strong>1. 查詢快取 (ARP Cache)</strong>：發送端主機 A 檢查自身的 ARP 快取表，若有對應則直接傳送，無則觸發查詢。<br><strong>2. 發送 ARP Request (廣播)</strong>：主機 A 向區域網路內所有主機發送『廣播』封包，目的 MAC 為 <code>FF:FF:FF:FF:FF:FF</code>，封包內容為：『誰擁有這個 IP (192.168.1.5)，請把你的 MAC 告訴我！』。<br><strong>3. 接收與比對</strong>：網域內所有主機收到廣播，非目標主機的設備直接丟棄。只有 IP 符合 the 目標主機 B 會處理封包，將 A 的 IP-MAC 寫入自己的快取。<br><strong>4. 發送 ARP Reply (單播)</strong>：目標主機 B 以『單播（點對點）』形式，將包含自己 MAC 的回應包直接傳回給主機 A（因為 B 已從 Request 封包獲知 A 的 MAC）。<br><strong>5. 記錄與資料傳輸</strong>：主機 A 收到 Reply，將 B 的 IP-MAC 對應存入快取，正式開始傳送資料。"
+        "details": "當主機 A 需要將資料送給同網域內已知 IP（如 192.168.1.5）但未知 MAC 的主機 B 時：<br><strong>1. 查詢快取 (ARP Cache)</strong>：發送端主機 A 檢查自身的 ARP 快取表，若有對應則直接傳送，無則觸發查詢。<br><strong>2. 發送 ARP Request (廣播)</strong>：主機 A 向區域網路內所有主機發送『廣播』封包，目的 MAC 為 <code>FF:FF:FF:FF:FF:FF</code>，封包內容為：『誰擁有這個 IP (192.168.1.5)，請把你的 MAC 告訴我！』。<br><strong>3. 接收與比對</strong>：網域內所有主機收到廣播，非目標主機的設備直接丟棄。只有 IP 符合的目標主機 B 會處理封包，將 A 的 IP-MAC 寫入自己的快取。<br><strong>4. 發送 ARP Reply (單播)</strong>：目標主機 B 以『單播（點對點）』形式，將包含自己 MAC 的回應包直接傳回給主機 A（因為 B 已從 Request 封包獲知 A 的 MAC）。<br><strong>5. 記錄與資料傳輸</strong>：主機 A 收到 Reply，將 B 的 IP-MAC 對應存入快取，正式開始傳送資料。"
       },
       {
         "name": "7. ARP 變形與安全防護",
@@ -127,7 +127,7 @@
       },
       {
         "name": "4. TCP 三次握手 (Connection Establishment)",
-        "details": "確認雙方的『發送』與『接收』能力皆正常，並同步序號：<br>• <strong>第一次握手 (SYN)</strong>：客戶端發送同步訊號 <code>SYN</code> 要求連線，隨機初始化序號 $Seq = x$，進入 <code>SYN_SENT</code> 狀態。<br>• <strong>第二次握手 (SYN-ACK)</strong>：伺服端收到，回應 <code>ACK</code> (確認號 $Ack = x + 1$ 表示收到) 且發送自己的 <code>SYN</code> 同步訊號 (序號 $Seq = y$)，詢問客戶端是否準備好，進入 <code>SYN_RCVD</code> 狀態。<br>• <strong>第三次握手 (ACK)</strong>：客戶端回應 <code>ACK</code> ($Ack = y + 1$)，確認連線建立。伺服器收到後雙方皆進入 <code>ESTABLISHED</code> 狀態。<br>• <strong>為什麼要三次？</strong> 確保雙方能確認『對方聽得到自己說話』。若僅兩次，伺服器發送 SYN-ACK 後即建立連線，若該封包在網路中遺失，客戶端未建立，伺服器卻單向開著等待，會造成半開連線與資源浪費。"
+        "details": "確認雙方的『發送』與『接收』能力皆正常，並同步序號：<br>• <strong>第一次握手 (SYN)</strong>：客戶端發送同步訊號 <code>SYN</code> 要求連線，隨機初始化序號 $Seq = x$，進入 <code>SYN_SENT</code> 狀態。<br>• <strong>第二次握手 (SYN-ACK)</strong>：伺服端收到，回應 <code>ACK</code> (確認號 $Ack = x + 1$ 表示收到) 且發送自己的 <code>SYN</code> 同步訊號 (序號 $Seq = y$)，詢問客戶端是否準備好，進入 <code>SYN_RCVD</code> 狀態。<br>• <strong>第三次握手 (ACK)</strong>：客戶端回應 <code>ACK</code> ($Ack = y + 1$)，確認連線建立. 伺服器收到後雙方皆進入 <code>ESTABLISHED</code> 狀態。<br>• <strong>為什麼要三次？</strong> 確保雙方能確認『對方聽得到自己說話』。若僅兩次，伺服器發送 SYN-ACK 後即建立連線，若該封包在網路中遺失，客戶端未建立，伺服器卻單向開著等待，會造成半開連線與資源浪費。"
       },
       {
         "name": "5. TCP 四次揮手 (Connection Termination)",
@@ -137,7 +137,7 @@
     "faq": [
       {
         "question": "為什麼 TCP 建立連線需要三次握手，不能只交握兩次嗎？",
-        "answer": "如果只交握兩次，假設客戶端發送的第一個 SYN 封包在網路中傳輸延遲了，客戶端以為丟包而重發了第二個 SYN 並順利建立連線、完成傳輸後關閉。之後，那顆滯留的第一個 SYN 封包終於到達伺服器，伺服器會誤以為是客戶端又發起一次新連線，若只有兩次交握，伺服器回覆 ACK 後連線即建立，這會導致伺服器白白開著連線等待，浪費記憶體資源。三次交握能確保『已失效的連線請求』不會被伺服器誤接受。"
+        "answer": "如果只交握兩次，假設客戶端發送的第一個 SYN 封包在網路中傳輸延遲了，客戶端以為丟包而重發了第二個 SYN並順利建立連線、完成傳輸後關閉。之後，那顆滯留的第一個 SYN 封包終於到達伺服器，伺服器會誤以為是客戶端又發起一次新連線，若只有兩次交握，伺服器回覆 ACK 後連線即建立，這會導致伺服器白白開著連線等待，浪費記憶體資源。三次交握能確保『已失效的連線請求』不會被伺服器誤接受。"
       },
       {
         "question": "為什麼客戶端在第四次揮手後，必須要在 TIME_WAIT 狀態等待 2MSL 的時間？",
@@ -211,11 +211,11 @@
       },
       {
         "name": "2. DNS 常見記錄類型 (DNS Records)",
-        "details": "DNS 記錄是存存放在 DNS 伺服器中的指令，用來告訴電腦如何處理對網域的請求，最核心的類型如下：<br>• <strong>A 記錄 (Address)</strong>：最基礎記錄，將網域指向 IPv4 位址（例如 <code>192.0.2.1</code>）。<br>• <strong>AAAA 記錄</strong>：與 A 記錄功能相同，但專門用於對應至 IPv6 位址（例如 <code>2001:db8::1</code>）。<br>• <strong>CNAME 記錄 (Canonical Name)</strong>：別名記錄，用於將網域指向另一個網域（例如將 <code>blog.domain.com</code> 指向 <code>www.domain.com</code>）。<br>• <strong>MX 記錄 (Mail Exchange)</strong>：郵件交換記錄，指定負責接收該網域郵件的郵件伺服器。<br>• <strong>TXT 記錄 (Text)</strong>：儲存文字資訊，常用於網域所有權驗證或防垃圾信機制（SPF、DKIM、DMARC）。<br>• <strong>NS 記錄 (Name Server)</strong>：用來指定該網域的 DNS 權威解析伺服器是由哪一台主機管理。"
+        "details": "DNS 記錄是存放在 DNS 伺服器中的指令，用來告訴電腦如何處理對網域的請求，最核心的類型如下：<br>• <strong>A 記錄 (Address)</strong>：最基礎記錄，將網域指向 IPv4 位址（例如 <code>192.0.2.1</code>）。<br>• <strong>AAAA 記錄</strong>：與 A 記錄功能相同，但專門用於對應至 IPv6 位址（例如 <code>2001:db8::1</code>）。<br>• <strong>CNAME 記錄 (Canonical Name)</strong>：別名記錄，用於將網域指向另一個網域（例如將 <code>blog.domain.com</code> 指向 <code>www.domain.com</code>）。<br>• <strong>MX 記錄 (Mail Exchange)</strong>：郵件交換記錄，指定負責接收該網域郵件的郵件伺服器。<br>• <strong>TXT 記錄 (Text)</strong>：儲存文字資訊，常用於網域所有權驗證或防垃圾信機制（SPF、DKIM、DMARC）。<br>• <strong>NS 記錄 (Name Server)</strong>：用來指定該網域的 DNS 權威解析伺服器是由哪一台主機管理。"
       },
       {
         "name": "3. Nginx 反向代理 (Reverse Proxy) 運作原理",
-        "details": "Nginx 是一款高效能的 Web 伺服器，主要作為『反向代理』部署在網路最前端，作為外網流量與內網微服務之間的中介總機：<br>• <strong>隱藏真實 IP</strong>：外部客戶端僅能接觸到 Nginx 公網 IP，無法得知後端真實應用程式伺服器（如 Node.js 或 Go 伺服器）的 IP 與埠號，大幅降低被攻擊的風險。<br>• <strong>SSL 集中卸載 (SSL Termination)</strong>：統一在 Nginx 伺服器配置與解密 SSL/TLS 憑證，後端應用程式伺服器僅需跑簡單的 HTTP 協定，減輕後端主機的加密計算負擔。<br>• <strong>負載平衡 (Load Balancing)</strong>：當大量請求湧入時，Nginx 依據輪詢（Round Robin）或權重，將流量分配給後端多台伺服器，避免單台主機負載過重而當機。"
+        "details": "Nginx 是一款高效能的 Web 伺服器，主要作為『反向代理』部署在網路最前端，作為外網流量與內網微服務之間的中介總機：<br>• <strong>隱藏真實 IP</strong>：外部客戶端僅能接觸到 Nginx 公網 IP，無法得知後端真實應用程式伺服器（如 Node.js 或 Go 伺服器） the IP 與埠號，大幅降低被攻擊的風險。<br>• <strong>SSL 集中卸載 (SSL Termination)</strong>：統一在 Nginx 伺服器配置與解密 SSL/TLS 憑證，後端應用程式伺服器僅需跑簡單的 HTTP 協定，減輕後端主機的加密計算負擔。<br>• <strong>負載平衡 (Load Balancing)</strong>：當大量請求湧入時，Nginx 依據輪詢（Round Robin）或權重，將流量分配給後端多台伺服器，避免單台主機負載過重而當機。"
       },
       {
         "name": "4. Nginx 作為核心封包轉發套件之機制",
@@ -273,7 +273,7 @@
       },
       {
         "name": "6. OpenVPN VPN 協定特性",
-        "details": "OpenVPN 是一款歷經時間考驗、極為成熟的 L3 VPN 協定：<br>• <strong>優勢</strong>：相容性與靈活度極高。支援 TCP 與 UDP 傳輸，能透過模擬 Port 443（HTTPS）來穿透絕大多數嚴格的防火牆與網路審查。支援豐富的動態認證方式（如憑證、帳密、雙因子認證 MFA）。<br>• <strong>劣勢</strong>：運作在用戶空間（User Space），在核心空間與用戶空間來回複製資料會造成效能瓶頸，傳輸速度比 WireGuard 慢；且程式碼龐大，維護與漏洞檢查成本較高。"
+        "details": "OpenVPN 是一款 L3 VPN 協定：<br>• <strong>優勢</strong>：相容性與靈活度極高。支援 TCP 與 UDP 傳輸，能透過模擬 Port 443（HTTPS）來穿透絕大多數嚴格的防火牆與網路審查。支援豐富的動態認證方式（如憑證、帳密、雙因子認證 MFA）。<br>• <strong>劣勢</strong>：運作在用戶空間（User Space），在核心空間與用戶空間來回複製資料會造成效能瓶頸，傳輸速度比 WireGuard 慢；且程式碼龐大，維護與漏洞檢查成本較高。"
       },
       {
         "name": "7. IPsec VPN 協定特性",
@@ -288,6 +288,52 @@
       {
         "question": "在 WireGuard、OpenVPN 與 IPsec 之間，一般人或企業該如何選擇？",
         "answer": "• <strong>個人使用 / 速度優先</strong>：強烈首選 <strong>WireGuard</strong>。它非常省電，在手機或家用路由器上運行速度快，斷線後重連僅需幾毫秒。<br>• <strong>需要穿透嚴格防火牆 / 複雜認證</strong>：選擇 <strong>OpenVPN</strong>，並配置為 TCP Port 443，這能將 VPN 流量偽裝成一般的 HTTPS 網頁瀏覽，繞過絕大多數封鎖。<br>• <strong>企業總部與分公司互聯 (Site-to-Site)</strong>：選擇 <strong>IPsec</strong>。各大廠牌路由器對其都有極佳的硬體加速優化與穩定支援。"
+      }
+    ]
+  },
+  {
+    "id": "local_proxy_lab",
+    "title": "本地 Nginx & SSL 實作實驗室",
+    "englishTitle": "Local Nginx & SSL Proxy Lab (Hands-on)",
+    "description": "這是一套完整的實戰教學。帶領您在 Windows 本地環境中，使用 hosts 檔案模擬域名、使用 mkcert 自簽受信任憑證，並配置 Nginx 反向代理與 SSL 卸載，模擬真實企業級對外網頁發布架構。",
+    "steps": [
+      {
+        "name": "1. 準備本地開發網頁服務",
+        "details": "在本地實作前，必須先讓您的網頁專案跑起來。<br>• <strong>步驟</strong>：開啟 PowerShell，切換到您的前端專案目錄，執行：<br>  <code>npm run dev</code> 或 <code>npx vite --host 127.0.0.1</code><br>• <strong>結果</strong>：網頁會啟動並跑在本機的 Port 5173（如 <code>http://127.0.0.1:5173/</code>）。"
+      },
+      {
+        "name": "2. 設定本機虛擬網域 (hosts)",
+        "details": "我們要把自訂域名 <code>watercolor.dev.local</code> 指向我們自己的電腦。<br>• <strong>步驟 1</strong>：搜尋『記事本』，右鍵選擇<strong>『以系統管理員身分執行』</strong>。<br>• <strong>步驟 2</strong>：開啟檔案 <code>C:\\Windows\\System32\\drivers\\etc\\hosts</code>（右下角改為所有檔案）。<br>• <strong>步驟 3</strong>：在最下方新增一行：<br>  <code>127.0.0.1  watercolor.dev.local</code><br>• <strong>步驟 4</strong>：儲存檔案。在 PowerShell 執行 <code>ping watercolor.dev.local</code>，若回應來自 <code>127.0.0.1</code> 即成功！"
+      },
+      {
+        "name": "3. 下載並產生 SSL 本地自簽憑證",
+        "details": "我們使用 <code>mkcert</code> 工具來產生受瀏覽器信任的本地 SSL 憑證：<br>• <strong>步驟 1 (PowerShell 下載)</strong>：在專案目錄下執行：<br>  <code>Invoke-WebRequest -Uri \"https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-windows-amd64.exe\" -OutFile \".\\mkcert.exe\"</code><br>• <strong>步驟 2 (安裝本地 Root CA)</strong>：執行 <code>.\\mkcert.exe -install</code>，並在 Windows 跳出的安全性警告中點選<strong>『是 (Y)』</strong>。<br>• <strong>步驟 3 (產生憑證)</strong>：執行 <code>.\\mkcert.exe watercolor.dev.local</code>。<br>• <strong>結果</strong>：目錄下會出現 <code>watercolor.dev.local.pem</code> (證書) 與 <code>watercolor.dev.local-key.pem</code> (私鑰) 兩個檔案。"
+      },
+      {
+        "name": "4. 安裝 Windows Nginx 伺服器",
+        "details": "• <strong>步驟 1 (一鍵下載解壓)</strong>：在 PowerShell 中執行以下指令：<br>  - <code>New-Item -ItemType Directory -Force -Path \"C:\\nginx\"</code><br>  - <code>Invoke-WebRequest -Uri \"https://nginx.org/download/nginx-1.26.1.zip\" -OutFile \"C:\\nginx\\nginx.zip\"</code><br>  - <code>Expand-Archive -Path \"C:\\nginx\\nginx.zip\" -DestinationPath \"C:\\nginx\\temp\" -Force</code><br>  - <code>Move-Item -Path \"C:\\nginx\\temp\\nginx-1.26.1\\*\" -Destination \"C:\\nginx\" -Force</code> (若提示 temp 資料夾衝突，執行下方步驟 2 清理)。<br>• <strong>步驟 2 (解決撞名衝突與清理)</strong>：執行 <code>Remove-Item -Path \"C:\\nginx\\temp\" -Recurse -Force</code>，並重新為 Nginx 建立運行所需的目錄：<code>New-Item -ItemType Directory -Force -Path \"C:\\nginx\\temp\"</code>。"
+      },
+      {
+        "name": "5. 複製憑證與配置 nginx.conf 設定",
+        "details": "• <strong>步驟 1 (複製憑證)</strong>：將產生的兩個 <code>.pem</code> 檔複製到 Nginx 設定資料夾：<br>  <code>Copy-Item -Path \".\\watercolor.dev.local*.pem\" -Destination \"C:\\nginx\\conf\\\" -Force</code><br>• <strong>步驟 2 (寫入不帶 BOM 的設定檔)</strong>：為防範 UTF-8 BOM 導致 Nginx 解析出 <code>unknown directive \"嗶篤orker_processes\"</code> 閃退錯誤，使用 .NET API 寫入不帶 BOM 的設定檔。在 PowerShell 執行：<br>  <code>[System.IO.File]::WriteAllText(\"C:\\nginx\\conf\\nginx.conf\", $configContent, (New-Object System.Text.UTF8Encoding($false)))</code><br>  *(其中 $configContent 包含：HTTP Port 80 轉向 HTTPS、監聽 Port 443 ssl、掛載憑證，並利用 <code>proxy_pass http://127.0.0.1:5173</code> 反向代理轉發給 Vite)*。"
+      },
+      {
+        "name": "6. 解決 Vite Host 安全防禦與啟動服務",
+        "details": "• <strong>步驟 1 (解決 502 Bad Gateway)</strong>：Vite 預設可能只監聽 IPv6 的 <code>[::1]</code>。必須在第一個視窗終止服務，並強制 Vite 監聽 IPv4 的 127.0.0.1：<br>  <code>npx vite --host 127.0.0.1</code><br>• <strong>步驟 2 (允許代理域名)</strong>：Vite 會防禦非白名單域名訪問。在專案 <code>vite.config.js</code> 中加入：<br>  <code>server: { allowedHosts: ['watercolor.dev.local'] }</code><br>• <strong>步驟 3 (語法檢測與啟動)</strong>：切換到 <code>C:\\nginx</code>，執行 <code>.\\nginx.exe -t</code> 檢查語法。語法無誤後執行：<br>  <code>start nginx</code><br>• <strong>結果</strong>：打開瀏覽器造訪 <code>https://watercolor.dev.local</code>，即可成功載入網頁並高掛受信任鎖頭！"
+      },
+      {
+        "name": "7. 管理本地實驗室進程",
+        "details": "• <strong>停止服務 (關機前)</strong>：<br>  1. 關閉 Vite 的執行視窗。<br>  2. 在 PowerShell 中執行：<code>cd C:\\nginx; .\\nginx.exe -s stop</code> 來停止背景運行的 Nginx (否則 Nginx 會一直佔用 Port 80/443)。<br>• <strong>重啟服務 (開機後)</strong>：<br>  1. 開啟 Vite：<code>npx vite --host 127.0.0.1</code><br>  2. 開啟 Nginx：<code>cd C:\\nginx; start nginx</code>"
+      }
+    ],
+    "faq": [
+      {
+        "question": "為什麼 Nginx 在我關閉 CMD 視窗後，網址依然能開啟 502 網頁？",
+        "answer": "在 Windows 中，執行 <code>start nginx</code> 時，Nginx 是以『背景守護程序 (Daemon)』的形式在系統底層啟動的。關閉命令視窗不會終止該進程，它會持續監聽 Port 80/443。只有主動執行 <code>.\\nginx.exe -s stop</code> 或重開機，Nginx 才會真正關閉。"
+      },
+      {
+        "question": "為什麼瀏覽器能信任我自己產生的 SSL 憑證？",
+        "answer": "因為在步驟 3 中執行了 <code>.\\mkcert.exe -install</code>。這會將 mkcert 所建立的私有憑證授權單位 (CA) 匯入到 Windows 系統的『受信任的根憑證授權單位』清單中。如此一來，系統與瀏覽器便會完全信任由該 CA 所核發的 <code>watercolor.dev.local</code> 憑證，並顯示安全鎖頭。"
       }
     ]
   }
