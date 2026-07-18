@@ -61,7 +61,7 @@
       },
       {
         "name": "3. CIDR (無類別域間路由) 計算規則",
-        "details": "CIDR 標記法（格式如 192.168.1.0/24）能精準劃分網段，避免 IP 資源浪費。其斜線後面的數字（字首長度）代表網路位元數，剩餘位元則分配給主機。<br>• <strong>計算公式</strong>：<br>  - 總 IP 數量 ＝ $2^{32 - \\text{字首長度}}$<br>  - 實際可用主機 IP 數 ＝ $2^{32 - \\text{字首長度}} - 2$ （因為必須扣除第一個『網路位址』與最後一個『廣播位址』）。<br>• <strong>常見範例 (/24)</strong>：<br>  - 對應的子網遮罩：前 24 位元為 1，即 <code>255.255.255.0</code>。<br>  - 總 IP 數：$2^{32-24} = 2^8 = 256$ 個。可用主機數：$256 - 2 = 254$ 個（IP 範圍 <code>.1</code> ~ <code>.254</code>）。<br>• <strong>常見 CIDR 區塊對照</strong>：<br>  - <code>/32</code>: 遮罩 255.255.255.255，總 IP 數 1，可用 1（單一主機）<br>  - <code>/30</code>: 遮罩 255.255.255.252，總 IP 數 4，可用 2（常用於點對點路由器連接）<br>  - <code>/28</code>: 遮罩 255.255.255.240，總 IP 數 16，可用 14<br>  - <code>/24</code>: 遮罩 255.255.255.0，總 IP 數 256，可用 254<br>  - <code>/16</code>: 遮罩 255.255.0.0，總 IP 數 65,536，可用 65,534<br>  - <code>/8</code>: 遮罩 255.0.0.0，總 IP 數 16,777,216，可用 16,777,214"
+        "details": "CIDR 標記法（格式如 192.168.1.0/24）能精準劃分網段，避免 IP 資源浪費。其斜線後面的數字（字首長度）代表網路位元數，剩餘位元則分配給主機。<br>• <strong>計算公式</strong>：<br>  - 總 IP 數量 ＝ $2^{32 - \\text{字首長度}}$<br>  - 實際可用主機 IP 數 ＝ $2^{32 - \\text{字首長度}} - 2$ （因為必須扣除第一個『網路位址』與最後一個『廣播位址』）。<br>• <strong>常見範例 (/24)</strong>：<br>  - 對應的子網遮罩：前 24 位元為 1，即 <code>255.255.255.0</code>。<br>  - 總 IP 數：$2^{32-24} = 2^8 = 256$ 個。可用主機數：$256 - 2 = 254$ 個（IP 範圍 <code>.1</code> ~ <code>.254</code>）。<br>• <strong>常見 CIDR 區塊對照</strong>：<br>  - <code>/32</code>: 遮罩 255.255.255.255，總 IP 數 1，可用 1（單一主機）<br>  - <code>/30</code>: 遮罩 255.255.255.252，總 IP 數 4，可用 2（常用於點對點路由器連接）<br>  - <code>/28</code>: 遮罩 255.255.255.240，總 IP 數 16，可用 14<br>  - <code>/24</code>: 遮罩 255.255.255.0，總 IP 數 256，可用 254<br>  - <code>/16</code>: 遮罩 255.255.0.0 nudge，總 IP 數 65,536，可用 65,534<br>  - <code>/8</code>: 遮罩 255.0.0.0，總 IP 數 16,777,216，可用 16,777,214"
       },
       {
         "name": "4. 寬頻上網與 IP 分配協定 (PPPoE vs DHCP vs Static DHCP)",
@@ -81,7 +81,7 @@
       },
       {
         "name": "8. DHCP 與 BOOTP 的關係與差異",
-        "details": "• <strong>BOOTP (引導程式協定)</strong>：1985 年提出，主要用於無硬碟工作站透過網路自動獲取 IP。它採用靜態對照表（一對一綁定），IP 配置是永久性的，不支援動態 IP 回收。<br>• <strong>DHCP (動態主機配置協定)</strong>：基於 BOOTP 擴充而來，底層封包格式高度相似。它引入了<strong>租約時間 (Lease Time)</strong> 與<strong>動態 IP 儲存池 (IP Pool)</strong> 概念，能夠在客戶端下線後自動回收 IP，達到重複利用的效果。現代 DHCP 伺服器均能完全向下相容 BOOTP 請求。"
+        "details": "• <strong>BOOTP (引導程式協定)</strong>：1985 年提出，主要用於無硬碟工作站透過網路自動獲取 IP. 它採用靜態對照表（一對一綁定），IP 配置是永久性的，不支援動態 IP 回收。<br>• <strong>DHCP (動態主機配置協定)</strong>：基於 BOOTP 擴充而來，底層封包格式高度相似。它引入了<strong>租約時間 (Lease Time)</strong> 與<strong>動態 IP 儲存池 (IP Pool)</strong> 概念，能夠在客戶端下線後自動回收 IP，達到重複利用的效果。現代 DHCP 伺服器均能完全向下相容 BOOTP 請求。"
       },
       {
         "name": "9. DHCP 運作四步驟 (D.O.R.A.)",
@@ -215,11 +215,11 @@
       },
       {
         "name": "3. Nginx 反向代理 (Reverse Proxy) 運作原理",
-        "details": "Nginx 是一款高效能的 Web 伺服器，主要作為『反向代理』部署在網路最前端，作為外網流量與內網微服務之間的中介總機：<br>• <strong>隱藏真實 IP</strong>：外部客戶端僅能接觸到 Nginx 公網 IP，無法得知後端真實應用程式伺服器（如 Node.js 或 Go 伺服器） the IP 與埠號，大幅降低被攻擊的風險。<br>• <strong>SSL 集中卸載 (SSL Termination)</strong>：統一在 Nginx 伺服器配置與解密 SSL/TLS 憑證，後端應用程式伺服器僅需跑簡單的 HTTP 協定，減輕後端主機的加密計算負擔。<br>• <strong>負載平衡 (Load Balancing)</strong>：當大量請求湧入時，Nginx 依據輪詢（Round Robin）或權重，將流量分配給後端多台伺服器，避免單台主機負載過重而當機。"
+        "details": "Nginx 是一款高效能的 Web 伺服器，主要作為『反向代理』部署在網路最前端，作為外網流量與內網微服務之間的中介總機：<br>• <strong>隱藏真實 IP</strong>：外部客戶端僅能接觸到 Nginx 公網 IP，無法得知後端真實應用程式伺服器（如 Node.js 或 Go 伺服器）的 IP 與埠號，大幅降低被攻擊的風險。<br>• <strong>SSL 集中卸載 (SSL Termination)</strong>：統一在 Nginx 伺服器配置與解密 SSL/TLS 憑證，後端應用程式伺服器僅需跑簡單的 HTTP 協定，減輕後端主機的加密計算負擔。<br>• <strong>負載平衡 (Load Balancing)</strong>：當大量請求湧入時，Nginx 依據輪詢（Round Robin）或權重，將流量分配給後端多台伺服器，避免單台主機負載過重而當機。"
       },
       {
         "name": "4. Nginx 作為核心封包轉發套件之機制",
-        "details": "Nginx 不僅是網頁伺服器，更常作為核心封包轉發代理，提供 L4 與 L7 的轉發功能：<br>• <strong>L7 (應用層) 請求轉發</strong>：使用 <code>http</code> 模組與 <code>proxy_pass</code>。Nginx 會拆開 HTTP/HTTPS 封包，讀取域名、URL 路徑、Cookie 與 Header 等資料，並依此決定轉發到後端哪台主機。這允許做高級路由、URL 重寫與 SSL 證書卸載。<br>• <strong>L4 (傳輸層) 封包轉發</strong>：使用 <code>stream</code> 模組。Nginx 運作在傳輸層，不拆包解析 HTTP 內容，僅根據封包的 TCP 或 UDP 埠口（Port）直接中繼轉送資料。效能極高、開銷極小，常用於非 HTTP 服務的轉發與負載平衡（例如：轉發 MySQL 3306 埠、Redis 6379 埠或 SSH 22 埠）。"
+        "details": "Nginx 不僅是網頁伺服器，更常作為核心封包轉發代理，提供 L4 與 L7 的轉發功能：<br>• <strong>L7 (應用層) 請求轉發</strong>：使用 <code>http</code> 模組與 <code>proxy_pass</code>。Nginx 會拆開 HTTP/HTTPS 封包，讀取域名、URL 路徑、Cookie 與 Header 等資料，並依此決定轉發到後端哪台主機。這允許做高級路由、URL 重寫與 SSL 證書卸載。<br>• <strong>L4 (傳輸層) 封包轉發</strong>：使用 <code>stream</code> 模組。Nginx 運作在傳輸層，不拆包解析 HTTP 內容，僅根據封包的 TCP 或 UDP 埠口（Port）直接中繼轉送資料。效能極高、開銷極小，常用於非 HTTP 服務的轉發與負載平衡（例如：轉發 MySQL 3306 埠、Redis 6379 埠 or SSH 22 埠）。"
       },
       {
         "name": "5. SSL/TLS 與 HTTPS 加密交握機制",
@@ -253,7 +253,7 @@
     "steps": [
       {
         "name": "1. 常用網管診斷與測試指令集",
-        "details": "在網路排查、診斷連線與查詢網卡組態時，命令列工具有著不可替代的作用。最核心的指令可分類如下：<br>• <strong>基本連線與路徑測試</strong>：<br>  - <code>ping [IP/網域]</code>：檢查連通性與來回時間 (RTT)。Windows 可用 <code>-t</code> 連續測試，Linux 可用 <code>-c</code> 指定發送次數。<br>  - <code>tracert [IP/網域]</code> (Windows) / <code>traceroute</code> (Linux)：追蹤封包經過的所有路由節點，用來找出連線中斷在哪個關卡。<br>  - <code>pathping [IP/網域]</code> (Windows)：結合 ping 與 tracert，可計算每個路由節點的封包丟失率。<br>• <strong>網路組態設定查詢</strong>：<br>  - <code>ipconfig</code> (Windows) / <code>ip a</code> (Linux)：顯示網卡介面設定（IP、子網路遮罩、網關）。Windows 參數 <code>/all</code> 可列出詳細資訊，<code>/release</code> 釋放 IP，<code>/renew</code> 重新取得 IP，<code>/flushdns</code> 清除本機 DNS 快取。<br>• <strong>DNS 解析診斷</strong>：<br>  - <code>nslookup [網域]</code>：查詢網域對應的 IP 或測試 DNS 伺服器。<br>  - <code>dig [網域]</code> (Linux/macOS)：更詳細的 DNS 查詢工具，便於對照 A, CNAME, MX, TXT 紀錄。<br>• <strong>系統連線與 Socket 狀態</strong>：<br>  - <code>netstat</code> (Windows/Linux) / <code>ss</code> (Linux)：顯示 Socket 狀態、監聽埠與統計。常用參數 <code>-a</code> 顯示所有連線與監聽埠，<code>-n</code> 以數字形式顯示，<code>-b</code> 顯示關聯的應用程式名稱。<br>• <strong>封包與 MAC 查詢</strong>：<br>  - <code>arp -a</code>：查看目前設備記憶體快取中的 IP-MAC 對照表。"
+        "details": "在網路排查、診斷連線與查詢網卡組態時，命令列工具有著不可替代的作用。最核心的指令可分類如下：<br>• <strong>基本連線與路徑測試</strong>：<br>  - <code>ping [IP/網域]</code>：檢查連通性與來回時間 (RTT)。Windows 可用 <code>-t</code> 連續測試，Linux 可用 <code>-c</code> 指定發送次數。<br>  - <code>tracert [IP/網域]</code> (Windows) / <code>traceroute</code> (Linux)：追蹤封包經過的所有路由節點，用來找出連線中斷在哪個關卡。<br>  - <code>pathping [IP/網域]</code> (Windows)：結合 ping 與 tracert，可計算每個路由節點的封包丟失率。<br>• <strong>網路組態設定查詢</strong>：<br>  - <code>ipconfig</code> (Windows) / <code>ip a</code> (Linux)：顯示網卡介面設定（IP、子網路遮罩、網關）。Windows 參數 <code>/all</code> 可列出詳細資訊，<code>/release</code> 釋放 IP，<code>/renew</code> 重新取得 IP，<code>/flushdns</code> 清除本機 DNS 快取。<br>• <strong>DNS 解析診斷</strong>：<br>  - <code>nslookup [網域]</code>：查詢網域對應的 IP 或測試 DNS 伺服器。<br>  - <code>dig [網域]</code> (Linux/macOS)：更詳細的 DNS 查詢工具，便於對照 A, CNAME, MX, TXT 紀錄。<br>• <strong>系統連線與 Socket 狀態</strong>：<br>  - <code>netstat</code> (Windows/Linux) / <code>ss</code> (Linux)：顯示 Socket 狀態、監聽埠與統計。常用參數 <code>-a</code> 顯示所有連線與監聽埠，<code>-n</code> 以數字形式顯示，<code>-b</code> 顯示關聯 hometown 的應用程式名稱。<br>• <strong>封包與 MAC 查詢</strong>：<br>  - <code>arp -a</code>：查看目前設備記憶體快取中的 IP-MAC 對照表。"
       },
       {
         "name": "2. Wireshark 封包抓取與過濾實務",
@@ -298,6 +298,10 @@
     "description": "這是一套完整的實戰教學。帶領您在 Windows 本地環境中，使用 hosts 檔案模擬域名、使用 mkcert 自簽受信任憑證，並配置 Nginx 反向代理與 SSL 卸載，模擬真實企業級對外網頁發布架構。",
     "steps": [
       {
+        "name": "0. 架構概念與本地流量旅程",
+        "details": "在動手實作前，我們必須先理解數據封包在您電腦內部是怎麼旅行的。當您在瀏覽器輸入 <code>https://watercolor.dev.local</code> 時，封包會經歷以下流程：<br><pre style='background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.5; overflow-x: auto; border: 1px solid #333;'>瀏覽器 \n  │\n  ├─ 1. 查 [hosts] 檔案 ──&gt; 得知 IP 為 127.0.0.1\n  │\n  ├─ 2. 敲 127.0.0.1 的 Port 443 (HTTPS) ──&gt; 被 [Nginx] 接收\n  │                                           │ (Nginx 拿出 mkcert 憑證進行加密交握)\n  │                                           ▼\n  └─ 4. 顯示安全鎖頭網頁 &lt;── 加密傳回 ── [Nginx 反向代理] ── 3. 敲 Port 5173 ──&gt; [Vite 伺服器]\n                                                                                (提供網頁原始碼)</pre><br>• <strong>Vite 的角色（Why）</strong>：作為『後端網頁內容供應商』。它在 Port 5173 監聽，提供網頁 HTML 與靜態檔案。<br>• <strong>hosts 的角色（Why）</strong>：本地 DNS 劫持。將域名指向 127.0.0.1，省去購買實體域名與配置公網 DNS 的成本，用來騙過瀏覽器。<br>• <strong>Nginx 的角色（Why）</strong>：高效能代理總機（L7 反向代理）。在 443 埠攔截瀏覽器流量，掛載 SSL 憑證完成加密，再自己發送請求跟 Vite 要資料傳回給訪客。"
+      },
+      {
         "name": "1. 準備本地開發網頁服務",
         "details": "在本地實作前，必須先讓您的網頁專案跑起來。<br>• <strong>步驟</strong>：開啟 PowerShell，切換到您的前端專案目錄，執行：<br>  <code>npm run dev</code> 或 <code>npx vite --host 127.0.0.1</code><br>• <strong>結果</strong>：網頁會啟動並跑在本機的 Port 5173（如 <code>http://127.0.0.1:5173/</code>）。"
       },
@@ -307,7 +311,7 @@
       },
       {
         "name": "3. 下載並產生 SSL 本地自簽憑證",
-        "details": "我們使用 <code>mkcert</code> 工具來產生受瀏覽器信任的本地 SSL 憑證：<br>• <strong>步驟 1 (PowerShell 下載)</strong>：在專案目錄下執行：<br>  <code>Invoke-WebRequest -Uri \"https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-windows-amd64.exe\" -OutFile \".\\mkcert.exe\"</code><br>• <strong>步驟 2 (安裝本地 Root CA)</strong>：執行 <code>.\\mkcert.exe -install</code>，並在 Windows 跳出的安全性警告中點選<strong>『是 (Y)』</strong>。<br>• <strong>步驟 3 (產生憑證)</strong>：執行 <code>.\\mkcert.exe watercolor.dev.local</code>。<br>• <strong>結果</strong>：目錄下會出現 <code>watercolor.dev.local.pem</code> (證書) 與 <code>watercolor.dev.local-key.pem</code> (私鑰) 兩個檔案。"
+        "details": "我們使用 <code>mkcert</code> 工具來產生受瀏覽器信任的本地 SSL 憑證：<br>• <strong>步驟 1 (PowerShell 下載)</strong>：在專案目錄下執行：<br>  <code>Invoke-WebRequest -Uri \"https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-windows-amd64.exe\" -OutFile \".\\mkcert.exe\"</code><br>• <strong>步驟 2 (安裝本地 Root CA)</strong>：執行 <code>.\\mkcert.exe -install</code>，並在 Windows 跳出的安全性警告中點選<strong>『是 (Y)』</strong>。<br>• <strong>步驟 3 (產生憑證)</strong>：執行 <code>.\\mkcert.exe watercolor.dev.local</code>。<br>• <strong>結果</strong>&nbsp;：目錄下會出現 <code>watercolor.dev.local.pem</code> (證書) 與 <code>watercolor.dev.local-key.pem</code> (私鑰) 兩個檔案。"
       },
       {
         "name": "4. 安裝 Windows Nginx 伺服器",
