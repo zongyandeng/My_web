@@ -684,7 +684,20 @@ export async function loadAndRenderCommands() {
 
   try {
     const response = await fetch('src/data/commands-notes.json');
-    const data = await response.json();
+    let data = await response.json();
+
+    // 依照 localStorage 保存的順序排序
+    const savedOrder = localStorage.getItem('commands-notes-order');
+    if (savedOrder) {
+      const orderArray = JSON.parse(savedOrder);
+      data.sort((a, b) => {
+        const idxA = orderArray.indexOf(a.category);
+        const idxB = orderArray.indexOf(b.category);
+        const orderA = idxA !== -1 ? idxA : 9999;
+        const orderB = idxB !== -1 ? idxB : 9999;
+        return orderA - orderB;
+      });
+    }
 
     // 1. 生成左側大單元選單
     sidebar.innerHTML = '';
@@ -692,8 +705,10 @@ export async function loadAndRenderCommands() {
       const li = document.createElement('li');
       li.className = `sidebar-item ${index === 0 ? 'active' : ''}`;
       li.textContent = group.title;
+      li.setAttribute('draggable', 'true');
+      li.setAttribute('data-id', group.category);
       li.addEventListener('click', () => {
-        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('#cmd-sidebar-menu .sidebar-item').forEach(item => item.classList.remove('active'));
         li.classList.add('active');
         renderCommandsForGroup(group);
 
@@ -707,6 +722,9 @@ export async function loadAndRenderCommands() {
       });
       sidebar.appendChild(li);
     });
+
+    // 啟用拖曳排序
+    enableSidebarDragAndDrop(sidebar, 'commands-notes-order', data);
 
     // 2. 決定預設要渲染哪一個指令群組 (支援 URL 參數)
     const urlParams = new URLSearchParams(window.location.search);
