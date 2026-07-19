@@ -340,5 +340,68 @@
         "answer": "因為在步驟 3 中執行了 <code>.\\mkcert.exe -install</code>。這會將 mkcert 所建立的私有憑證授權單位 (CA) 匯入到 Windows 系統的『受信任的根憑證授權單位』清單中。如此一來，系統與瀏覽器便會完全信任由該 CA 所核發 of <code>watercolor.dev.local</code> 憑證，並顯示安全鎖頭。"
       }
     ]
+  },
+  {
+    "id": "lab_network_admin_guide",
+    "title": "實驗室網管學習指南：從零開始的循序漸進計畫 (Lab Network Guide)",
+    "englishTitle": "Laboratory Network Administrator Practical Guide & Roadmap",
+    "description": "本單元為實驗室網路環境部署與維護的入門科普手冊。針對零基礎新手，我們將繁雜的網路名詞翻譯為生活化比喻，提供一份「核心名詞通俗字典」，讓您輕鬆看懂實體壓線、IP分配、NAT、路由拓樸、Nginx反代理及VPN等基礎建設。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">📖 網管新手必備！核心名詞通俗字典</h3><table class=\"gpu-table\"><thead><tr><th>專有名詞</th><th>💡 通俗大白話解釋 (生活化比喻)</th></tr></thead><tbody><tr><td style=\"font-weight:700;\">RJ45 水晶頭</td><td>就是網路線兩端那個<b>透明的塑膠插頭</b>，卡進電腦或網路孔用的。</td></tr><tr><td style=\"font-weight:700;\">T568B</td><td>壓線時，8條不同顏色的小細線必須排成的<b>特定標準順序</b>。目前99%網路線都用此標準。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">DHCP</td><td>內網的<b>門牌自動發放機</b>。當設備連上Wi-Fi，它會自動發一個暫時的 IP 給你，免去手動設定麻煩。</td></tr><tr><td style=\"font-weight:700;\">NAT</td><td>內網的<b>代言人</b>。把內網多台電腦的「私有 IP」包裝成同一個「公有 IP」，代替大家跟外網通信。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">Port Forwarding</td><td>收發室的<b>連接埠分流轉送</b>。外網寄到特定埠口(Port)的信，路由器(警衛)會直接送達指定的內網伺服器。</td></tr><tr><td style=\"font-weight:700;\">Public / Private IP</td><td><b>公網 IP</b>是全世界唯一的實體地址；<b>私網 IP</b>是內網自己叫的(如 2 樓辦公室)，外網找不到。</td></tr><tr><td style=\"font-weight:700;\">Router (路由器)</td><td>內外的<b>交通警察</b>。負責連接外網與內網，引導數據包往正確方向傳送。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">Switch (交換器)</td><td>內網的<b>高速多孔插線板</b>。讓同一個實驗室內的多台電腦能以極高速度互相傳送檔案。</td></tr><tr><td style=\"font-weight:700;\">Loop (環路廣播風暴)</td><td>網路線接錯形成圓圈。封包會在裡面<b>無限制複製狂奔</b>，幾秒內塞爆所有頻寬導致癱瘓。</td></tr><tr><td style=\"font-weight:700;\">Wireshark / iPerf</td><td><b>Wireshark</b>是網路的聽診器(攔截並拆開看數據)；<b>iPerf</b>是測速照相機(測試內網對傳極速)。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">Nginx / 反向代理</td><td>網站的<b>分流大總機</b>。看你輸入什麼網址，就把你的請求轉接給內網不同的後端伺服器。</td></tr><tr><td style=\"font-weight:700;\">Let's Encrypt / ACME</td><td><b>Let's Encrypt</b>免費核發安全鎖頭憑證；<b>ACME</b>是自動申請與更新憑證的後台協定。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">WireGuard / VPN</td><td>在外網與內網間建立一條<b>加密的隱形地下隧道</b>。即使人在校外，連上後也像坐在實驗室內網一樣。</td></tr></tbody></table>",
+    "steps": [
+      {
+        "name": "1. 階段 1：實體層 RJ45 線序與手動壓線實作 (Physical Layer)",
+        "details": "網路實作第一步。學習手動壓製 RJ45 網路線，了解 T568B（白橙/橙/白綠/藍/白藍/綠/白棕/棕）標準色線排序。不當壓線或未壓緊會導致訊號衰減、掉包，甚至使千兆網路(1Gbps)自動降速為百兆(100Mbps)傳輸瓶頸。<br><br><b>💡 新手科普（專有名詞白話翻譯）：</b><br>• <b>RJ45 水晶頭</b>：網路線兩頭的透明卡頭，內含8個金屬觸片。<br>• <b>T568B</b>：規定8條彩線順序的標準「規則卡」，排錯了就不通或降速。<br>• <b>網路測試儀</b>：兩端各插上線頭，綠燈依序1到8閃爍即代表對應彩線全部導通。"
+      },
+      {
+        "name": "2. 階段 2：IP 分配、NAT 轉換與 Port Forwarding 觀念 (Routing & NAT)",
+        "details": "搞懂網路交通規則。學習如何讓設備順利上網並能被外部連線。<br><br><b>💡 新手科普（專有名詞白話翻譯）：</b><br>• <b>PPPoE</b>：早期寬頻上網的「撥號帳密連線協定」，現在通常由路由器幫忙記住並撥號。<br>• <b>Static IP (固定 IP)</b>：伺服器專用的「永久門牌號碼」，設定後不會變動，方便外界定點連入。<br>• <b>DHCP</b>：內網的「臨時門牌發放機」，設備連上網路時自動分配一個未被使用的 IP，省去手動設定的麻煩。<br>• <b>NAT</b>：私有 IP 與公共 IP 的「翻譯官」。因為公網 IP 有限，NAT 負責把內網多台電腦用「私有 IP」發出的封包，翻譯包裝成同一個「公網 IP」送出。<br>• <b>Port Forwarding (連接埠轉送)</b>：警衛分流。外網點擊特定 Port（連接埠，如網址後的 :3000）連入時，路由器會精確將其轉發到內網特定的某台伺服器上。"
+      },
+      {
+        "name": "3. 階段 3：Router, Switch & AP 拓樸與 Loop 環路避免 (Topology)",
+        "details": "理解網路硬體角色的分工，並學會安全的佈線結構。<br><br><b>💡 新手科普（專有名詞白話翻譯）：</b><br>• <b>Router (路由器)</b>：內網與外網（網際網路）的唯一「海關通道」，負責發放 IP、翻譯 NAT 與決定封包該往哪走。<br>• <b>Switch (交換器)</b>：局域網內部的「多孔分接器」，只負責內網多台電腦之間極速傳遞數據，不能做外網路由。<br>• <b>AP (無線基地台)</b>：將有線網路轉成 Wi-Fi 無線波段的發射器。<br>• <b>樹狀拓樸 (Tree Topology)</b>：結構像大樹分枝，骨幹明確、階層分明，好管理且易除錯。<br>• <b>Loop 環路廣狂風暴</b>：兩台交換器之間網路線不小心「插了兩條」接成圓圈，導致廣播封包在裡面瘋狂複製循環，一秒內耗盡所有頻寬使整個內網癱瘓。"
+      },
+      {
+        "name": "4. 階段 4：Wireshark 封包分析與 iPerf 頻寬測試實務 (Analysis Tools)",
+        "details": "當網路斷線、掉包或速度變慢時，用來檢查與診斷的工具軟體。<br><br><b>💡 新手科普（專有名詞白話翻譯）：</b><br>• <b>Wireshark</b>：強大的「網路監聽與顯微鏡」，能把通過網卡的所有數據包（封包）全部抓下來拆開，觀察 TCP 三向交握與 HTTP/HTTPS 傳輸細節。<br>• <b>iPerf</b>：網絡頻寬的「極速跑分軟體」，用兩台設備對傳，測試內網極限傳輸速率是否能達到實體網路線或交換器的上限。<br>• <b>OpenWRT</b>：開源的「路由器專用 Linux 系統」，許多進階 AP 或路由器會刷此系統以支援頻寬監控、QoS 限速與 VPN 伺服器架設。"
+      },
+      {
+        "name": "5. 階段 5：Nginx 反向代理、DNS 配置與 ACME 憑證驗證 (App Layer)",
+        "details": "將網頁服務（如水色監控網站）安全發布到網際網路，讓所有人能透過域名安全存取。<br><br><b>💡 新手科普（專有名詞白話翻譯）：</b><br>• <b>Nginx / Reverse Proxy (反向代理)</b>：網頁伺服器的「分流總機」。它站在最前方接收外網 80/443 連接埠 of 流量，根據你輸入的網域，把請求分發給內網不同的 Node.js 伺服器或微服務容器。<br>• <b>DNS (網域系統)</b>：網路的電話簿，將好記的網域（如 water.lab.edu）轉換為難記的實體公網 IP。<br>• <b>HTTPS / Let's Encrypt</b>：在網址前加上安全鎖頭，確保傳輸加密；Let's Encrypt 是免費頒發這種安全證書的權威機構。<br>• <b>ACME 挑戰驗證</b>：證書自動申請協定。通過在伺服器放置一個特定隨機檔案（HTTP-01 挑戰）向 Let's Encrypt 證明該網域確實由你控制，從而自動簽發與每 90 天自動更新憑證。"
+      },
+      {
+        "name": "6. 階段 6：VPN 隧道協定 (WireGuard / OpenVPN / IPsec)",
+        "details": "讓實驗室成員能安全地從家裡、校外連回實驗室內部網路，就像直接坐在內網電腦前一樣。<br><br><b>💡 新手科普（專有名詞白話翻譯）：</b><br>• <b>VPN (虛擬私人網路)</b>：在不安全的外網上，為你建立一條通往內網的加密專屬「地下通道」。<br>• <b>WireGuard</b>：目前最新、最推薦的 VPN 協定。程式碼僅 4000 行，極速、低延遲、省電，連線瞬間完成。<br>• <b>OpenVPN</b>：老牌的 VPN 技術，設定選項多、安全扎實但速度較慢。<br>• <b>IPsec</b>：常用於企業分支機構對分支機構 (Site-to-Site) 的硬體防火牆級長久隧道連線。"
+      },
+      {
+        "name": "7. 推薦影音學習資源：YouTube 直觀設備與原理圖解 (Video)",
+        "details": "🎬 家用網路架構基礎教學：<a href=\"https://www.youtube.com/results?search_query=%E5%AE%B6%E7%94%A8%E7%B6%B2%E8%B7%AF%E6%9E%B6%E6%A7%8B%E5%9F%BA%E7%A4%9A%E6%95%99%E5%AD%B8+%E5%BC%B1%E9%9B%BB%E9%80%9A\" target=\"_blank\" style=\"color:var(--accent-2); font-weight:700;\">【弱電通】實體設備接線教學</a><br>🎬 路由器是怎麼工作的：<a href=\"https://www.youtube.com/results?search_query=%E8%B7%AF%E7%94%B1%E5%99%A8%E6%98%AF%E6%80%8E%E9%BA%BC%E5%B7%A5%E4%BD%9C%E7%9A%84+%E6%A5%B5%E5%AE%A2%E7%81%A3\" target=\"_blank\" style=\"color:var(--accent-2); font-weight:700;\">【極客灣】IP與NAT動畫原理解析</a><br>🎬 CCNA 網路實務教學系列：<a href=\"https://www.youtube.com/results?search_query=CCNA+%E7%B6%B2%E8%B7%AF%E5%AF%A6%E5%8B%99%E6%95%99%E5%AD%B8\" target=\"_blank\" style=\"color:var(--accent-2); font-weight:700;\">【蕭老師】系統化網路工程課程</a>"
+      },
+      {
+        "name": "8. 推薦圖文學習資源：Cloudflare 學習中心與鳥哥私房菜 (Docs)",
+        "details": "📄 基礎網路科普：<a href=\"https://www.cloudflare.com/zh-tw/learning/network-layer/what-is-an-ip-address/\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">Cloudflare IP地址</a> / <a href=\"https://www.cloudflare.com/zh-tw/learning/network-layer/what-is-a-router/\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">路由器原理</a><br>📄 系統網管聖經：<a href=\"https://linux.vbird.org/linux_server/0110network_basic.php\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">鳥哥 Linux 私房菜網路基礎篇</a><br>📄 新手入門經驗：<a href=\"https://ithelp.ithome.com.tw/articles?tab=iron\" target=\"_blank\" style=\"color:var(--accent-1); font-weight:700;\">iT邦幫忙鐵人賽網管新手30天筆記</a>"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "DHCP 租約建立過程 (DORA 協定)",
+        "latex": "\\text{DHCP Client} \\xrightarrow{\\text{Discover (Broadcast)}} \\text{Server} \\xrightarrow{\\text{Offer (Unicast)}} \\text{Client} \\xrightarrow{\\text{Request (Broadcast)}} \\text{Server} \\xrightarrow{\\text{ACK (Unicast)}} \\text{Client}",
+        "description": "客戶端開機無 IP 時廣播 Discover，伺服器單播 Offer IP，客戶端廣播 Request 要求租用該 IP，伺服器單播 ACK 確認，完成 DORA 租約配置。"
+      },
+      {
+        "name": "NAT 私網至公網 IP 與 Port 靜態對映轉換",
+        "latex": "(\\text{IP}_{\\text{private}}, \\text{Port}_{a}) \\xrightarrow{\\text{NAT Translation (Router)}} (\\text{IP}_{\\text{public}}, \\text{Port}_{b})",
+        "description": "NAT 轉換表中，路由器將內部私有 IP 與埠號對映為外網唯一的公共 IP 與經過轉換的埠號，向外發送請求；收到回應後逆向解析送回私有設備。"
+      }
+    ],
+    "code": "# ==========================================\n# 專案名稱：Nginx 反向代理與 SSL 安全憑證配置範例\n# 目的：配置 80/443 連接埠轉發，並處理 Let's Encrypt ACME 驗證\n# ==========================================\nserver {\n    listen 80;\n    server_name water-monitor.lab.edu;\n\n    # 1. 處理 Let's Encrypt / ACME 挑戰驗證 (HTTP-01 Challenge)\n    location /.well-known/acme-challenge/ {\n        root /var/www/letsencrypt;\n        try_files $uri =404;\n    }\n\n    # 2. 自動將一般 HTTP 流量重導向至安全的 HTTPS\n    location / {\n        return 301 https://$host$request_uri;\n    }\n}\n\nserver {\n    listen 443 ssl;\n    server_name water-monitor.lab.edu;\n\n    # 3. SSL 安全憑證路徑設定 (Let's Encrypt 產出)\n    ssl_certificate /etc/letsencrypt/live/water-monitor.lab.edu/fullchain.pem;\n    ssl_certificate_key /etc/letsencrypt/live/water-monitor.lab.edu/privkey.pem;\n    ssl_protocols TLSv1.2 TLSv1.3;\n\n    # 4. 反向代理轉發：將流量安全導向實驗室內網 API\n    location / {\n        proxy_pass http://10.8.0.5:3000; # 實驗室 VPN 內網 Node.js API 伺服器\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header X-Forwarded-Proto $scheme;\n    }\n}",
+    "faq": [
+      {
+        "question": "問：什麼是廣播風暴？為什麼 Switch 網路中發生「Loop 環路」會直接讓整個實驗室內網癱瘓？",
+        "answer": "答：因為乙太網路第二層（資料連結層）在轉發廣播封包（如 ARP 查詢）時，如果網路中存在環路且沒有開啟生成樹協定 (STP)，該廣播封包就會在環路中無窮無盡地被複製並循環發送。因為沒有 TTL 機制，隨著更多封包進入，幾秒鐘內整個網絡的頻寬就會被百萬個重複的廣播封包徹底塞爆，導致 Switch 的 CPU 飆高到 100%，內網所有設備全部斷線癱瘓，這就是俗稱的貪食蛇接法環路效應。"
+      },
+      {
+        "question": "問：在 Nginx 配置中，為什麼我們要使用反向代理將 80/443 連接埠導流給後端 3000 連接埠，而不是直接讓後端 Node.js 監聽 80/443 埠口？",
+        "answer": "答：這出於三個核心的軟體架構與安全性考量。第一，在 Linux 系統中，監聽 1024 以下的特權埠口（如 80、443）必須使用 root 系統權限，如果直接讓 Node.js 監聽，一旦代碼存在安全漏洞，攻擊者便能直接取得伺服器 root 權限；第二，Nginx 具備極強的靜態檔案處理與 Caching 緩存能力，能替後端分擔效能開銷；第三，Nginx 能統一處理 SSL 握手與憑證管理，當內網有多個微服務容器時，只需一個 Nginx 就能完成集中式的反向代理路由。"
+      }
+    ]
   }
 ]
