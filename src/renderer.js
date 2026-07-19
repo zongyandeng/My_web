@@ -59,6 +59,58 @@ function triggerPrism() {
   }
 }
 
+// 啟用側邊欄拖曳排序
+function enableSidebarDragAndDrop(sidebar, storageKey, data) {
+  let draggingItem = null;
+
+  const items = sidebar.querySelectorAll('.sidebar-item');
+  items.forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      draggingItem = item;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      draggingItem = null;
+
+      // 拖曳結束後，讀取所有子項目的新順序並儲存
+      const newOrder = [...sidebar.querySelectorAll('.sidebar-item')].map(li => li.getAttribute('data-id'));
+      localStorage.setItem(storageKey, JSON.stringify(newOrder));
+
+      // 同步更新記憶體中 data 的順序
+      data.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+    });
+  });
+
+  sidebar.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(sidebar, e.clientY);
+    if (draggingItem) {
+      if (afterElement == null) {
+        sidebar.appendChild(draggingItem);
+      } else {
+        sidebar.insertBefore(draggingItem, afterElement);
+      }
+    }
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.sidebar-item:not(.dragging)')];
+
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
 // --- 1. AI 學習實驗室渲染邏輯 ---
 export async function loadAndRenderAINotes() {
   const sidebar = document.getElementById('ai-sidebar-menu');
@@ -67,7 +119,20 @@ export async function loadAndRenderAINotes() {
 
   try {
     const response = await fetch('src/data/ai-notes.json');
-    const data = await response.json();
+    let data = await response.json();
+
+    // 依照 localStorage 保存的順序排序
+    const savedOrder = localStorage.getItem('ai-notes-order');
+    if (savedOrder) {
+      const orderArray = JSON.parse(savedOrder);
+      data.sort((a, b) => {
+        const idxA = orderArray.indexOf(a.id);
+        const idxB = orderArray.indexOf(b.id);
+        const orderA = idxA !== -1 ? idxA : 9999;
+        const orderB = idxB !== -1 ? idxB : 9999;
+        return orderA - orderB;
+      });
+    }
 
     // 1. 生成側邊欄選單
     sidebar.innerHTML = '';
@@ -75,8 +140,10 @@ export async function loadAndRenderAINotes() {
       const li = document.createElement('li');
       li.className = `sidebar-item ${index === 0 ? 'active' : ''}`;
       li.textContent = note.title.split('：')[0]; // 簡短標題
+      li.setAttribute('draggable', 'true');
+      li.setAttribute('data-id', note.id);
       li.addEventListener('click', () => {
-        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('#ai-sidebar-menu .sidebar-item').forEach(item => item.classList.remove('active'));
         li.classList.add('active');
         renderSingleAINote(note);
 
@@ -90,6 +157,9 @@ export async function loadAndRenderAINotes() {
       });
       sidebar.appendChild(li);
     });
+
+    // 啟用拖曳排序
+    enableSidebarDragAndDrop(sidebar, 'ai-notes-order', data);
 
     // 2. 決定預設要渲染哪一個筆記 (支援 URL 參數)
     const urlParams = new URLSearchParams(window.location.search);
@@ -933,7 +1003,20 @@ export async function loadAndRenderNetworkNotes() {
 
   try {
     const response = await fetch('src/data/network-notes.json');
-    const data = await response.json();
+    let data = await response.json();
+
+    // 依照 localStorage 保存的順序排序
+    const savedOrder = localStorage.getItem('network-notes-order');
+    if (savedOrder) {
+      const orderArray = JSON.parse(savedOrder);
+      data.sort((a, b) => {
+        const idxA = orderArray.indexOf(a.id);
+        const idxB = orderArray.indexOf(b.id);
+        const orderA = idxA !== -1 ? idxA : 9999;
+        const orderB = idxB !== -1 ? idxB : 9999;
+        return orderA - orderB;
+      });
+    }
 
     // 1. 生成側邊欄選單
     sidebar.innerHTML = '';
@@ -941,6 +1024,8 @@ export async function loadAndRenderNetworkNotes() {
       const li = document.createElement('li');
       li.className = `sidebar-item ${index === 0 ? 'active' : ''}`;
       li.textContent = note.title;
+      li.setAttribute('draggable', 'true');
+      li.setAttribute('data-id', note.id);
       li.addEventListener('click', () => {
         document.querySelectorAll('#network-sidebar-menu .sidebar-item').forEach(item => item.classList.remove('active'));
         li.classList.add('active');
@@ -956,6 +1041,9 @@ export async function loadAndRenderNetworkNotes() {
       });
       sidebar.appendChild(li);
     });
+
+    // 啟用拖曳排序
+    enableSidebarDragAndDrop(sidebar, 'network-notes-order', data);
 
     // 2. 決定預設要渲染哪一個筆記 (支援 URL 參數)
     const urlParams = new URLSearchParams(window.location.search);
