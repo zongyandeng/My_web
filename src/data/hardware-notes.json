@@ -89,5 +89,24 @@
         "answer": "答：會。NVMe SSD 在高溫下會啟動「過熱保護機制 (Thermal Throttling)」，自動降低讀寫速度以防止晶片損毀，這會導致資料讀取變慢，拖累 GPU 訓練效率。**解決方案**：主機板上務必安裝 SSD 散熱片，並確保機殼內風道良好。"
       }
     ]
+  },
+  {
+    "id": "vulkan-gtx1080",
+    "title": "Vulkan API 實戰與 GTX 1080 效能測試監控台",
+    "englishTitle": "Vulkan & GTX 1080 Benchmark Dashboard",
+    "description": "本區塊負責彙整 6 張 GTX 1080 顯示卡的 Vulkan API 效能測試與燒機測試數據。提供 API 概念對比、FurMark 2 甜甜圈實戰指標說明，並具備互動式測試數據儀表板，支援即時視覺化對比與一鍵生成學長匯報報告。",
+    "specs": [],
+    "vulkanInfo": {
+      "apiDefinition": "API（應用程式介面）是不同軟體或系統之間溝通的「橋樑」或「規格說明書」（就像餐廳裡負責傳遞需求的服務生）。",
+      "vulkanFeatures": [
+        "低開銷 (Low-Overhead)：繞過傳統 API 的多餘封裝，最直接地把硬體效能壓榨到極致。",
+        "靠近金屬 (Close-to-Metal)：允許開發者直接控制 GPU 資源分配與管線排程，大幅減少 CPU 瓶頸。"
+      ],
+      "geminiComparison": "Gemini API 用於程式與雲端 AI 模型溝通，與 Vulkan 的本質邏輯相同（均為介面），只是管轄的領域一邊是本地圖形硬體，另一邊是 AI 雲端服務。",
+      "sop": {
+        "benchmark": "1080p FHD 標準解析度，執行 1~3 分鐘，記錄 Score 與 Average FPS。",
+        "stress": "燒機模式 (Stress Test) 執行 15~30 分鐘，記錄 Max Temp、Max Power、Burn-in 分數與有無崩潰 (Pass/Fail)。"
+      }
+    }
   }
 ]

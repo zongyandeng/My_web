@@ -586,6 +586,10 @@ export async function loadAndRenderHardware() {
 
     container.innerHTML = '';
     data.forEach(item => {
+      if (item.id === 'vulkan-gtx1080') {
+        container.innerHTML += renderVulkanDashboard(item);
+        return;
+      }
       let specHTML = '';
       item.specs.forEach(spec => {
         specHTML += `
@@ -667,6 +671,13 @@ export async function loadAndRenderHardware() {
           const y = card.getBoundingClientRect().top + window.scrollY + yOffset;
           window.scrollTo({ top: y, behavior: 'smooth' });
         }
+      }, 100);
+    }
+
+    // 4. 綁定 Vulkan 儀表板事件
+    if (document.getElementById('vulkan-dashboard')) {
+      setTimeout(() => {
+        bindVulkanEvents();
       }, 100);
     }
 
@@ -1155,3 +1166,413 @@ function renderSingleNetworkNote(note) {
   triggerKaTeX('network-note-content');
   triggerPrism();
 }
+
+// ==========================================
+// --- Vulkan & GTX 1080 監控台自訂邏輯 ---
+// ==========================================
+
+const presetVulkanData = {
+  1: { score: 5420, fps: 90, temp: 78, power: 180, result: "Pass", crash: "0" },
+  2: { score: 5380, fps: 89, temp: 80, power: 182, result: "Pass", crash: "0" },
+  3: { score: 5450, fps: 91, temp: 75, power: 178, result: "Pass", crash: "0" },
+  4: { score: 5110, fps: 85, temp: 83, power: 185, result: "Pass", crash: "0" },
+  5: { score: 3200, fps: 53, temp: 92, power: 150, result: "Fail", crash: "2" },
+  6: { score: 5410, fps: 90, temp: 77, power: 179, result: "Pass", crash: "0" }
+};
+
+function renderVulkanDashboard(item) {
+  let tbodyRows = '';
+  for (let i = 1; i <= 6; i++) {
+    tbodyRows += `
+      <tr data-gpu="${i}">
+        <td style="font-weight: 700; color: var(--accent-1);">GPU #${i}</td>
+        <td>
+          <input type="number" class="vulkan-input score-input" data-gpu="${i}" placeholder="未輸入">
+        </td>
+        <td>
+          <input type="number" class="vulkan-input fps-input" data-gpu="${i}" placeholder="未輸入">
+        </td>
+        <td>
+          <input type="number" class="vulkan-input temp-input" data-gpu="${i}" placeholder="未輸入">
+        </td>
+        <td>
+          <input type="number" class="vulkan-input power-input" data-gpu="${i}" placeholder="未輸入">
+        </td>
+        <td>
+          <select class="vulkan-select result-select" data-gpu="${i}">
+            <option value="none" selected>請選擇</option>
+            <option value="Pass">Pass</option>
+            <option value="Fail">Fail</option>
+          </select>
+        </td>
+        <td>
+          <select class="vulkan-select crash-select" data-gpu="${i}">
+            <option value="none" selected>請選擇</option>
+            <option value="0">無</option>
+            <option value="1">1 次</option>
+            <option value="2">2 次以上</option>
+          </select>
+        </td>
+      </tr>
+    `;
+  }
+
+  return `
+    <div class="hardware-card vulkan-dashboard-card" data-id="${item.id}" style="grid-column: 1 / -1;">
+      <div class="hardware-title-container">
+        <h2 class="hardware-card-title">${item.title}</h2>
+        <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600; font-family:var(--font-mono);">${item.englishTitle}</span>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; margin-bottom:25px;">${item.description}</p>
+
+      <!-- Vulkan & Gemini API 科普區塊 -->
+      <div class="api-compare-grid">
+        <div class="api-card info-glass">
+          <div class="api-card-header">
+            <span class="api-icon">🌋</span>
+            <div>
+              <h4 class="api-card-title" style="margin:0; font-size:1.05rem;">Vulkan API (底層與圖形)</h4>
+              <p class="api-card-subtitle" style="margin:2px 0 0 0; font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Low-Overhead & Close-to-Metal</p>
+            </div>
+          </div>
+          <p class="api-card-desc" style="margin-top:12px; font-size:0.85rem; line-height:1.4; color:var(--text-muted);">${item.vulkanInfo.apiDefinition} Vulkan API 特點是<strong>${item.vulkanInfo.vulkanFeatures.join('、')}</strong>，能最直接地把 6 張 GTX 1080 顯示卡效能壓榨到極致。</p>
+        </div>
+        
+        <div class="api-card info-glass">
+          <div class="api-card-header">
+            <span class="api-icon">♊</span>
+            <div>
+              <h4 class="api-card-title" style="margin:0; font-size:1.05rem;">Gemini API (雲端與模型)</h4>
+              <p class="api-card-subtitle" style="margin:2px 0 0 0; font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Cloud AI Model Interface</p>
+            </div>
+          </div>
+          <p class="api-card-desc" style="margin-top:12px; font-size:0.85rem; line-height:1.4; color:var(--text-muted);">${item.vulkanInfo.geminiComparison}</p>
+        </div>
+      </div>
+
+      <!-- 甜甜圈科普與 SOP 說明 -->
+      <div class="sop-section info-glass" style="margin-top: 25px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+        <h3 style="font-size: 1.15rem; color: var(--accent-1); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; margin-top:0;">
+          🍩 「甜甜圈」FurMark 2 壓力測試與 Vulkan SOP
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; font-size: 0.9rem; line-height: 1.5;">
+          <div>
+            <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">什麼是「甜甜圈」？</p>
+            <p style="color: var(--text-muted); margin:0;">FurMark 運行時畫面中央那顆毛茸茸的環狀物體。它使用極限著色器程式負載來極限壓榨 GPU 的發熱與運算，是超頻界與硬體研究中最經典的「燒機」畫面。</p>
+          </div>
+          <div>
+            <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">測試 SOP 規範：</p>
+            <ul style="color: var(--text-muted); padding-left: 15px; margin: 0;">
+              <li><strong>效能測試 (Benchmark)</strong>：${item.vulkanInfo.sop.benchmark}</li>
+              <li><strong>壓力測試 (Stress Test)</strong>：${item.vulkanInfo.sop.stress}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 儀表板控制區 -->
+      <div id="vulkan-dashboard" style="margin-top: 35px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+          <h3 style="font-size: 1.25rem; color: var(--accent-1); margin: 0;">📊 6× GTX 1080 測試數據錄入台</h3>
+          <div style="display: flex; gap: 10px;">
+            <button id="btn-load-vulkan-preset" class="vulkan-btn btn-secondary">⚡ 預載學長測試數據</button>
+            <button id="btn-clear-vulkan-data" class="vulkan-btn btn-danger">🗑️ 清空數據</button>
+          </div>
+        </div>
+
+        <!-- 數據輸入表格 -->
+        <div class="vulkan-table-container">
+          <table class="vulkan-table">
+            <thead>
+              <tr>
+                <th>GPU 編號</th>
+                <th>[效能] Score (分數)</th>
+                <th>[效能] Avg FPS</th>
+                <th>[壓力] Max Temp (°C)</th>
+                <th>[壓力] Max Power (W)</th>
+                <th>[壓力] 狀態</th>
+                <th>崩潰次數</th>
+              </tr>
+            </thead>
+            <tbody id="vulkan-tbody">
+              ${tbodyRows}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 圖表區 -->
+        <div class="vulkan-charts-section" style="margin-top: 35px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;">
+          <div class="chart-container info-glass" style="padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="color: var(--accent-1); margin-top: 0; margin-bottom: 15px; font-size: 1rem;">🔥 效能得分與平均 FPS 對比</h4>
+            <div id="performance-chart" class="bar-chart-y">
+              <!-- JS 動態生成長條 -->
+            </div>
+          </div>
+          
+          <div class="chart-container info-glass" style="padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="color: var(--accent-2); margin-top: 0; margin-bottom: 15px; font-size: 1rem;">🌡️ 燒機最高溫度與功耗對比</h4>
+            <div id="temperature-chart" class="bar-chart-y">
+              <!-- JS 動態生成長條 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 匯出報告按鈕 -->
+        <div style="margin-top: 30px; text-align: center;">
+          <button id="btn-generate-report" class="vulkan-btn btn-primary" style="font-size: 1rem; padding: 12px 30px;">
+            📄 一鍵生成向學長匯報的報告 (Markdown)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Markdown 報告彈窗 (Modal) -->
+    <div id="report-modal" class="vulkan-modal">
+      <div class="vulkan-modal-content">
+        <div class="vulkan-modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="margin:0; font-size:1.25rem;">📋 顯卡效能與燒機測試報告</h3>
+          <span class="vulkan-modal-close" id="btn-close-modal" style="font-size:1.5rem; cursor:pointer;">&times;</span>
+        </div>
+        <div class="vulkan-modal-body">
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px; text-align:left;">點擊下方按鈕複製 Markdown，即可直接貼到您的報告、HackMD、GitHub 或通訊軟體回報給學長。</p>
+          <textarea id="report-textarea" readonly style="width: 100%; height: 350px; background: #08090d; color: #a9b2c3; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; font-family: var(--font-mono); font-size: 0.85rem; resize: none; box-sizing: border-box;"></textarea>
+        </div>
+        <div class="vulkan-modal-footer" style="display:flex; justify-content: flex-end; gap:10px; margin-top: 15px;">
+          <button id="btn-copy-report" class="vulkan-btn btn-primary">📋 複製報告至剪貼簿</button>
+          <button id="btn-close-modal-foot" class="vulkan-btn btn-secondary">關閉</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bindVulkanEvents() {
+  const tbody = document.getElementById('vulkan-tbody');
+  if (!tbody) return;
+
+  // 1. 監聽所有的 input 與 select 變更
+  const inputs = tbody.querySelectorAll('.vulkan-input, .vulkan-select');
+  inputs.forEach(el => {
+    el.addEventListener('input', updateVulkanCharts);
+    el.addEventListener('change', updateVulkanCharts);
+  });
+
+  // 2. 預載數據按鈕
+  const btnLoad = document.getElementById('btn-load-vulkan-preset');
+  if (btnLoad) {
+    btnLoad.addEventListener('click', () => {
+      for (let i = 1; i <= 6; i++) {
+        const data = presetVulkanData[i];
+        document.querySelector(`.score-input[data-gpu="${i}"]`).value = data.score;
+        document.querySelector(`.fps-input[data-gpu="${i}"]`).value = data.fps;
+        document.querySelector(`.temp-input[data-gpu="${i}"]`).value = data.temp;
+        document.querySelector(`.power-input[data-gpu="${i}"]`).value = data.power;
+        document.querySelector(`.result-select[data-gpu="${i}"]`).value = data.result;
+        document.querySelector(`.crash-select[data-gpu="${i}"]`).value = data.crash;
+      }
+      updateVulkanCharts();
+    });
+  }
+
+  // 3. 清空數據按鈕
+  const btnClear = document.getElementById('btn-clear-vulkan-data');
+  if (btnClear) {
+    btnClear.addEventListener('click', () => {
+      inputs.forEach(el => {
+        if (el.tagName === 'INPUT') {
+          el.value = '';
+        } else if (el.tagName === 'SELECT') {
+          el.value = 'none';
+        }
+      });
+      updateVulkanCharts();
+    });
+  }
+
+  // 4. Modal 控制
+  const modal = document.getElementById('report-modal');
+  const btnGen = document.getElementById('btn-generate-report');
+  const btnCloseX = document.getElementById('btn-close-modal');
+  const btnCloseFoot = document.getElementById('btn-close-modal-foot');
+  const txtArea = document.getElementById('report-textarea');
+
+  if (modal && btnGen && txtArea) {
+    btnGen.addEventListener('click', () => {
+      const mdReport = generateMarkdownReport();
+      txtArea.value = mdReport;
+      modal.classList.add('active');
+    });
+
+    const closeModal = () => modal.classList.remove('active');
+    if (btnCloseX) btnCloseX.addEventListener('click', closeModal);
+    if (btnCloseFoot) btnCloseFoot.addEventListener('click', closeModal);
+    
+    // 點擊 Modal 背景也可關閉
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  // 5. 複製功能
+  const btnCopy = document.getElementById('btn-copy-report');
+  if (btnCopy && txtArea) {
+    btnCopy.addEventListener('click', () => {
+      txtArea.select();
+      txtArea.setSelectionRange(0, 99999); // 手機相容性
+      
+      navigator.clipboard.writeText(txtArea.value).then(() => {
+        const originalText = btnCopy.textContent;
+        btnCopy.textContent = '✅ 已複製報告！';
+        btnCopy.style.background = '#10b981';
+        setTimeout(() => {
+          btnCopy.textContent = originalText;
+          btnCopy.style.background = '';
+        }, 2000);
+      }).catch(err => {
+        console.error('複製失敗:', err);
+        alert('複製失敗，請手動全選複製文字框內容。');
+      });
+    });
+  }
+
+  // 初始化繪製一次
+  updateVulkanCharts();
+}
+
+function updateVulkanCharts() {
+  const perfChart = document.getElementById('performance-chart');
+  const tempChart = document.getElementById('temperature-chart');
+  if (!perfChart || !tempChart) return;
+  
+  perfChart.innerHTML = '';
+  tempChart.innerHTML = '';
+  
+  for (let i = 1; i <= 6; i++) {
+    const scoreVal = parseFloat(document.querySelector(`.score-input[data-gpu="${i}"]`).value) || 0;
+    const fpsVal = parseFloat(document.querySelector(`.fps-input[data-gpu="${i}"]`).value) || 0;
+    const tempVal = parseFloat(document.querySelector(`.temp-input[data-gpu="${i}"]`).value) || 0;
+    const powerVal = parseFloat(document.querySelector(`.power-input[data-gpu="${i}"]`).value) || 0;
+    const resultVal = document.querySelector(`.result-select[data-gpu="${i}"]`).value;
+    
+    // 效能長條圖
+    const perfPercent = Math.min((scoreVal / 6000) * 100, 100);
+    let perfBarColor = 'var(--accent-1)';
+    if (resultVal === 'Fail') perfBarColor = 'rgba(239, 68, 68, 0.7)'; // 故障變紅色
+    
+    perfChart.innerHTML += `
+      <div class="chart-row" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="chart-gpu-name" style="width: 60px; font-weight:700; font-size:0.85rem; color:var(--text-main);">GPU #${i}</div>
+        <div class="chart-bar-container" style="flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; margin: 0 15px; position:relative;">
+          <div class="chart-bar" style="height: 100%; width: ${perfPercent}%; background: ${perfBarColor}; border-radius: 5px; transition: width 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);"></div>
+        </div>
+        <div class="chart-gpu-val" style="width: 110px; text-align: right; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600;">
+          ${scoreVal > 0 ? `${scoreVal} <span style="color:var(--text-muted); font-size:0.75rem;">(${fpsVal} FPS)</span>` : '<span style="color:var(--text-muted)">未錄入</span>'}
+        </div>
+      </div>
+    `;
+    
+    // 溫度與功耗長條圖
+    const tempPercent = Math.min((tempVal / 100) * 100, 100);
+    let tempBarColor = 'var(--accent-2)';
+    if (tempVal >= 90) {
+      tempBarColor = '#ef4444'; // 嚴重過熱
+    } else if (tempVal >= 82) {
+      tempBarColor = '#f59e0b'; // 高溫預警
+    }
+    
+    tempChart.innerHTML += `
+      <div class="chart-row" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div class="chart-gpu-name" style="width: 60px; font-weight:700; font-size:0.85rem; color:var(--text-main);">GPU #${i}</div>
+        <div class="chart-bar-container" style="flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; margin: 0 15px; position:relative;">
+          <div class="chart-bar" style="height: 100%; width: ${tempPercent}%; background: ${tempBarColor}; border-radius: 5px; transition: width 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);"></div>
+        </div>
+        <div class="chart-gpu-val" style="width: 110px; text-align: right; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600;">
+          ${tempVal > 0 ? `${tempVal}°C <span style="color:var(--text-muted); font-size:0.75rem;">/ ${powerVal}W</span>` : '<span style="color:var(--text-muted)">未錄入</span>'}
+        </div>
+      </div>
+    `;
+  }
+}
+
+function generateMarkdownReport() {
+  const rows = [];
+  let normalCount = 0;
+  let warnCount = 0;
+  let failCount = 0;
+  
+  for (let i = 1; i <= 6; i++) {
+    const scoreVal = document.querySelector(`.score-input[data-gpu="${i}"]`).value || '未填';
+    const fpsVal = document.querySelector(`.fps-input[data-gpu="${i}"]`).value || '未填';
+    const tempVal = document.querySelector(`.temp-input[data-gpu="${i}"]`).value || '未填';
+    const powerVal = document.querySelector(`.power-input[data-gpu="${i}"]`).value || '未填';
+    const resultVal = document.querySelector(`.result-select[data-gpu="${i}"]`).value;
+    const crashVal = document.querySelector(`.crash-select[data-gpu="${i}"]`).value;
+    
+    let crashDesc = '無';
+    if (crashVal === '1') crashDesc = '1 次';
+    if (crashVal === '2') crashDesc = '2 次以上';
+    
+    rows.push({
+      id: `GPU #${i}`,
+      score: scoreVal,
+      fps: fpsVal,
+      temp: tempVal > 0 ? `${tempVal}°C` : '未填',
+      power: powerVal > 0 ? `${powerVal}W` : '未填',
+      result: resultVal === 'none' ? '未定' : resultVal,
+      crash: crashDesc
+    });
+    
+    if (resultVal === 'Pass') {
+      if (parseFloat(tempVal) >= 82) {
+        warnCount++;
+      } else {
+        normalCount++;
+      }
+    } else if (resultVal === 'Fail') {
+      failCount++;
+    }
+  }
+  
+  // 組裝 Markdown 表格
+  let tableMarkdown = '| GPU 編號 | Benchmark 分數 | 平均幀率 (Avg FPS) | 燒機最高溫度 | 燒機最大功耗 | 測試狀態 | 崩潰與異常 |\n';
+  tableMarkdown += '| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n';
+  rows.forEach(r => {
+    tableMarkdown += `| ${r.id} | ${r.score} | ${r.fps} | ${r.temp} | ${r.power} | ${r.result} | ${r.crash} |\n`;
+  });
+  
+  // 組裝分析
+  let analysisMarkdown = '';
+  if (normalCount > 0) {
+    analysisMarkdown += `- **正常運作卡片 (${normalCount} 張)**：效能分數與幀率表現穩定，燒機溫度與功耗均處於合理範圍（75°C~80°C，178W~182W），屬 Pascal 架儲在 Vulkan API 模式下的標準高效能表現。\n`;
+  }
+  if (warnCount > 0) {
+    analysisMarkdown += `- **散熱預警卡片 (${warnCount} 張)**：雖通過壓力測試，但燒機溫度偏高 (>= 82°C)。這會限制顯卡長時間運作的穩定性，甚至因高溫降頻影響算力。建議清理散熱鰭片灰塵並注意機殼內風道。\n`;
+  }
+  if (failCount > 0) {
+    analysisMarkdown += `- **故障/異常卡片 (${failCount} 張)**：測試狀態為 Fail，且伴隨嚴重過熱降頻或燒機中途崩潰。硬體可能面臨風扇損壞、散熱膏乾涸或供電模組老化，需立即拆解維護或檢修。\n`;
+  }
+  
+  const nowStr = new Date().toLocaleString('zh-TW');
+  const md = `# 6× GTX 1080 顯示卡效能與 Vulkan 燒機測試報告
+
+- **報告生成時間**：${nowStr}
+- **測試對象**：NVIDIA GeForce GTX 1080 * 6 (Pascal 架構)
+- **測試 API 與工具**：Vulkan API / FurMark 2 (甜甜圈)
+
+## 一、 測試數據彙整表
+
+${tableMarkdown}
+
+## 二、 測試結果與硬體健康度分析
+
+${analysisMarkdown}
+
+## 三、 Vulkan API 壓榨測試心得
+Vulkan API 具備低開銷 (Low-Overhead) 與靠近底層 (Close-to-Metal) 的硬體控制優勢，能夠最大化減低 CPU 驅動層開銷，使 6 張顯卡的 GPU 負載與發熱量在極短時間內攀升至最高值。這對於檢測像 GTX 1080 這類經典 Pascal 顯卡在極限高負載下的供電穩定性、降頻保護機制與風扇散熱健康度，是極為精準且高效的測試方案。
+
+---
+報告人：[請在此填寫您的姓名]`;
+
+  return md;
+}
+
