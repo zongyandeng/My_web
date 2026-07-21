@@ -46,10 +46,22 @@
       </p>
     </header>
 
-    <!-- 卡片展示區 -->
-    <div class="hardware-grid" id="hardware-container">
-      <!-- 由 renderer.js 動態渲染 -->
-      <p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">正在載入硬體科普內容，請稍候...</p>
+    <div class="terminal-layout">
+      <!-- 左側選單 -->
+      <aside class="sidebar">
+        <h3 class="sidebar-title">硬體單元</h3>
+        <ul class="sidebar-menu" id="hardware-sidebar-menu">
+          <!-- 由 renderer.js 動態產生 -->
+          <li class="sidebar-item">正在載入...</li>
+        </ul>
+      </aside>
+
+      <!-- 右側內容區 -->
+      <section class="hardware-content-wrapper" id="hardware-content-wrapper" style="flex:1; width: 100%;">
+        <div id="hardware-content-body">
+          <p style="color: var(--text-muted); text-align: center;">正在載入硬體科普內容，請稍候...</p>
+        </div>
+      </section>
     </div>
   </main>
 

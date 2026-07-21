@@ -577,108 +577,76 @@ function registerChartSimulator() {
 
 // --- 2. 硬體研究室渲染邏輯 ---
 export async function loadAndRenderHardware() {
-  const container = document.getElementById('hardware-container');
-  if (!container) return;
+  const sidebar = document.getElementById('hardware-sidebar-menu');
+  const container = document.getElementById('hardware-content-body');
+  if (!sidebar || !container) return;
 
   try {
     const response = await fetch('src/data/hardware-notes.json');
-    const data = await response.json();
+    let data = await response.json();
 
-    container.innerHTML = '';
-    data.forEach(item => {
-      if (item.id === 'vulkan-gtx1080') {
-        container.innerHTML += renderVulkanDashboard(item);
-        return;
-      }
-      let specHTML = '';
-      item.specs.forEach(spec => {
-        specHTML += `
-          <div class="hardware-spec-row">
-            <div class="hardware-spec-name">${spec.name}</div>
-            <div class="hardware-spec-value">${spec.value}</div>
-            <div class="hardware-spec-desc">${spec.description}</div>
-          </div>
-        `;
+    // 依照 localStorage 保存的順序排序
+    const savedOrder = localStorage.getItem('hardware-notes-order');
+    if (savedOrder) {
+      const orderArray = JSON.parse(savedOrder);
+      data.sort((a, b) => {
+        const idxA = orderArray.indexOf(a.id);
+        const idxB = orderArray.indexOf(b.id);
+        const orderA = idxA !== -1 ? idxA : 9999;
+        const orderB = idxB !== -1 ? idxB : 9999;
+        return orderA - orderB;
       });
-
-      let guidesHTML = '';
-      if (item.guides) {
-        guidesHTML = `
-          <h3 style="margin-top: 30px; font-size: 1.15rem; color:var(--accent-1); border-bottom:1px solid var(--border-color); padding-bottom:5px;">推薦顯卡評估對比</h3>
-          <table class="gpu-table">
-            <thead>
-              <tr>
-                <th>型號</th>
-                <th>推薦定位</th>
-                <th>優勢</th>
-                <th>劣勢</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${item.guides.map(guide => `
-                <tr>
-                  <td style="font-weight:700;">${guide.card}</td>
-                  <td style="color:var(--accent-2); font-weight:600;">${guide.recommendation}</td>
-                  <td>${guide.pros}</td>
-                  <td>${guide.cons}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        `;
-      }
-
-      let faqHTML = '';
-      if (item.faq && item.faq.length > 0) {
-        faqHTML = `
-          <div class="faq-section" style="margin-top: 30px;">
-            <div class="faq-title" style="font-size:1.2rem; margin-bottom:15px;">💬 硬體常見問題與避坑指南</div>
-            ${item.faq.map(f => `
-              <div class="faq-card" style="padding:15px; margin-bottom:10px;">
-                <div class="faq-q" style="font-size:0.95rem;">${f.question}</div>
-                <div class="faq-a" style="font-size:0.85rem;">${f.answer}</div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      }
-
-      container.innerHTML += `
-        <div class="hardware-card" data-id="${item.id}">
-          <div class="hardware-title-container">
-            <h2 class="hardware-card-title">${item.title}</h2>
-            <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600; font-family:var(--font-mono);">${item.englishTitle}</span>
-          </div>
-          <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; margin-bottom:25px;">${item.description}</p>
-          
-          <h3 style="font-size:1.15rem; color:var(--accent-1); margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">核心參數科普 (Specifications)</h3>
-          ${specHTML}
-          
-          ${guidesHTML}
-          ${faqHTML}
-        </div>
-      `;
-    });
-
-    // 3. 滾動到指定的硬體項目 (支援 URL 參數)
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetId = urlParams.get('id');
-    if (targetId) {
-      setTimeout(() => {
-        const card = document.querySelector(`.hardware-card[data-id="${targetId}"]`);
-        if (card) {
-          const yOffset = -90;
-          const y = card.getBoundingClientRect().top + window.scrollY + yOffset;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-        }
-      }, 100);
     }
 
-    // 4. 綁定 Vulkan 儀表板事件
-    if (document.getElementById('vulkan-dashboard')) {
-      setTimeout(() => {
-        bindVulkanEvents();
-      }, 100);
+    // 1. 生成左側大單元選單
+    sidebar.innerHTML = '';
+    data.forEach((group, index) => {
+      const li = document.createElement('li');
+      li.className = `sidebar-item ${index === 0 ? 'active' : ''}`;
+      li.textContent = group.title;
+      li.setAttribute('draggable', 'true');
+      li.setAttribute('data-id', group.id);
+      li.addEventListener('click', () => {
+        document.querySelectorAll('#hardware-sidebar-menu .sidebar-item').forEach(item => item.classList.remove('active'));
+        li.classList.add('active');
+        renderHardwareDetail(group);
+        
+        // 點擊切換時，滾動至頁面頂部
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      });
+      sidebar.appendChild(li);
+    });
+
+    // 啟用拖曳排序
+    enableSidebarDragAndDrop(sidebar, 'hardware-notes-order', data);
+
+    // 2. 決定預設要渲染哪一個硬體群組 (支援 URL 參數)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetId = urlParams.get('id');
+    let matchedGroup = null;
+    let matchedIndex = 0;
+
+    if (targetId) {
+      matchedGroup = data.find((group, idx) => {
+        if (group.id === targetId) {
+          matchedIndex = idx;
+          return true;
+        }
+        return false;
+      });
+    }
+
+    if (matchedGroup) {
+      document.querySelectorAll('#hardware-sidebar-menu .sidebar-item').forEach((item, idx) => {
+        if (idx === matchedIndex) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      renderHardwareDetail(matchedGroup);
+    } else if (data.length > 0) {
+      renderHardwareDetail(data[0]);
     }
 
   } catch (error) {
@@ -686,6 +654,90 @@ export async function loadAndRenderHardware() {
     container.innerHTML = `<p style="color: var(--accent-2)">載入硬體資料失敗，請檢查 JSON 檔案或使用伺服器環境運行。</p>`;
   }
 }
+
+function renderHardwareDetail(item) {
+  const container = document.getElementById('hardware-content-body');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (item.id === 'vulkan-gtx1080') {
+    container.innerHTML = renderVulkanDashboard(item);
+    bindVulkanEvents();
+    return;
+  }
+
+  let specHTML = '';
+  item.specs.forEach(spec => {
+    specHTML += `
+      <div class="hardware-spec-row">
+        <div class="hardware-spec-name">${spec.name}</div>
+        <div class="hardware-spec-value">${spec.value}</div>
+        <div class="hardware-spec-desc">${spec.description}</div>
+      </div>
+    `;
+  });
+
+  let guidesHTML = '';
+  if (item.guides && item.guides.length > 0) {
+    guidesHTML = `
+      <h3 style="margin-top: 30px; font-size: 1.15rem; color:var(--accent-1); border-bottom:1px solid var(--border-color); padding-bottom:5px;">推薦顯卡評估對比</h3>
+      <table class="gpu-table">
+        <thead>
+          <tr>
+            <th>型號</th>
+            <th>推薦定位</th>
+            <th>優勢</th>
+            <th>劣勢</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${item.guides.map(guide => `
+            <tr>
+              <td style="font-weight:700;">${guide.card}</td>
+              <td style="color:var(--accent-2); font-weight:600;">${guide.recommendation}</td>
+              <td>${guide.pros}</td>
+              <td>${guide.cons}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  let faqHTML = '';
+  if (item.faq && item.faq.length > 0) {
+    faqHTML = `
+      <div class="faq-section" style="margin-top: 30px;">
+        <div class="faq-title" style="font-size:1.2rem; margin-bottom:15px;">💬 硬體常見問題與避坑指南</div>
+        ${item.faq.map(f => `
+          <div class="faq-card" style="padding:15px; margin-bottom:10px;">
+            <div class="faq-q" style="font-size:0.95rem;">${f.question}</div>
+            <div class="faq-a" style="font-size:0.85rem;">${f.answer}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="hardware-card" data-id="${item.id}" style="width: 100%;">
+      <div class="hardware-title-container">
+        <h2 class="hardware-card-title">${item.title}</h2>
+        <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600; font-family:var(--font-mono);">${item.englishTitle}</span>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.5; margin-bottom:25px;">${item.description}</p>
+      
+      <h3 style="font-size:1.15rem; color:var(--accent-1); margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">核心參數科普 (Specifications)</h3>
+      ${specHTML}
+      
+      ${guidesHTML}
+      ${faqHTML}
+    </div>
+  `;
+}
+
+
 
 // --- 3. 指令集與終端模擬器渲染邏輯 ---
 export async function loadAndRenderCommands() {
@@ -1171,6 +1223,15 @@ function renderSingleNetworkNote(note) {
 // --- Vulkan & GTX 1080 監控台自訂邏輯 ---
 // ==========================================
 
+let currentVulkanData = {
+  1: { score: "", fps: "", temp: "", power: "", result: "none", crash: "none" },
+  2: { score: "", fps: "", temp: "", power: "", result: "none", crash: "none" },
+  3: { score: "", fps: "", temp: "", power: "", result: "none", crash: "none" },
+  4: { score: "", fps: "", temp: "", power: "", result: "none", crash: "none" },
+  5: { score: "", fps: "", temp: "", power: "", result: "none", crash: "none" },
+  6: { score: "", fps: "", temp: "", power: "", result: "none", crash: "none" }
+};
+
 const presetVulkanData = {
   1: { score: 5420, fps: 90, temp: 78, power: 180, result: "Pass", crash: "0" },
   2: { score: 5380, fps: 89, temp: 80, power: 182, result: "Pass", crash: "0" },
@@ -1183,34 +1244,35 @@ const presetVulkanData = {
 function renderVulkanDashboard(item) {
   let tbodyRows = '';
   for (let i = 1; i <= 6; i++) {
+    const val = currentVulkanData[i];
     tbodyRows += `
       <tr data-gpu="${i}">
         <td style="font-weight: 700; color: var(--accent-1);">GPU #${i}</td>
         <td>
-          <input type="number" class="vulkan-input score-input" data-gpu="${i}" placeholder="未輸入">
+          <input type="number" class="vulkan-input score-input" data-gpu="${i}" value="${val.score}" placeholder="未輸入">
         </td>
         <td>
-          <input type="number" class="vulkan-input fps-input" data-gpu="${i}" placeholder="未輸入">
+          <input type="number" class="vulkan-input fps-input" data-gpu="${i}" value="${val.fps}" placeholder="未輸入">
         </td>
         <td>
-          <input type="number" class="vulkan-input temp-input" data-gpu="${i}" placeholder="未輸入">
+          <input type="number" class="vulkan-input temp-input" data-gpu="${i}" value="${val.temp}" placeholder="未輸入">
         </td>
         <td>
-          <input type="number" class="vulkan-input power-input" data-gpu="${i}" placeholder="未輸入">
+          <input type="number" class="vulkan-input power-input" data-gpu="${i}" value="${val.power}" placeholder="未輸入">
         </td>
         <td>
           <select class="vulkan-select result-select" data-gpu="${i}">
-            <option value="none" selected>請選擇</option>
-            <option value="Pass">Pass</option>
-            <option value="Fail">Fail</option>
+            <option value="none" ${val.result === 'none' ? 'selected' : ''}>請選擇</option>
+            <option value="Pass" ${val.result === 'Pass' ? 'selected' : ''}>Pass</option>
+            <option value="Fail" ${val.result === 'Fail' ? 'selected' : ''}>Fail</option>
           </select>
         </td>
         <td>
           <select class="vulkan-select crash-select" data-gpu="${i}">
-            <option value="none" selected>請選擇</option>
-            <option value="0">無</option>
-            <option value="1">1 次</option>
-            <option value="2">2 次以上</option>
+            <option value="none" ${val.crash === 'none' ? 'selected' : ''}>請選擇</option>
+            <option value="0" ${val.crash === '0' ? 'selected' : ''}>無</option>
+            <option value="1" ${val.crash === '1' ? 'selected' : ''}>1 次</option>
+            <option value="2" ${val.crash === '2' ? 'selected' : ''}>2 次以上</option>
           </select>
         </td>
       </tr>
@@ -1218,7 +1280,7 @@ function renderVulkanDashboard(item) {
   }
 
   return `
-    <div class="hardware-card vulkan-dashboard-card" data-id="${item.id}" style="grid-column: 1 / -1;">
+    <div class="hardware-card vulkan-dashboard-card" data-id="${item.id}" style="width: 100%;">
       <div class="hardware-title-container">
         <h2 class="hardware-card-title">${item.title}</h2>
         <span style="color:var(--text-muted); font-size:0.85rem; font-weight:600; font-family:var(--font-mono);">${item.englishTitle}</span>
@@ -1251,21 +1313,37 @@ function renderVulkanDashboard(item) {
       </div>
 
       <!-- 甜甜圈科普與 SOP 說明 -->
-      <div class="sop-section info-glass" style="margin-top: 25px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-        <h3 style="font-size: 1.15rem; color: var(--accent-1); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; margin-top:0;">
-          🍩 「甜甜圈」FurMark 2 壓力測試與 Vulkan SOP
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; font-size: 0.9rem; line-height: 1.5;">
-          <div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 25px;">
+        <div class="sop-section info-glass" style="padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+          <h3 style="font-size: 1.15rem; color: var(--accent-1); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; margin-top:0;">
+            🍩 「甜甜圈」FurMark 2 與 SOP
+          </h3>
+          <div style="font-size: 0.9rem; line-height: 1.5;">
             <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">什麼是「甜甜圈」？</p>
-            <p style="color: var(--text-muted); margin:0;">FurMark 運行時畫面中央那顆毛茸茸的環狀物體。它使用極限著色器程式負載來極限壓榨 GPU 的發熱與運算，是超頻界與硬體研究中最經典的「燒機」畫面。</p>
-          </div>
-          <div>
+            <p style="color: var(--text-muted); margin-bottom: 10px;">FurMark 運行時畫面中央那顆毛茸茸的環狀物體。它使用極限著色器程式負載來極限壓榨 GPU 的發熱與運算，是超頻界與硬體研究中最經典的「燒機」畫面。</p>
             <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">測試 SOP 規範：</p>
             <ul style="color: var(--text-muted); padding-left: 15px; margin: 0;">
-              <li><strong>效能測試 (Benchmark)</strong>：${item.vulkanInfo.sop.benchmark}</li>
-              <li><strong>壓力測試 (Stress Test)</strong>：${item.vulkanInfo.sop.stress}</li>
+              <li><strong>效能測試</strong>：${item.vulkanInfo.sop.benchmark}</li>
+              <li><strong>壓力測試</strong>：${item.vulkanInfo.sop.stress}</li>
             </ul>
+          </div>
+        </div>
+
+        <div class="practice-section info-glass" style="padding: 20px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.02);">
+          <h3 style="font-size: 1.15rem; color: #f59e0b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; margin-top:0;">
+            ⚠️ 系統環境與換卡安全鐵則
+          </h3>
+          <div style="font-size: 0.9rem; line-height: 1.5;">
+            <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">🔄 換卡免重灌系統</p>
+            <p style="color: var(--text-muted); margin-bottom: 10px;">${item.vulkanInfo.envAndSwapPractice.noOsReinstall}</p>
+            
+            <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">📋 正確的測試準備流程</p>
+            <ol style="color: var(--text-muted); padding-left: 15px; margin: 0 0 10px 0;">
+              ${item.vulkanInfo.envAndSwapPractice.preparationSOP.map(step => `<li>${step}</li>`).join('')}
+            </ol>
+
+            <p style="color: #ef4444; font-weight: 700; margin-bottom: 2px;">🚨 換卡安全鐵則：</p>
+            <p style="color: #ef4444; font-weight: 600; margin: 0;">${item.vulkanInfo.envAndSwapPractice.safetyRule}</p>
           </div>
         </div>
       </div>
@@ -1353,8 +1431,14 @@ function bindVulkanEvents() {
   // 1. 監聽所有的 input 與 select 變更
   const inputs = tbody.querySelectorAll('.vulkan-input, .vulkan-select');
   inputs.forEach(el => {
-    el.addEventListener('input', updateVulkanCharts);
-    el.addEventListener('change', updateVulkanCharts);
+    el.addEventListener('input', () => {
+      saveCurrentVulkanInput();
+      updateVulkanCharts();
+    });
+    el.addEventListener('change', () => {
+      saveCurrentVulkanInput();
+      updateVulkanCharts();
+    });
   });
 
   // 2. 預載數據按鈕
@@ -1370,6 +1454,7 @@ function bindVulkanEvents() {
         document.querySelector(`.result-select[data-gpu="${i}"]`).value = data.result;
         document.querySelector(`.crash-select[data-gpu="${i}"]`).value = data.crash;
       }
+      saveCurrentVulkanInput();
       updateVulkanCharts();
     });
   }
@@ -1385,6 +1470,7 @@ function bindVulkanEvents() {
           el.value = 'none';
         }
       });
+      saveCurrentVulkanInput();
       updateVulkanCharts();
     });
   }
@@ -1437,6 +1523,17 @@ function bindVulkanEvents() {
 
   // 初始化繪製一次
   updateVulkanCharts();
+}
+
+function saveCurrentVulkanInput() {
+  for (let i = 1; i <= 6; i++) {
+    currentVulkanData[i].score = document.querySelector(`.score-input[data-gpu="${i}"]`).value;
+    currentVulkanData[i].fps = document.querySelector(`.fps-input[data-gpu="${i}"]`).value;
+    currentVulkanData[i].temp = document.querySelector(`.temp-input[data-gpu="${i}"]`).value;
+    currentVulkanData[i].power = document.querySelector(`.power-input[data-gpu="${i}"]`).value;
+    currentVulkanData[i].result = document.querySelector(`.result-select[data-gpu="${i}"]`).value;
+    currentVulkanData[i].crash = document.querySelector(`.crash-select[data-gpu="${i}"]`).value;
+  }
 }
 
 function updateVulkanCharts() {
@@ -1501,12 +1598,12 @@ function generateMarkdownReport() {
   let failCount = 0;
   
   for (let i = 1; i <= 6; i++) {
-    const scoreVal = document.querySelector(`.score-input[data-gpu="${i}"]`).value || '未填';
-    const fpsVal = document.querySelector(`.fps-input[data-gpu="${i}"]`).value || '未填';
-    const tempVal = document.querySelector(`.temp-input[data-gpu="${i}"]`).value || '未填';
-    const powerVal = document.querySelector(`.power-input[data-gpu="${i}"]`).value || '未填';
-    const resultVal = document.querySelector(`.result-select[data-gpu="${i}"]`).value;
-    const crashVal = document.querySelector(`.crash-select[data-gpu="${i}"]`).value;
+    const scoreVal = currentVulkanData[i].score || '未填';
+    const fpsVal = currentVulkanData[i].fps || '未填';
+    const tempVal = currentVulkanData[i].temp || '未填';
+    const powerVal = currentVulkanData[i].power || '未填';
+    const resultVal = currentVulkanData[i].result;
+    const crashVal = currentVulkanData[i].crash;
     
     let crashDesc = '無';
     if (crashVal === '1') crashDesc = '1 次';
@@ -1543,7 +1640,7 @@ function generateMarkdownReport() {
   // 組裝分析
   let analysisMarkdown = '';
   if (normalCount > 0) {
-    analysisMarkdown += `- **正常運作卡片 (${normalCount} 張)**：效能分數與幀率表現穩定，燒機溫度與功耗均處於合理範圍（75°C~80°C，178W~182W），屬 Pascal 架儲在 Vulkan API 模式下的標準高效能表現。\n`;
+    analysisMarkdown += `- **正常運作卡片 (${normalCount} 張)**：效能分數與幀率表現穩定，燒機溫度與功耗均處於合理範圍（75°C~80°C，178W~182W），屬 Pascal 架構在 Vulkan API 模式下的標準高效能表現。\n`;
   }
   if (warnCount > 0) {
     analysisMarkdown += `- **散熱預警卡片 (${warnCount} 張)**：雖通過壓力測試，但燒機溫度偏高 (>= 82°C)。這會限制顯卡長時間運作的穩定性，甚至因高溫降頻影響算力。建議清理散熱鰭片灰塵並注意機殼內風道。\n`;
@@ -1569,6 +1666,14 @@ ${analysisMarkdown}
 
 ## 三、 Vulkan API 壓榨測試心得
 Vulkan API 具備低開銷 (Low-Overhead) 與靠近底層 (Close-to-Metal) 的硬體控制優勢，能夠最大化減低 CPU 驅動層開銷，使 6 張顯卡的 GPU 負載與發熱量在極短時間內攀升至最高值。這對於檢測像 GTX 1080 這類經典 Pascal 顯卡在極限高負載下的供電穩定性、降頻保護機制與風扇散熱健康度，是極為精準且高效的測試方案。
+
+## 四、 系統環境與換卡實務建議
+- **免重灌系統驗證**：6 張測試卡均為同型號 GTX 1080，共用 NVIDIA 驅動程式，換卡測試時無需重新安裝系統，直接拔換即可。
+- **Ubuntu 測試環境配置 SOP**：
+  1. 安裝好 Ubuntu 系統。
+  2. 安裝好 NVIDIA 顯示卡驅動（確認 Vulkan 相關套件運作正常）。
+  3. 即可開始 6 張顯卡的效能與壓力測試。
+- **🚨 換卡安全鐵則**：務必先關機、拔掉電源線後再進行顯示卡插拔更換，切勿帶電作業，以防燒毀硬體！
 
 ---
 報告人：[請在此填寫您的姓名]`;
