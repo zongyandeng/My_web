@@ -150,5 +150,40 @@
         "answer": "答：1. **切斷電源**：關閉並拔掉主機電源線。<br>2. **使用主機板針腳**：在主機板上找到寫有 `CLRTC` 或 `JBAT1` 的兩根金屬針腳，用螺絲起子金屬部分將兩針腳短路 5~10 秒。<br>3. **拔除水銀電池**：若找不到針腳，可直接將主機板上的 CR2032 鈕扣電池拔下，等待 5 分鐘後裝回。<br>4. **重啟**：插上電源開機，BIOS 即會回復成出廠預設值。"
       }
     ]
+  },
+  {
+    "id": "ubuntu-install",
+    "title": "Ubuntu 系統重灌與 NVIDIA 驅動安裝指南",
+    "englishTitle": "Ubuntu OS Reinstall & NVIDIA Driver Guide",
+    "description": "整理從零開始安裝 Ubuntu LTS 系統的完整 SOP、開機隨身碟製作步驟，以及在 Ubuntu 環境下配置 NVIDIA 獨立顯卡驅動與 Vulkan 工具鏈的實務流程。",
+    "specs": [
+      {
+        "name": "第一階段：事前準備工作",
+        "value": "準備工具與 ISO 映像檔",
+        "description": "1. <strong>備份重要資料</strong>：重灌會清除硬碟中所有資料，請先備份至外接硬碟或雲端。<br>2. <strong>準備隨身碟</strong>：容量至少 8GB 的空白隨身碟（內容會被格式化）。<br>3. <strong>下載映像檔</strong>：前往 Ubuntu 官方網站下載 LTS 長期支援版 ISO 檔。<br>4. <strong>開機碟製作工具</strong>：推薦使用免費開源的 <strong>Ventoy</strong>（可直接複製多個 ISO）或 Rufus。"
+      },
+      {
+        "name": "第二階段：製作開機隨身碟",
+        "value": "使用 Ventoy 製作",
+        "description": "1. 將隨身碟插上電腦，打開 Ventoy 軟體，選擇該隨身碟並點擊「安裝 (Install)」將其製作成開機碟。<br>2. 安裝完成後，<strong>直接將下載好的 Ubuntu ISO 檔案複製貼上</strong>到該隨身碟的磁碟分割區中即完成製作。"
+      },
+      {
+        "name": "第三階段：實際安裝 Ubuntu",
+        "value": "BIOS 設定與系統安裝",
+        "description": "1. <strong>進 BIOS 調整順序</strong>：插上開機碟重開機，在 Logo 出現時連按 F2、F12 或 Del 進入 BIOS，將 USB 設定為第一順位（UEFI 模式）開機並存檔退出。<br>2. <strong>啟動安裝程式</strong>：在 Ventoy 選單中選擇 Ubuntu ISO，進入歡迎畫面選語言，點「安裝 Ubuntu」。<br>3. <strong>相容性勾選（關鍵）</strong>：安裝過程中，<strong>務必勾選「安裝第三方圖形與無線硬體軟體」</strong>，這能自動配置好部分驅動。<br>4. <strong>磁碟分割與帳號</strong>：全新重灌選「清除磁碟並安裝」，設定使用者名稱與密碼，等待進度條跑完重開機（提示拔出隨身碟後按 Enter）。"
+      },
+      {
+        "name": "第四階段：安裝 NVIDIA 顯卡驅動與 Vulkan",
+        "value": "Ubuntu 終端機配置",
+        "description": "1. <strong>自動偵測推薦版本</strong>：打開終端機 (Ctrl+Alt+T)，輸入 <code>ubuntu-drivers devices</code> 查看推薦的驅動版本（如 nvidia-driver-535）。<br>2. <strong>安裝推薦驅動</strong>：輸入 <code>sudo ubuntu-drivers install</code> 安裝所有推薦驅動；或輸入 <code>sudo apt install nvidia-driver-535</code> 指定安裝。<br>3. <strong>重啟系統</strong>：安裝完畢後，輸入 <code>sudo reboot</code> 重啟以載入核心模組。<br>4. <strong>驗證驅動狀態</strong>：開機後在終端機輸入 <code>nvidia-smi</code>，若正確顯示 GPU 列表與當前溫度、功耗、VRAM 資訊，即代表驅動安裝成功！<br>5. <strong>安裝 Vulkan 套件</strong>：輸入 <code>sudo apt install mesa-vulkan-utils vulkan-tools</code>，並以 <code>vkcube</code> 或 <code>vulkaninfo</code> 測試 Vulkan 渲染是否正常。"
+      }
+    ],
+    "guides": [],
+    "faq": [
+      {
+        "question": "問：為什麼在 Ubuntu 下輸入 nvidia-smi 卻顯示 'NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver'？",
+        "answer": "答：這通常是因為主機板啟用了 **Secure Boot (安全開機)** 導致未簽名的第三方 NVIDIA 驅動被核心拒絕載入。**解決方案**：1. 重啟進 BIOS。 2. 找到 Security 或 Boot 頁面。 3. 將 **Secure Boot 設定為 Disabled**。 4. 存檔退出重啟即可恢復正常。若不想關閉 Secure Boot，在安裝驅動時必須設定 MOK 密碼並在重開機時完成 Enroll MOK 註冊。"
+      }
+    ]
   }
 ]
