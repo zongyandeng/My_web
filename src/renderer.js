@@ -1233,12 +1233,12 @@ let currentVulkanData = {
 };
 
 const presetVulkanData = {
-  1: { score: 5420, fps: 90, temp: 78, power: 180, result: "Pass", crash: "0" },
-  2: { score: 5380, fps: 89, temp: 80, power: 182, result: "Pass", crash: "0" },
-  3: { score: 5450, fps: 91, temp: 75, power: 178, result: "Pass", crash: "0" },
-  4: { score: 5110, fps: 85, temp: 83, power: 185, result: "Pass", crash: "0" },
-  5: { score: 3200, fps: 53, temp: 92, power: 150, result: "Fail", crash: "2" },
-  6: { score: 5410, fps: 90, temp: 77, power: 179, result: "Pass", crash: "0" }
+  1: { score: 153, fps: 150, temp: 73, power: 285, result: "Pass", crash: "0" },
+  2: { score: 141, fps: 137, temp: 81, power: 251, result: "Pass", crash: "0" },
+  3: { score: 141, fps: 137, temp: 76, power: 255, result: "Pass", crash: "0" },
+  4: { score: 140, fps: 129, temp: 84, power: 254, result: "Pass", crash: "0" },
+  5: { score: 148, fps: 147, temp: 72, power: 282, result: "Pass", crash: "0" },
+  6: { score: 148, fps: 147, temp: 77, power: 283, result: "Pass", crash: "0" }
 };
 
 function renderVulkanDashboard(item) {
@@ -1310,6 +1310,17 @@ function renderVulkanDashboard(item) {
           </div>
           <p class="api-card-desc" style="margin-top:12px; font-size:0.85rem; line-height:1.4; color:var(--text-muted);">${item.vulkanInfo.geminiComparison}</p>
         </div>
+
+        <div class="api-card info-glass" style="border-color: rgba(245, 158, 11, 0.4);">
+          <div class="api-card-header">
+            <span class="api-icon">⚡</span>
+            <div>
+              <h4 class="api-card-title" style="margin:0; font-size:1.05rem; color:#f59e0b;">學長秘笈：滿載功耗判斷鐵則</h4>
+              <p class="api-card-subtitle" style="margin:2px 0 0 0; font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">GPU Full-Load Power Formula</p>
+            </div>
+          </div>
+          <p class="api-card-desc" style="margin-top:12px; font-size:0.85rem; line-height:1.4; color:var(--text-muted);">${item.vulkanInfo.envAndSwapPractice.fullLoadFormula}</p>
+        </div>
       </div>
 
       <!-- 甜甜圈科普與 SOP 說明 -->
@@ -1321,7 +1332,11 @@ function renderVulkanDashboard(item) {
           <div style="font-size: 0.9rem; line-height: 1.5;">
             <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">什麼是「甜甜圈」？</p>
             <p style="color: var(--text-muted); margin-bottom: 10px;">FurMark 運行時畫面中央那顆毛茸茸的環狀物體。它使用極限著色器程式負載來極限壓榨 GPU 的發熱與運算，是超頻界與硬體研究中最經典的「燒機」畫面。</p>
-            <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:0;">測試 SOP 規範：</p>
+            
+            <p style="color: #ef4444; font-weight: 700; margin-bottom: 4px; margin-top:10px;">⚠️ 最新版本黑屏避坑：</p>
+            <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 0.85rem;">${item.vulkanInfo.envAndSwapPractice.furmark2Blackscreen}</p>
+
+            <p style="color: var(--text-main); font-weight: 600; margin-bottom: 4px; margin-top:10px;">測試 SOP 規範：</p>
             <ul style="color: var(--text-muted); padding-left: 15px; margin: 0;">
               <li><strong>效能測試</strong>：${item.vulkanInfo.sop.benchmark}</li>
               <li><strong>壓力測試</strong>：${item.vulkanInfo.sop.stress}</li>
@@ -1353,7 +1368,7 @@ function renderVulkanDashboard(item) {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
           <h3 style="font-size: 1.25rem; color: var(--accent-1); margin: 0;">📊 6× GTX 1080 測試數據錄入台</h3>
           <div style="display: flex; gap: 10px;">
-            <button id="btn-load-vulkan-preset" class="vulkan-btn btn-secondary">⚡ 預載學長測試數據</button>
+            <button id="btn-load-vulkan-preset" class="vulkan-btn btn-secondary">⚡ 預載實測數據</button>
             <button id="btn-clear-vulkan-data" class="vulkan-btn btn-danger">🗑️ 清空數據</button>
           </div>
         </div>
@@ -1364,10 +1379,10 @@ function renderVulkanDashboard(item) {
             <thead>
               <tr>
                 <th>GPU 編號</th>
-                <th>[效能] Score (分數)</th>
-                <th>[效能] Avg FPS</th>
-                <th>[壓力] Max Temp (°C)</th>
-                <th>[壓力] Max Power (W)</th>
+                <th>[跑分] FPS (1st)</th>
+                <th>[跑分] FPS (2nd 燒機後)</th>
+                <th>[壓力] 最高溫度 (°C)</th>
+                <th>[壓力] 最高瓦數 (W)</th>
                 <th>[壓力] 狀態</th>
                 <th>崩潰次數</th>
               </tr>
@@ -1381,14 +1396,14 @@ function renderVulkanDashboard(item) {
         <!-- 圖表區 -->
         <div class="vulkan-charts-section" style="margin-top: 35px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;">
           <div class="chart-container info-glass" style="padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-            <h4 style="color: var(--accent-1); margin-top: 0; margin-bottom: 15px; font-size: 1rem;">🔥 效能得分與平均 FPS 對比</h4>
+            <h4 style="color: var(--accent-1); margin-top: 0; margin-bottom: 15px; font-size: 1rem;">🔥 跑分 FPS (1st 跑分 vs 2nd 燒機後) 對比</h4>
             <div id="performance-chart" class="bar-chart-y">
               <!-- JS 動態生成長條 -->
             </div>
           </div>
           
           <div class="chart-container info-glass" style="padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
-            <h4 style="color: var(--accent-2); margin-top: 0; margin-bottom: 15px; font-size: 1rem;">🌡️ 燒機最高溫度與功耗對比</h4>
+            <h4 style="color: var(--accent-2); margin-top: 0; margin-bottom: 15px; font-size: 1rem;">🌡️ 燒機最高溫度與最高瓦數對比</h4>
             <div id="temperature-chart" class="bar-chart-y">
               <!-- JS 動態生成長條 -->
             </div>
@@ -1551,8 +1566,8 @@ function updateVulkanCharts() {
     const powerVal = parseFloat(document.querySelector(`.power-input[data-gpu="${i}"]`).value) || 0;
     const resultVal = document.querySelector(`.result-select[data-gpu="${i}"]`).value;
     
-    // 效能長條圖
-    const perfPercent = Math.min((scoreVal / 6000) * 100, 100);
+    // 效能長條圖 (以 250 FPS 為分母)
+    const perfPercent = Math.min((scoreVal / 250) * 100, 100);
     let perfBarColor = 'var(--accent-1)';
     if (resultVal === 'Fail') perfBarColor = 'rgba(239, 68, 68, 0.7)'; // 故障變紅色
     
@@ -1562,8 +1577,8 @@ function updateVulkanCharts() {
         <div class="chart-bar-container" style="flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; margin: 0 15px; position:relative;">
           <div class="chart-bar" style="height: 100%; width: ${perfPercent}%; background: ${perfBarColor}; border-radius: 5px; transition: width 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);"></div>
         </div>
-        <div class="chart-gpu-val" style="width: 110px; text-align: right; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600;">
-          ${scoreVal > 0 ? `${scoreVal} <span style="color:var(--text-muted); font-size:0.75rem;">(${fpsVal} FPS)</span>` : '<span style="color:var(--text-muted)">未錄入</span>'}
+        <div class="chart-gpu-val" style="width: 130px; text-align: right; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600;">
+          ${scoreVal > 0 ? `${scoreVal} <span style="color:var(--text-muted); font-size:0.75rem;">1st / ${fpsVal} 2nd</span>` : '<span style="color:var(--text-muted)">未錄入</span>'}
         </div>
       </div>
     `;
@@ -1631,7 +1646,7 @@ function generateMarkdownReport() {
   }
   
   // 組裝 Markdown 表格
-  let tableMarkdown = '| GPU 編號 | Benchmark 分數 | 平均幀率 (Avg FPS) | 燒機最高溫度 | 燒機最大功耗 | 測試狀態 | 崩潰與異常 |\n';
+  let tableMarkdown = '| GPU 編號 | 跑分 FPS (1st) | 跑分 FPS (2nd 燒機後) | 燒機最高溫度 | 燒機最高瓦數 | 測試狀態 | 崩潰與異常 |\n';
   tableMarkdown += '| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n';
   rows.forEach(r => {
     tableMarkdown += `| ${r.id} | ${r.score} | ${r.fps} | ${r.temp} | ${r.power} | ${r.result} | ${r.crash} |\n`;
@@ -1640,13 +1655,13 @@ function generateMarkdownReport() {
   // 組裝分析
   let analysisMarkdown = '';
   if (normalCount > 0) {
-    analysisMarkdown += `- **正常運作卡片 (${normalCount} 張)**：效能分數與幀率表現穩定，燒機溫度與功耗均處於合理範圍（75°C~80°C，178W~182W），屬 Pascal 架構在 Vulkan API 模式下的標準高效能表現。\n`;
+    analysisMarkdown += `- **正常運作卡片 (${normalCount} 張)**：大部分顯卡（如 GPU 1, 3, 5, 6）跑分幀率穩定，燒機溫度控制在 72°C~78°C，功耗均拉滿至 255W~285W，表明 GPU 核心已被完全調動，散熱與效能非常優異。\n`;
   }
   if (warnCount > 0) {
-    analysisMarkdown += `- **散熱預警卡片 (${warnCount} 張)**：雖通過壓力測試，但燒機溫度偏高 (>= 82°C)。這會限制顯卡長時間運作的穩定性，甚至因高溫降頻影響算力。建議清理散熱鰭片灰塵並注意機殼內風道。\n`;
+    analysisMarkdown += `- **散熱預警卡片 (${warnCount} 張)**：GPU #2 與 GPU #4 燒機溫度偏高（分別為 81°C 與 84°C）。其中 <strong>GPU #4 在燒機後第二次跑分從 140 FPS 下降至 129 FPS (降幅達 8%)</strong>，表示已經觸發高溫降頻保護機制。建議優先清理 GPU #4 的風扇灰塵、並考慮重塗散熱膏。\n`;
   }
   if (failCount > 0) {
-    analysisMarkdown += `- **故障/異常卡片 (${failCount} 張)**：測試狀態為 Fail，且伴隨嚴重過熱降頻或燒機中途崩潰。硬體可能面臨風扇損壞、散熱膏乾涸或供電模組老化，需立即拆解維護或檢修。\n`;
+    analysisMarkdown += `- **故障/異常卡片 (${failCount} 張)**：目前測試全部順利跑完。無顯卡發生 Fail 崩潰。\n`;
   }
   
   const nowStr = new Date().toLocaleString('zh-TW');
@@ -1654,7 +1669,7 @@ function generateMarkdownReport() {
 
 - **報告生成時間**：${nowStr}
 - **測試對象**：NVIDIA GeForce GTX 1080 * 6 (Pascal 架構)
-- **測試 API 與工具**：Vulkan API / FurMark 2 (甜甜圈)
+- **測試 API 與工具**：Vulkan API / FurMark 2 (舊版本，避開最新版 Vulkan 黑屏問題)
 
 ## 一、 測試數據彙整表
 
@@ -1667,13 +1682,11 @@ ${analysisMarkdown}
 ## 三、 Vulkan API 壓榨測試心得
 Vulkan API 具備低開銷 (Low-Overhead) 與靠近底層 (Close-to-Metal) 的硬體控制優勢，能夠最大化減低 CPU 驅動層開銷，使 6 張顯卡的 GPU 負載與發熱量在極短時間內攀升至最高值。這對於檢測像 GTX 1080 這類經典 Pascal 顯卡在極限高負載下的供電穩定性、降頻保護機制與風扇散熱健康度，是極為精準且高效的測試方案。
 
-## 四、 系統環境與換卡實務建議
-- **免重灌系統驗證**：6 張測試卡均為同型號 GTX 1080，共用 NVIDIA 驅動程式，換卡測試時無需重新安裝系統，直接拔換即可。
-- **Ubuntu 測試環境配置 SOP**：
-  1. 安裝好 Ubuntu 系統。
-  2. 安裝好 NVIDIA 顯示卡驅動（確認 Vulkan 相關套件運作正常）。
-  3. 即可開始 6 張顯卡的效能與壓力測試。
+## 四、 系統環境與換卡實務及滿載判斷建議
+- **換卡免重灌系統驗證**：6 張測試卡均為同型號 GTX 1080，共用 NVIDIA 驅動程式，換卡測試時無需重新安裝系統，直接拔換即可。
 - **🚨 換卡安全鐵則**：務必先關機、拔掉電源線後再進行顯示卡插拔更換，切勿帶電作業，以防燒毀硬體！
+- **NVIDIA GPU 滿載功耗判斷鐵則（學長傳授）**：以 1080 Ti 為例，其配備 11 顆 1GB GDDR5X 顯存顆粒，每一顆滿載功耗約 5W（光是顯存功耗即達 55W）。這代表整卡實際跑滿載時，必須要跑到 200W 以上（GTX 1080 / 1080 Ti 核心與記憶體總功耗 200W~280W+），GPU 核心才算真正被壓榨滿載。如果使用 vkmark、geekbench 6 或 GpuTest 等其他工具測試時只測出 137W~168W 功耗，代表顯示卡並未跑滿載，測試數據不具備壓力測試的參考價值。
+- **FurMark 2 Vulkan 黑屏避坑說明**：最新版本 FurMark 2 中 Vulkan 測試可能黑屏。解決方案為下載舊版本（並且不要更新版本）即可正常執行測試。
 
 ---
 報告人：[請在此填寫您的姓名]`;
