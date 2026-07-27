@@ -745,7 +745,7 @@
     "id": "cv_architecture_evolution",
     "title": "電腦視覺架構演進：從 CNN 到 Foundation Models (CV Evolution)",
     "englishTitle": "Computer Vision Architecture Evolution: CNN, Transformer & SAM 3",
-    "description": "本單元梳理電腦視覺從 CNN 局部空間特徵（Faster R-CNN、YOLO、U-Net）跨越到 Transformer 全局感知（ViT）與大一統基礎大模型（DETR、SAM 3）的演進歷程。探討如何用更優雅的全局注意力矩陣取代繁瑣的人工 Anchor Boxes 與 NMS 篩選規則，並以表格對比三大流派特質與資料流模擬。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">Faster R-CNN vs. YOLO vs. DETR 實戰架構比較</h3><table class=\"gpu-table\"><thead><tr><th>架構特性</th><th>Faster R-CNN (Two-Stage)</th><th>YOLO (One-Stage)</th><th>DETR (Transformer)</th></tr></thead><tbody><tr><td style=\"font-weight:700;\">設計哲學</td><td>先找候選區 (RPN)，再精細分類</td><td>網格劃分，一次看全圖密集預測</td><td>全局交叉注意力，集合預測</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">依賴人工設計</td><td>高 (Anchor, NMS)</td><td>中 (Anchor, NMS)</td><td>極低 (無 Anchor, 無 NMS)</td></tr><tr><td style=\"font-weight:700;\">對小物件偵測</td><td>強 (RoI Align 對齊保留細節)</td><td>較弱</td><td>弱 (特徵圖解析度受限)</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">對大物件/遮擋</td><td>一般</td><td>一般</td><td>極強 (全局上下文語意理解)</td></tr><tr><td style=\"font-weight:700;\">部署推理速度</td><td>慢 (難以做到即時)</td><td>極快 (邊緣設備首選)</td><td>中等 (算力要求高)</td></tr></tbody></table>",
+    "description": "本單元梳理電腦視覺從 CNN 局部空間特徵跨越到 Transformer 全局感知與大一統基礎大模型的演進歷程。探討如何用更優雅的全局自注意力取代繁瑣的人工 Anchor 與 NMS，並以下表對比兩大流派特質與資料流模擬。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">👁️ 電腦視覺 (Computer Vision) 經典模型分類總覽</h3><p style=\"color:var(--text-muted); margin-bottom:15px;\">主要可劃分為傳統卷積神經網路 (CNN) 與基於注意力機制的 Transformer 架構兩大流派：</p><h4 style=\"color:var(--accent-2); margin-top:15px; margin-bottom:10px;\">一、 傳統 CNN 流派</h4><p style=\"font-size:0.9rem; color:var(--text-muted); margin-bottom:10px;\">核心特徵：利用區域卷積 (Local Convolution) 與池化 (Pooling) 提取局部特徵，具備平移不變性 (Translation Invariance)，但缺乏全局視野。</p><table class=\"gpu-table\"><thead><tr><th>任務類型</th><th>經典代表模型</th><th>💡 核心特點</th></tr></thead><tbody><tr><td style=\"font-weight:700;\" rowspan=\"2\">影像分類 (Classification)</td><td style=\"font-weight:700; color:var(--accent-1);\">ResNet (Residual Network)</td><td>引入<b>殘差連接 (Skip/Residual Connection)</b>，解決深層網路梯度消失問題，是 CNN 時代的標竿。</td></tr><tr><td style=\"font-weight:700;\">VGGNet</td><td>架構極度規整（全用 3x3 小卷積核），奠定了深度 CNN 的基礎。</td></tr><tr><td style=\"font-weight:700;\" rowspan=\"2\">物件偵測 (Object Detection)</td><td style=\"font-weight:700; color:var(--accent-1);\">Faster R-CNN</td><td><b>Two-Stage 標竿</b>：先用 RPN（區域生成網路）找候選區，再用 RoI Align 精確對齊分類，準確度高但速度慢。</td></tr><tr><td style=\"font-weight:700;\">YOLO 系列 (v1 ~ v8 等)</td><td><b>One-Stage 標竿</b>：將整張圖劃分網格進行密集預測，捨棄繁複步驟，追求極致的即時推理速度。</td></tr><tr><td style=\"font-weight:700;\" rowspan=\"2\">影像分割 (Segmentation)</td><td style=\"font-weight:700; color:var(--accent-1);\">U-Net</td><td><b>醫療與工業分割神作</b>：透過 Encoder-Decoder 架構加上跳躍連結 (Skip Connection)，完美保留高解析度幾何邊界。</td></tr><tr><td style=\"font-weight:700;\">Mask R-CNN</td><td>在 Faster R-CNN 基礎上加入 Mask 分支，實現高精度的實例分割 (Instance Segmentation)。</td></tr></tbody></table><h4 style=\"color:var(--accent-2); margin-top:25px; margin-bottom:10px;\">二、 Transformer 與基礎大模型流派</h4><p style=\"font-size:0.9rem; color:var(--text-muted); margin-bottom:10px;\">核心特徵：捨棄局部卷積，全面擁抱 Self-Attention (自注意力機制)，自第一層起就具備全局上下文感知能力，並結合多模態大一統架構。</p><table class=\"gpu-table\"><thead><tr><th>任務類型 / 演進階段</th><th>經典代表模型</th><th>💡 核心特點</th></tr></thead><tbody><tr><td style=\"font-weight:700;\" rowspan=\"2\">純視覺骨幹 (Vision Backbone)</td><td style=\"font-weight:700; color:var(--accent-1);\">ViT (Vision Transformer)</td><td><b>典範轉移開端</b>：將影像切塊成 Patch Embedding 序列，直接套用 NLP 的 Transformer Encoder，開啟 Transformer 時代。</td></tr><tr><td style=\"font-weight:700;\">Swin Transformer</td><td>引入<b>移動視窗 (Shifted Window)</b> 機制，將運算複雜度從影像尺寸的平方降為線性，能高效處理密集預測任務。</td></tr><tr><td style=\"font-weight:700;\">全域物件偵測 (Object Detection)</td><td style=\"font-weight:700; color:var(--accent-1);\">DETR (DEtection TRansformer)</td><td>將偵測視為<b>集合預測</b>問題，利用 Object Queries 與匈牙利演算法進行一對一全局匹配，徹底拔除 Anchor 框與 NMS 篩選規則。</td></tr><tr><td style=\"font-weight:700;\">萬物分割大模型 (Foundation Models)</td><td style=\"font-weight:700; color:var(--accent-1);\">SAM 系列 (1 / 2 / 3)</td><td><b>開放詞彙與提示分割</b>：結合 Vision-Text 雙塔與聯合嵌入空間，支援點、框、文字或影像範例提示，實現萬物皆可分割。</td></tr></tbody></table>",
     "steps": [
       {
         "name": "1. CNN Two-Stage 經典：Faster R-CNN (RPN & RoI Align)",
@@ -764,11 +764,15 @@
         "details": "捨棄局部卷積掃描。將影像切塊成 Patch Embedding 序列（圖塊單字），利用 Self-Attention 計算點積找出圖塊間的全局關聯，使模型自第一層起就具備全局上下文感知能力。"
       },
       {
-        "name": "5. 集合預測大一統：DETR 匈牙利匹配與 NMS 解除",
+        "name": "5. 移動視窗優化：Swin Transformer 局部自注意力",
+        "details": "解決傳統 ViT 對於高解析度密集預測任務算力複雜度過高的痛點。引入<b>移動視窗 (Shifted Window)</b>，限制注意力只在局部視窗內計算，並通過層次化結構逐步合併，實現了與影像尺寸呈線性的低運算複雜度。"
+      },
+      {
+        "name": "6. 集合預測大一統：DETR 匈牙利匹配與 NMS 解除",
         "details": "將偵測視為「集合預測」問題。利用固定 Object Queries 作為特工，透過 Bipartite Matching Loss (二分圖匹配損失) 與匈牙利演算法建立一對一對應關係，徹底拔除 Anchor 箱與 NMS 規則。"
       },
       {
-        "name": "6. 語意與幾何解耦：SAM 3 通用可提示基礎模型 (Promptable)",
+        "name": "7. 語意與幾何解耦：SAM 系列通用可提示基礎模型 (Promptable)",
         "details": "進入可提示分割時代。將任務解耦為：ViT 提取特徵，Presence Head 判斷「有沒有（What）」，Mask Head 負責「精準幾何分割（Where）」，在邊緣端能依靠 Presence Head 成功省下 80% 算力。"
       }
     ],
