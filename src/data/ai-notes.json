@@ -854,5 +854,60 @@
         "answer": "答：這通常是因為「現場實體環境」與「訓練數據集」存在特徵偏差，應採取以下三步排查：第一，檢查 Confidence Threshold，現場反光或角度偏差可能導致置信度微幅低於閥值，可嘗試微調降低 0.05 看看漏檢是否改善；第二，檢查實體輸入解析度 (Input Size) 是否與現場攝影機解析度落差過大，如果現場小物體過多而訓練時採用 640 解析度，可考慮將推論解析度調高至 960 或 1280；第三，評估現場物體是否堆疊緊密，如果是，請嘗試調高 IoU Threshold 以免 NMS 將鄰近的真實物體判定為重複檢測而強行過濾。"
       }
     ]
+  },
+  {
+    "id": "roi_canny_edge_detection",
+    "title": "ROI Canny 局部邊緣檢測技術 (ROI Canny)",
+    "englishTitle": "Region of Interest (ROI) with Canny Edge Detection",
+    "description": "本單元詳細拆解傳統機器視覺中的核心預處理技術：ROI（感興趣區域）與 Canny 邊緣檢測的結合應用。探討如何藉由 ROI 遮罩解決 Canny 全域自動閾值失真問題，並從電腦科學底層分析 L1/L2 Cache 快取庫局部性 (Cache Locality) 的效能優化，同時包含 Canny 四步數學流程、雙閾值 LaTeX 公式與 OpenCV 實作。",
+    "steps": [
+      {
+        "name": "1. 基礎概念：何謂 ROI 與 Canny 邊緣檢測 (Core Concepts)",
+        "details": "機器視覺中，大圖處理的「聚焦與提取」組合。<br><br>• <b>ROI (感興趣區域)</b>：在一張大型高解析度影像中，只截取包含目標物體（如車牌、指紋、零件）的局部小區域進行運算，以節省處理時間與記憶體。<br>• <b>Canny 邊緣檢測</b>：由 John F. Canny 於 1986 年提出，是目前最經典且精準的邊緣提取算子。透過高斯濾波、 Sobel 梯度計算、非極大值抑制 (NMS) 與滯後雙閾值，可抓取極細且連續的物體邊緣輪廓。"
+      },
+      {
+        "name": "2. Canny 演算法底層的四個數學與演算步驟 (Algorithm Workflow)",
+        "details": "Canny 邊緣提取的精密四步數據流：<br><br>1. <b>高斯平滑降噪 (Gaussian Smoothing)</b>：使用高斯卷積核心降低高頻雜訊，防止噪聲被誤判為邊緣。<br>2. <b>計算梯度強度與方向 (Gradient Calculation)</b>：利用 Sobel 算子計算水平與垂直方向梯度，得出梯度強度 $G$ 與方向角度 $\\theta$。<br>3. <b>非極大值抑制 (NMS)</b>：沿著梯度方向掃描，若當前像素非局部最大強度，則將其置零，使邊緣變細至 1 像素寬。<br>4. <b>滯後雙閾值連接 (Hysteresis Thresholding)</b>：設置高閾值 $T_{\\text{high}}$ 與低閾值 $T_{\\text{low}}$。高於高閾值確定為強邊緣；低於低閾值則濾除；介於兩者之間且與強邊緣相連的保留為弱邊緣。"
+      },
+      {
+        "name": "3. 核心突破：解決全域自動閾值失真 (Threshold Distortions)",
+        "details": "為什麼限制在 ROI 內能極大提升 Canny 的精準度？<br><br>• <b>全域統計汙染</b>：Canny 閾值常依賴整張圖最大梯度來自動估算。若整張圖背景有強光、反光或雜亂紋理，最大梯度會被大幅拉高，導致閾值偏高，使 ROI 內的真實微弱邊緣被當作雜訊直接抹除。<br>• <b>局部精準鎖定</b>：將運算限制在 ROI 內，直方圖與梯度統計只針對目標物體計算，閾值能極其精確地適應工件的材質、色彩與實體反光。"
+      },
+      {
+        "name": "4. 硬體效能最佳化：快取局部性 (Cache Locality)",
+        "details": "從計算機結構底層剖析 ROI Canny 帶來的 FPS 狂飆。<br><br>• <b>Cache Miss 痛點</b>：大圖（如 4K 影像）在記憶體中佔用範圍廣。Sobel 卷積與 NMS 在整張圖上大範圍定址時，極易超出 CPU 的 L1/L2 快取容量，頻繁觸發慢速的實體記憶體讀寫。<br>• <b>連續矩陣快取</b>：先將 ROI 裁切為小的子矩陣 (Sub-matrix)。在記憶體中，這塊小資料結構是連續且緊湊的，能整個載入 CPU 的高頻 Cache 中，使乘加運算與分支跳轉效率達到幾何級數提升。"
+      },
+      {
+        "name": "5. 工業實務應用：粗定位與精定位 (Coarse-to-Fine)",
+        "details": "在動態自動化檢測中，ROI 的進階部署策略：<br><br>• <b>Coarse 粗定位</b>：先以低解析度全圖，利用簡單的特徵（如模板匹配或顏色二值化）快速定位目標物大略位置，並動態畫出一個 ROI 框。<br>• <b>Fine 精定位</b>：在此動態 ROI 遮罩內，以全解析度執行高精度 Canny 邊緣檢測與亞像素級邊緣擬合，實現高速與高精度兼得。<br>• <b>雜訊遮除 (Clutter Removal)</b>：將非 ROI 區域使用 Bitwise-AND 歸零，使 Canny 算子直接跳過梯度運算，徹底阻絕背景傳送帶或反光的干擾。"
+      },
+      {
+        "name": "6. Python 與 OpenCV 程式碼實作示範",
+        "details": "在 OpenCV 中結合裁切 ROI 與套用 Canny 算子的標準流程，支援定義靜態與遮罩式 ROI 的實務。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "影像二維梯度強度 (Gradient Magnitude) 算子",
+        "latex": "G = \\sqrt{G_x^2 + G_y^2} = \\sqrt{(\\mathbf{I} * \\mathbf{S}_x)^2 + (\\mathbf{I} * \\mathbf{S}_y)^2}",
+        "description": "影像 I 與 Sobel 算子 Sx、Sy 進行卷積運算，分別得出水平與垂直方向的梯度分量，再計算其歐氏距離作為像素點的梯度強度。"
+      },
+      {
+        "name": "邊界框梯度方向角度 (Gradient Direction) 算子",
+        "latex": "\\theta = \\arctan2(G_y, G_x)",
+        "description": "利用 atan2 函數計算梯度的方向角（四象限弧度），非極大值抑制 (NMS) 會利用此角度來決定該像素與其相鄰梯度方向點進行大小比對。"
+      }
+    ],
+    "code": "# ==========================================\n# 專案名稱：ROI Canny 邊緣檢測與局部優化模擬\n# 目的：展示 ROI 擷取與 Canny 算子的運作，以及算力節省對比\n# ==========================================\nimport numpy as np\n\ndef calculate_iou(box1, box2):\n    # 輔助計算函數\n    x1 = max(box1[0], box2[0])\n    y1 = max(box1[1], box2[1])\n    x2 = min(box1[2], box2[2])\n    y2 = min(box1[3], box2[3])\n    inter_area = max(0, x2 - x1) * max(0, y2 - y1)\n    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])\n    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])\n    union_area = box1_area + box2_area - inter_area\n    return inter_area / union_area if union_area > 0 else 0\n\ndef apply_roi_canny(image, bbox, low_threshold=50, high_threshold=150):\n    \"\"\"\n    模擬對指定邊界框 (ROI) 的區域進行 Canny 邊緣檢測，並與原圖融合展示\n    image: ndarray, 原始影像\n    bbox: tuple, 格式為 (x, y, w, h)\n    \"\"\"\n    x, y, w, h = bbox\n    h_max, w_max = image.shape[:2]\n    \n    # 1. 確保邊界框不超出影像實體範圍\n    x1, y1 = max(0, x), max(0, y)\n    x2, y2 = min(w_max, x + w), min(h_max, y + h)\n    print(f\"原始影像尺寸: {w_max}x{h_max} | 擷取 ROI 範圍: [{x1}:{x2}, {y1}:{y2}]\")\n    \n    # 2. 擷取 ROI 子影像 (在記憶體中這是一塊連續的 Sub-matrix，提升 Cache 命中率)\n    # 模擬切片操作\n    roi_img = image[y1:y2, x1:x2]\n    \n    # 3. 模擬灰階轉換與高斯模糊處理\n    # 此處做數據結構上的模擬\n    roi_gray = np.mean(roi_img, axis=2).astype(np.uint8) if len(roi_img.shape) == 3 else roi_img\n    \n    # 4. 模擬 Canny 邊緣檢測梯度計算與 NMS 過濾\n    # 由於在 python 模擬中，我們使用虛擬邊緣生成來對比算力\n    simulated_edges = (roi_gray > 128).astype(np.uint8) * 255\n    \n    # 5. 將 ROI 邊緣結果融合回全圖尺寸 (建立黑底畫布)\n    full_edges = np.zeros(image.shape[:2], dtype=np.uint8)\n    full_edges[y1:y2, x1:x2] = simulated_edges\n    \n    return full_edges, simulated_edges\n\nif __name__ == '__main__':\n    # 模擬一張 640x480 RGB 測試圖片，並在中央繪製一個目標物體\n    test_image = np.zeros((480, 640, 3), dtype=np.uint8)\n    test_image[150:330, 200:440] = 255 # 目標白色矩形\n    \n    # 定義感興趣區域 (ROI)\n    target_roi = (180, 130, 280, 220)\n    \n    # 執行 ROI Canny 運算\n    edges_canvas, cropped_edges = apply_roi_canny(\n        test_image, \n        target_roi, \n        low_threshold=50, \n        high_threshold=150\n    )\n    \n    print('\\nROI Canny 處理完成！')\n    print(f'Canny 運算像素點數從 {640*480} 降至 {280*220} (減少約 90% 的運算開銷)')",
+    "faq": [
+      {
+        "question": "問：在 Canny 演算法中，如果低閾值設得太接近高閾值，或者兩者設得太高/太低，會對邊緣提取造成什麼具體影響？",
+        "answer": "答：雙閾值的設定是 Canny 邊緣連接的核心。如果高閾值設得太高，會導致很多真實的邊緣被誤過濾，邊緣變得斷斷續續；如果低閾值設得太低，則會保留過多無意義的噪聲微弱紋理。如果高低閾值過於接近，會使滯後連接 (Hysteresis) 機制失效，無法平滑地連接強弱邊緣；一般實務上，建議高低閾值的比例設定在 2:1 到 3:1 之間（例如 150 與 50），以發揮最佳的斷線連接效果。"
+      },
+      {
+        "question": "問：在 GPU 影像處理（如 CUDA / OpenCL）中，為什麼 ROI 切片 (Cropping) 不一定能像 CPU 一樣帶來極大的加速比，有何架構上的差異？",
+        "answer": "答：這是因為 GPU 採用極度並行的 SIMT 架構。如果僅做簡單的 `image[y1:y2, x1:x2]` 裁切，GPU 仍需處理記憶體對齊與執行緒分流。在 GPU 中，比起裁切子影像，更常見的作法是直接將整張影像載入顯示記憶體中，並使用「遮罩矩陣 (Mask Matrix)」在核函數 (Kernel) 中進行並行過濾——未被遮罩覆蓋的執行緒直接 `return` 結束更新。這樣既能保持記憶體合併讀取 (Coalesced Memory Access) 的極致頻寬，又能達到跳過計算的目的。"
+      }
+    ]
   }
 ]
