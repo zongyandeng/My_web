@@ -909,5 +909,60 @@
         "answer": "答：這是因為 GPU 採用極度並行的 SIMT 架構。如果僅做簡單的 `image[y1:y2, x1:x2]` 裁切，GPU 仍需處理記憶體對齊與執行緒分流。在 GPU 中，比起裁切子影像，更常見的作法是直接將整張影像載入顯示記憶體中，並使用「遮罩矩陣 (Mask Matrix)」在核函數 (Kernel) 中進行並行過濾——未被遮罩覆蓋的執行緒直接 `return` 結束更新。這樣既能保持記憶體合併讀取 (Coalesced Memory Access) 的極致頻寬，又能達到跳過計算的目的。"
       }
     ]
+  },
+  {
+    "id": "ocr_optical_character_recognition",
+    "title": "OCR 光學字元辨識與多模態演進 (OCR Guide)",
+    "englishTitle": "Optical Character Recognition & Vision-Language Models",
+    "description": "本單元探討 OCR（光學字元辨識）的技術演進歷程。從傳統 Pipeline 架構（文字偵測、方向校正、CRNN+CTC 序列解碼），一路解析到現代多模態大模型 (VLM) 的圖文推理與 JSON 結構化輸出變革。並收錄 CRNN 卷積循環網路架構圖、CTC 解碼 LaTeX、以及 Python 模擬實作。",
+    "steps": [
+      {
+        "name": "1. 基礎概念：OCR 運作工作流與生活應用 (Workflow)",
+        "details": "將圖像中的像素紋理轉譯為可編輯的 Unicode 文字代碼。<br><br>• <b>運作生命週期</b>：包含影像輸入 ➔ 預處理（灰階化、二值化、去噪、歪斜校正） ➔ 文字偵測（框選區域） ➔ 字元辨識（特徵提取與解碼） ➔ 輸出結果。<br>• <b>物理限制</b>：極易受字跡潦草、反光陰影、低解析度、以及報紙/雜誌等多欄位圖文交錯的複雜排版干擾而發生漏字或語序錯亂。"
+      },
+      {
+        "name": "2. 傳統管線化架構：文字偵測與幾何校正 (Pipeline OCR)",
+        "details": "傳統 OCR 將任務拆解為多個獨立小模型串聯運行的 Pipeline 結構。<br><br>• <b>文字偵測 (Text Detection)</b>：利用卷積神經網路（如 DBNet, EAST）快速在全圖中尋找並框出可能含有文字的任意角度多邊形區塊。<br>• <b>方向校正 (TPS)</b>：針對傾斜、彎曲或透視變形的文字區塊，利用薄板樣條插值 (Thin Plate Spline, TPS) 進行非線性幾何轉正與展開，方便後續對齊辨識。"
+      },
+      {
+        "name": "3. 經典字元辨識骨幹：CRNN 與 CTC 解碼器 (Text Recognition)",
+        "details": "將整行文字影像一次性解碼為文字序列的核心技術。<br><br>• <b>CNN 提取空間特徵</b>：將轉正後的單行文字影像，經由 CNN 提取特徵圖 (Feature Map)。<br>• <b>RNN/Transformer 學習前後文</b>：使用雙向 LSTM (Bi-LSTM) 沿著寬度方向掃描特徵序列，結合上下文語意關係（例如 't' 後方高機率為 'h'）。<br>• <b>CTC 損失函數 (Connectionist Temporal Classification)</b>：解決影像特徵序列長度與實際文字字元長度不對齊、無對應 Label 的痛點，引入空字符 (Blank) 與合併機制實現免分割對齊。"
+      },
+      {
+        "name": "4. 現代端到端與技術挑戰 (End-to-End & Challenges)",
+        "details": "捨棄複雜串聯，直接端到端輸出。<br><br>• <b>端到端架構 (End-to-End)</b>：利用 Encoder-Decoder 機制直接輸入影像、輸出對應文字序列，減少了 Pipeline 誤差累積的痛點。<br>• <b>複雜版面分析 (Layout Analysis)</b>：對報紙、發票或圖表進行邏輯區塊分類，判定正確的閱讀順序。<br>• <b>全景文字 (Scene Text) 與手寫體</b>：針對招牌、路標等複雜光影遮擋進行注意力機制特徵對齊，並仰賴合成數據解決手寫體筆跡多樣性問題。"
+      },
+      {
+        "name": "5. 跨世代變革：多模態大模型時代 (VLM Era)",
+        "details": "多模態大模型 (Vision-Language Models) 正在徹底重塑 OCR 的定義。<br><br>• <b>圖文對話與邏輯推理</b>：過去的 OCR 僅是字元辨識。現在如 Gemini 等大模型能直接「看懂」圖片中的表格邏輯、柱狀圖走勢甚至是手寫數學方程式，並直接進行跨語系翻譯與邏輯推理。<br>• <b>直接結構化輸出</b>：VLM 具備強大格式生成能力，能直接將發票或複雜表格圖片一鍵提取並輸出為乾淨的 Markdown 或標準 JSON 格式，完全省去了傳統後處理正則表達式 (Regex) 解析的繁雜程序。"
+      },
+      {
+        "name": "6. Python 模擬實作：CRNN 特徵與 CTC 合併解碼",
+        "details": "Python 代碼模擬 CRNN 與 CTC 解碼器如何將模型預測的重複字符進行去重、處理 Blank 字符並還原為正確文字。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "CTC 解碼路徑與目標文字條件機率",
+        "latex": "P(\\mathbf{l}|\\mathbf{x}) = \\sum_{\\pi \\in \\mathcal{B}^{-1}(\\mathbf{l})} P(\\pi|\\mathbf{x}) = \\sum_{\\pi \\in \\mathcal{B}^{-1}(\\mathbf{l})} \\prod_{t=1}^{T} y_{\\pi_t}^t",
+        "description": "CTC 通過映射算子 B，將長度為 T 的預測路徑 \\pi 合併去重並去除 Blank 字符，轉換成目標文字序列 l。所有能映射到 l 的路徑機率之和即為目標序列的機率。"
+      },
+      {
+        "name": "雙向 LSTM 文字序列特徵表示算子",
+        "latex": "\\mathbf{h}_t = [\\vec{\\mathbf{h}}_t \\parallel \\overleftarrow{\\mathbf{h}}_t] = [\\text{LSTM}_{\\text{fw}}(\\mathbf{x}_t) \\parallel \\text{LSTM}_{\\text{bw}}(\\mathbf{x}_t)]",
+        "description": "在 CRNN 結構中，雙向 LSTM 將正向 (Forward) 與反向 (Backward) 的隱藏狀態向量進行拼接 (Concatenation)，同時保留了文字特徵的前後雙向上下文語意。"
+      }
+    ],
+    "code": "# ==========================================\n# 專案名稱：CTC 貪婪解碼器與序列對齊模擬\n# 目的：展示 OCR 辨識序列的重複合併與 Blank 去除邏輯\n# ==========================================\nimport numpy as np\n\ndef ctc_greedy_decoder(emissions, vocabulary, blank_idx=0):\n    \"\"\"\n    模擬 CTC 貪婪解碼器\n    emissions: ndarray, shape (T, C), 模型每個時間步(T)對各字符(C)的機率預測\n    vocabulary: list, 字符字典對照表，其中 vocabulary[blank_idx] 為 '-' (空字符)\n    \"\"\"\n    print(f\"輸入序列時間步 T = {emissions.shape[0]} | 字符類別數 C = {emissions.shape[1]}\")\n    \n    # 1. 每個時間步選取機率最高的字符索引 (Greedy Search)\n    best_path = np.argmax(emissions, axis=1)\n    \n    print(\"\\n模型原始預測路徑索引:\", best_path.tolist())\n    raw_chars = [vocabulary[idx] for idx in best_path]\n    print(\"模型原始預測路徑字符:\", \"\".join(raw_chars))\n    \n    # 2. 執行 CTC 合併與去重邏輯\n    decoded_indices = []\n    prev_idx = -1\n    \n    for idx in best_path:\n        # 如果當前字符與前一個相同，則合併跳過\n        if idx == prev_idx:\n            continue\n        prev_idx = idx\n        \n        # 3. 排除空字符 (Blank)\n        if idx != blank_idx:\n            decoded_indices.append(idx)\n            \n    # 還原成文字\n    final_chars = [vocabulary[idx] for idx in decoded_indices]\n    final_text = \"\".join(final_chars)\n    \n    print(\"\\n--- CTC 解碼合併去重處理 ---\")\n    print(f\"去重且排除 Blank ('-') 後索引: {decoded_indices}\")\n    print(f\"最終輸出辨識文字: {final_text}\")\n    return final_text\n\nif __name__ == '__main__':\n    # 模擬一個長度 T=12，字符類別數 C=5 的模型預測輸出\n    # 字符字典： 0: '-', 1: 'H', 2: 'E', 3: 'L', 4: 'O'\n    mock_vocab = ['-', 'H', 'E', 'L', 'O']\n    \n    T = 12\n    C = 5\n    mock_emissions = np.zeros((T, C))\n    \n    path_indices = [1, 1, 0, 2, 3, 3, 0, 3, 4, 4, 0, 4]\n    for t, char_idx in enumerate(path_indices):\n        mock_emissions[t, char_idx] = 0.95\n        remaining = 0.05 / (C - 1)\n        for c in range(C):\n            if c != char_idx:\n                mock_emissions[t, c] = remaining\n                \n    final_result = ctc_greedy_decoder(mock_emissions, mock_vocab, blank_idx=0)",
+    "faq": [
+      {
+        "question": "問：在 CRNN 影像特徵提取中，為什麼通常要將輸入影像的「高度」縮放為固定尺寸（如 32 像素），但允許「寬度」長度不固定？",
+        "answer": "答：這是因為文字影像的特徵主要取決於其高度方向的結構（如筆畫的垂直分佈），將高度縮放為固定值（如 32）能使 CNN 特徵圖 (Feature Map) 在高度維度上被壓縮至 1，從而將二維特徵圖拉平為一維時間序列。而文字行的長度（寬度方向）則會隨著句子長短、字元多寡而大不相同，若將寬度強行縮放為固定大小會導致字元變形失真。因此，CRNN 允許寬度不固定，以便在時間維度（寬度維度）上生成與文字行長度成正比的特徵序列，再交由 LSTM 進行序列解碼。"
+      },
+      {
+        "question": "問：在 VLM 時代，當多模態模型可以直接對圖文進行邏輯問答時，傳統 OCR 提取純文字的技術是否已經完全失去了存在價值？",
+        "answer": "答：並非如此。傳統 OCR 在兩大場景中依然具備不可替代的優勢。第一是「算力與推理延遲」，VLM 模型動輒數十億到數百億參數，推理開銷極大、速度慢，難以部署在手機等邊緣設備；而傳統 Pipeline OCR 模型只有數百萬參數，能在毫秒級內完成推論，是端側即時辨識的首選。第二是「高精度的座標定位」，在自動化表單對齊、發票要素結構化等任務中，我們不僅需要辨識文字，更需要精確的邊界框座標 (Bounding Box) 進行對齊，而大部分 VLM 的座標尋標能力與定位精度仍不如專屬的文字偵測網路 (如 DBNet)。因此，兩者在未來通常是互補共存的。"
+      }
+    ]
   }
 ]
