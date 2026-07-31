@@ -1988,8 +1988,44 @@ body.hide-cursor * {
   transition: color 0.2s ease;
 }
 
+
 .vulkan-modal-close:hover {
   color: var(--accent-2);
+}
+
+/* 網管學習指南詳細步驟中的表格樣式 */
+.node-desc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 0.88rem;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.node-desc table th, 
+.node-desc table td {
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.node-desc table th {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: var(--accent-1) !important;
+  font-weight: 700;
+  border-bottom: 2px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.node-desc table tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.node-desc table tr:hover {
+  background: rgba(16, 185, 129, 0.05);
 }
 
 
