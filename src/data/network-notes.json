@@ -15,15 +15,15 @@
       },
       {
         "name": "3. 雙絞線遮蔽分類 (UTP vs STP)",
-        "details": "• <strong>UTP (無遮蔽雙絞線)</strong>：線材外層僅有塑膠外殼，無金屬屏蔽層。價格便宜、線身柔軟易施工，常用於一般家庭與辦公室的終端設備連線（若單一線路損壞僅影響單台設備）。<br>• <strong>STP (遮蔽雙絞線)</strong>：線材外層與內部細線之間包裹了一層鋁箔或金屬編織網。能有效抵禦強烈電磁干擾，價格昂貴且較硬，常用於機房主幹線路、工業環境或連接口岸路由器等關鍵設備（確保整體網路骨幹不因干擾而癱瘓）。"
+        "details": "• <strong>UTP (無遮蔽雙絞線)</strong>：線材外層僅有塑膠外殼，無金屬屏蔽層。價格便宜、線身柔軟易施工，常用於一般家庭與辦公室 the 終端設備連線（若單一線路損壞僅影響單台設備）。<br>• <strong>STP (遮蔽雙絞線)</strong>：線材外層與內部細線之間包裹了一層鋁箔或金屬編織網。能有效抵禦強烈電磁干擾，價格昂貴且較硬，常用於機房主幹線路、工業環境或連接口岸路由器等關鍵設備（確保整體網路骨幹不因干擾而癱瘓）。"
       },
       {
         "name": "4. 乙太網路線規格等級 (Cat 5e ~ Cat 8)",
-        "details": "• <strong>Cat 5e</strong>：最高傳輸速度 1 Gbps，傳輸頻寬 100 MHz。便宜實惠，適合 brass 家用上網或監控設備。<br>• <strong>Cat 6</strong>：最高傳輸速度 1 Gbps，傳輸頻寬 250 MHz。內部有十字骨架隔離細線以降低串音干擾，是目前一般家庭與中小企業最主流的布線選擇。<br>• <strong>Cat 6A</strong>：最高傳輸速度 10 Gbps，傳輸頻寬 500 MHz。具備極佳的抗干擾能力，適合電競、高速寬頻及企業辦公室。<br>• <strong>Cat 7</strong>：最高傳輸速度 10 Gbps，傳輸頻寬 600 MHz。要求每個線對都有金屬屏蔽，接頭必須使用專用金屬接頭，主要用於專業高抗噪環境。<br>• <strong>Cat 8</strong>：最高傳輸速度高達 25 Gbps / 40 Gbps，傳輸頻寬達 2000 MHz。具備極高等級的金屬遮蔽層，主要應用於高階專業機房、企業伺服器等極度要求低延遲的環境，傳輸距離限制在 30 米內。"
+        "details": "• <strong>Cat 5e</strong>：最高傳輸速度 1 Gbps，傳輸頻寬 100 MHz。便宜實惠，適合基礎家用上網或監控設備。<br>• <strong>Cat 6</strong>：最高傳輸速度 1 Gbps，傳輸頻寬 250 MHz。內部有十字骨架隔離細線以降低串音干擾，是目前一般家庭與中小企業最主流的布線選擇。<br>• <strong>Cat 6A</strong>：最高傳輸速度 10 Gbps，傳輸頻寬 500 MHz。具備極佳的抗干擾能力，適合電競、高速寬頻及企業辦公室。<br>• <strong>Cat 7</strong>：最高傳輸速度 10 Gbps，傳輸頻寬 600 MHz。要求每個線對都有金屬屏蔽，接頭必須使用專用金屬接頭，主要用於專業高抗噪環境。<br>• <strong>Cat 8</strong>：最高傳輸速度高達 25 Gbps / 40 Gbps，傳輸頻寬達 2000 MHz。具備極高等級的金屬遮蔽層，主要應用於高階專業機房、企業伺服器等極度要求低延遲的環境，傳輸距離限制在 30 米內。"
       },
       {
         "name": "5. 光纖傳輸基礎 (Single-mode vs Multi-mode)",
-        "details": "除了銅線雙絞線，高頻寬與長距離傳輸會使用光纖：<br>• <strong>單模光纖 (Single-mode, SMF)</strong>：纖芯極細（約 9μm），光線以單一平行路徑傳播。使用雷射光源，訊號衰減極低，適用於數十公里以上的超長距離傳輸（如跨國海纜、都市骨幹）。<br>• <strong>多模光纖 (Multi-mode, MMF)</strong>：纖芯較粗（約 50μm），光線以多重反射角度傳播。使用 LED 光源，光源設備成本較低，但由於多重光路造成的「模態色散」，傳輸距離通常限制在數千米內，適用於機房內伺服器與交換器間互連。"
+        "details": "除了銅線雙絞線，高頻寬與長距離傳輸會使用光纖：<br>• <strong>單模光纖 (Single-mode, SMF)</strong>：纖芯極細（約 9μm），光線以單一平行路徑傳播。使用雷射光源，訊號衰減極低，適用於數十公里以上的超長距離傳輸（如跨國海纜、都市骨幹）。<br>• <strong>多模光纖 (Multi-mode, MMF)</strong>：纖芯較粗（約 50μm），光線以多重反射角度傳播。使用 LED 光源，光源設備成本較低，但由於多重光路造成的「模態色散」，傳輸距離通常限制在數百米內，適用於機房內伺服器與交換器間互連。"
       },
       {
         "name": "6. 水晶頭壓接實務步驟",
@@ -37,7 +37,7 @@
     "faq": [
       {
         "question": "為什麼排好線之後，剪線要保留 1.5 公分？不能太長或太短嗎？",
-        "answer": "保留 1.5 公分是為了確保水晶頭壓接時，網路線的『外部塑膠外皮』能被水晶頭尾部的卡榫牢牢夾住。如果太長（如超過 2 公分），外皮夾不到，線材容易拉扯裝卸且細線外露干擾增加；如果太短，細線無法頂到水晶頭最前端的金屬片，會造成接觸不良。"
+        "answer": "保留 1.5 公分是為了確保水晶頭壓接時，網路線的『外部塑膠外皮』能被水晶頭尾部的卡榫牢牢夾住。如果太長（如超過 2 公分），外皮夾不到，線材容易拉扯脫落且細線外露干擾增加；如果太短，細線無法頂到水晶頭最前端的金屬片，會造成接觸不良。"
       },
       {
         "question": "直線網路線和跳線在現代還分得那麼細嗎？",
@@ -61,7 +61,7 @@
       },
       {
         "name": "3. CIDR (無類別域間路由) 計算規則",
-        "details": "CIDR 標記法（格式如 192.168.1.0/24）能精準劃分網段，避免 IP 資源浪費。其斜線後面的數字（字首長度）代表網路位元數，剩餘位元則分配給主機。<br>• <strong>計算公式</strong>：<br>  - 總 IP 數量 ＝ $2^{32 - \\text{字首長度}}$<br>  - 實際可用主機 IP 數 ＝ $2^{32 - \\text{字首長度}} - 2$ （因為必須扣除第一個『網路位址』與最後一個『廣播位址』）。<br>• <strong>常見範例 (/24)</strong>：<br>  - 對應的子網遮罩：前 24 位元為 1，即 <code>255.255.255.0</code>。<br>  - 總 IP 數：$2^{32-24} = 2^8 = 256$ 個。可用主機數：$256 - 2 = 254$ 個（IP 範圍 <code>.1</code> ~ <code>.254</code>）。<br>• <strong>常見 CIDR 區塊對照</strong>：<br>  - <code>/32</code>: 遮罩 255.255.255.255，總 IP 數 1，可用 1（單一主機）<br>  - <code>/30</code>: 遮罩 255.255.255.252，總 IP 數 4，可用 2（常用於點對點路由器連接）<br>  - <code>/28</code>: 遮罩 255.255.255.240，總 IP 數 16，可用 14<br>  - <code>/24</code>: 遮罩 255.255.255.0，總 IP 數 256，可用 254<br>  - <code>/16</code>: 遮罩 255.255.0.0，總 IP 數 65,536，可用 65,534<br>  - <code>/8</code>: 遮罩 255.0.0.0，總 IP 數 16,777,216，可用 16,777,214"
+        "details": "CIDR 標記法（格式如 192.168.1.0/24）能精準劃分網段，避免 IP 資源浪費。其斜線後面的數字（字首長度）代表網路位元數，剩餘位元則分配給主機。<br>• <strong>計算公式</strong>：<br>  - 總 IP 數量 ＝ $2^{32 - \\text{字首長度}}$<br>  - 實際可用主機 IP 數 ＝ $2^{32 - \\text{字首長度}} - 2$ （因為必須扣除第一個『網路位址』與最後一個『廣播位址』）。<br>• <strong>常見範例 (/24)</strong>：<br>  - 對應的子網遮罩：前 24 位元為 1，即 <code>255.255.255.0</code>。<br>  - 總 IP 數：$2^{32-24} = 2^8 = 256$ 個。可用主機數：$256 - 2 = 254$ 個（IP 範圍 <code>.1</code> ~ <code>.254</code>）。<br>• <strong>常見 CIDR 區塊對照</strong>：<br>  - <code>/32</code>: 遮罩 255.255.255.255，總 IP 數 1，可用 1（單一主機）<br>  - <code>/30</code>: 遮罩 255.255.255.252，總 IP 數 4，可用 2（常用於點對點路由器連接）<br>  - <code>/28</code>: 遮罩 255.255.255.240，總 IP 數 16, std IP 數可用 14<br>  - <code>/24</code>: 遮罩 255.255.255.0，總 IP 數 256，可用 254<br>  - <code>/16</code>: 遮罩 255.255.0.0，總 IP 數 65,536，可用 65,534<br>  - <code>/8</code>: 遮罩 255.0.0.0，總 IP 數 16,777,216，可用 16,777,214"
       },
       {
         "name": "4. 寬頻上網與 IP 分配協定 (PPPoE vs DHCP vs Static DHCP)",
@@ -99,7 +99,7 @@
     "faq": [
       {
         "question": "為什麼兩台電腦在同一個網路中，配同一個 IP 會發生衝突？",
-        "answer": "當兩台電腦使用相同 IP 時，網路交換器（Switch）的 MAC Table 會因為兩台電腦交替發送封包而產生『MAC 鋪移 (MAC Flapping)』。這會導致交換器無法確定該把回傳的封包送到哪一個實體 Port，結果就是兩台電腦都會出現嚴重的網路斷斷續續、丟包甚至完全斷線。"
+        "answer": "當兩台電腦使用相同 IP時，網路交換器（Switch）的 MAC Table 會因為兩台電腦交替發送封包而產生『MAC 鋪移 (MAC Flapping)』。這會導致交換器無法確定該把回傳的封包送到哪一個實體 Port，結果就是兩台電腦都會出現嚴重的網路斷斷續續、丟包甚至完全斷線。"
       },
       {
         "question": "G-ARP 為什麼叫『免費 / 無故』ARP？",
@@ -115,7 +115,7 @@
     "steps": [
       {
         "name": "1. TCP (傳輸控制協定) 核心特性",
-        "details": "TCP (Transmission Control Protocol) 是一種<strong>連線導向</strong>、<strong>可靠傳輸</strong>的位元流協定。其核心設計包含：<br>• <strong>保證可靠交付</strong>：所有封包皆有序號（Sequence Number），接收端必須回覆確認（ACK）。若逾時未收到 ACK，傳送端會自動重傳（Retransmission）。<br>• <strong>流量控制 (Flow Control)</strong>：利用<strong>滑動視窗 (Sliding Window)</strong> 機制，根據接收端的緩衝區大小動態調整傳送量，避免接收端來不及處理而掉包。<br>• <strong>壅塞控制 (Congestion Control)</strong>：透過慢啟動（Slow Start）、壅塞規避等演算法，自動調節傳輸速率，防止網際網路骨幹通道塞車。"
+        "details": "TCP (Transmission Control Protocol) 是一種<strong>連線導向</strong>、<strong>可靠傳輸</strong>的位元流協定。其核心設計包含：<br>• <strong>保證可靠交付</strong>：所有封包皆有序號（Sequence Number），接收端必須回覆確認（ACK）。若逾時未收到 ACK，傳送端會自動重傳（Retransmission）。<br>• <strong>流量控制 (Flow Control)</strong>：利用<strong>滑動視窗 (Sliding Window)</strong> 機制，根據接收端的緩衝區大小動態調整傳送量，避免接收端來不及處理 wheat 掉包。<br>• <strong>壅塞控制 (Congestion Control)</strong>：透過慢啟動（Slow Start）、壅塞規避等演算法，自動調節傳輸速率，防止網際網路骨幹通道塞車。"
       },
       {
         "name": "2. UDP (使用者資料包協定) 核心特性",
@@ -127,7 +127,7 @@
       },
       {
         "name": "4. 傳輸協定總結比較表 (TCP vs UDP vs RTP)",
-        "details": "以下為電腦網路三大主流傳輸層/即時串流協定之核心差異對照：<br><div class='table-responsive'><table class='table table-bordered text-light' style='border-color:#333; font-size:0.85rem; width:100%; text-align:left;'><thead><tr style='background:rgba(16, 185, 129, 0.2);'><th>協定</th><th>連線方式</th><th>可靠性 (有無重傳)</th><th>速度 / 延遲</th><th>主要用途與常見應用</th></tr></thead><tbody><tr><td><strong>TCP</strong></td><td>有連線 (Connection-oriented)</td><td><strong>高</strong>（雙向確認，保證封包順序與不遺失，超時自動重傳）</td><td>較慢 / 延遲高</td><td>網頁瀏覽 (HTTPS)、檔案傳輸 (FTP)、文字訊息、電子郵件 (SMTP)</td></tr><tr><td><strong>UDP</strong></td><td>無連線 (Connectionless)</td><td><strong>低</strong>（直接發送，不管對方有無收到，不重傳）</td><td><strong>極快</strong> / 延遲極低</td><td>DNS 查詢、即時線上遊戲、DHCP、簡單查詢服務</td></tr><tr><td><strong>RTP</strong></td><td>通常基於 UDP 傳輸</td><td><strong>低</strong>（不進行重傳，但<strong>擁有封包排序與時間戳記同步</strong>）</td><td><strong>快</strong> / 即時性極高</td><td>網路電話 (VoIP)、即時視訊會議 (Zoom/Teams 底部技術)、直播串流</td></tr></tbody></table></div>"
+        "details": "以下為電腦網路三大主流傳輸層/即時串流協定之核心差異對照：<br><div class='table-responsive'><table class='table table-bordered text-light' style='border-color:#333; font-size:0.85rem; width:100%; text-align:left;'><thead><tr style='background:rgba(16, 185, 129, 0.2);'><th>協定</th><th>連線方式</th><th>可靠性 (有無重傳)</th><th>速度 / 延遲</th><th>主要用途與常見應用</th></tr></thead><tbody><tr><td><strong>TCP</strong></td><td>有連線 (Connection-oriented)</td><td><strong>高</strong>（雙向確認，保證封包順序與不遺失，超時自動重傳）</td><td>較慢 / 延遲高</td><td>檔案傳輸、網頁瀏覽 (HTTPS)、文字訊息、電子郵件 (SMTP)</td></tr><tr><td><strong>UDP</strong></td><td>無連線 (Connectionless)</td><td><strong>低</strong>（直接發送，不管對方有無收到，不重傳）</td><td><strong>極快</strong> / 延遲極低</td><td>DNS 查詢、即時線上遊戲、DHCP、簡單查詢服務</td></tr><tr><td><strong>RTP</strong></td><td>通常基於 UDP 傳輸</td><td><strong>低</strong>（不進行重傳，但<strong>擁有封包排序與時間戳記同步</strong>）</td><td><strong>快</strong> / 即時性極高</td><td>網路電話 (VoIP)、即時視訊會議 (Zoom/Teams 底部技術)、直播串流</td></tr></tbody></table></div>"
       },
       {
         "name": "5. 網路埠號 (Port Number) 概念與常用 Port",
@@ -139,7 +139,7 @@
       },
       {
         "name": "7. TCP 四次揮手 (Connection Termination)",
-        "details": "由於 TCP 是全雙工，一端關閉僅代表自己無資料要傳，對方可能還有資料要發送，因此需四步關閉：<br>• <strong>第一次揮手 (FIN)</strong>：客戶端發送 <code>FIN</code>，表示不再發送資料，進入 <code>FIN_WAIT_1</code>。<br>• <strong>第二次揮手 (ACK)</strong>：伺服器收到回傳 <code>ACK</code>，此時客戶端進入 <code>FIN_WAIT_2</code>，伺服器進入 <code>CLOSE_WAIT</code>。此時為半關閉狀態，伺服器若有未完資料可繼續發送。<br>• <strong>第三次揮手 (FIN)</strong>：伺服器資料傳完，向客戶端發送 <code>FIN</code>，進入 <code>LAST_ACK</code>。<br>• <strong>第四次揮手 (ACK)</strong>：客戶端收到回傳 <code>ACK</code>。客戶端進入 <code>TIME_WAIT</code> 狀態，等待 <strong>2MSL</strong> 時間以確保伺服器有收到最後確認，隨後關閉。伺服器收到此 ACK 後立即關閉。"
+        "details": "由於 TCP 是全雙工，一端關閉僅代表自己無資料要傳，對方可能還有資料要發送，因此需四步關閉：<br>• <strong>第一次揮手 (FIN)</strong>：客戶端發送 <code>FIN</code>，表示不再發送資料，進入 <code>FIN_WAIT_1</code>。<br>• <strong>第二次揮手 (ACK)</strong>：伺服器收到回傳 <code>ACK</code>，此時客戶端進入 <code>FIN_WAIT_2</code>，伺服器進入 <code>CLOSE_WAIT</code>. 此時為半關閉狀態，伺服器若有未完資料可繼續發送。<br>• <strong>第三次揮手 (FIN)</strong>：伺服器資料傳完，向客戶端發送 <code>FIN</code>，進入 <code>LAST_ACK</code>。<br>• <strong>第四次揮手 (ACK)</strong>：客戶端收到回傳 <code>ACK</code>. 客戶端進入 <code>TIME_WAIT</code> 狀態，等待 <strong>2MSL</strong> 時間以確保伺服器有收到最後確認，隨後關閉。伺服器收到此 ACK 後立即關閉。"
       }
     ],
     "faq": [
@@ -219,7 +219,7 @@
       },
       {
         "name": "2. DNS 常見記錄類型 (DNS Records)",
-        "details": "DNS 記錄是存放在 DNS 伺服器中的指令，用來告訴電腦如何處理對網域的請求，最核心的類型如下：<br>• <strong>A 記錄 (Address)</strong>：最基礎記錄，將網域指向 IPv4 位址（例如 <code>192.0.2.1</code>）。<br>• <strong>AAAA 記錄</strong>：與 A 記錄功能相同，但專門用於對應至 IPv6 位址（例如 <code>2001:db8::1</code>）。<br>• <strong>CNAME 記錄 (Canonical Name)</strong>：別名記錄，用於將網域指向另一個網域（例如將 <code>blog.domain.com</code> 指向 <code>www.domain.com</code>）。<br>• <strong>MX 記錄 (Mail Exchange)</strong>：郵件交換記錄，指定負責接收該網域郵件的郵件伺服器。<br>• <strong>TXT 記錄 (Text)</strong>：儲存文字資訊，常用於網域所有權驗證或防垃圾信機制（SPF、DKIM、DMARC）。<br>• <strong>NS 記錄 (Name Server)</strong>：用來指定該網域 of DNS 權威解析伺服器是由哪一台主機管理。"
+        "details": "DNS 記錄是存存放在 DNS 伺服器中的指令，用來告訴電腦如何處理對網域的請求，最核心的類型如下：<br>• <strong>A 記錄 (Address)</strong>：最基礎記錄，將網域指向 IPv4 位址（例如 <code>192.0.2.1</code>）。<br>• <strong>AAAA 記錄</strong>：與 A 記錄功能相同，但專門用於對應至 IPv6 位址（例如 <code>2001:db8::1</code>）。<br>• <strong>CNAME 記錄 (Canonical Name)</strong>：別名記錄，用於將網域指向另一個網域（例如將 <code>blog.domain.com</code> 指向 <code>www.domain.com</code>）。<br>• <strong>MX 記錄 (Mail Exchange)</strong>：郵件交換記錄，指定負責接收該網域郵件的郵件伺服器。<br>• <strong>TXT 記錄 (Text)</strong>：儲存文字資訊，常用於網域所有權驗證或防垃圾信機制（SPF、DKIM、DMARC）。<br>• <strong>NS 記錄 (Name Server)</strong>：用來指定該網域的 DNS 權威解析伺服器是由哪一台主機管理。"
       },
       {
         "name": "3. Nginx 反向代理 (Reverse Proxy) 運作原理",
@@ -249,7 +249,7 @@
       },
       {
         "question": "為什麼 Let's Encrypt 憑證有效期只有 90 天？這不是需要一直手動更新嗎？",
-        "answer": "這是出於安全考量。較短的有效期可以將憑證密鑰洩漏或網站被盜用後的損害時間降到最低。為了避免手動更新的麻煩，Let's Encrypt 的設計初衷就是『全自動化』。透過在伺服器設定排程（實作上使用 Certbot 的 Systemd Timer 或 Cron Job）定期運行 <code>certbot renew</code>，系統會在憑證過期前 30天內自動完成 ACME 挑戰驗證並替換憑證，達到完全無感免手動維護的效果。"
+        "answer": "這是出於安全考量。較短的有效期可以將憑證密鑰洩漏或網站被盜用後的損害時間降到最低。為了避免手動更新的麻煩，Let's Encrypt 的設計初衷就是『全自動化』。透過在伺服器設定排程（實作上使用 Certbot 的 Systemd Timer 或 Cron Job）定期運行 <code>certbot renew</code>，系統會在憑證過期前 30 天內自動完成 ACME 挑戰驗證並替換憑證，達到完全無感免手動維護的效果。"
       }
     ]
   },
@@ -384,6 +384,61 @@
       {
         "question": "如何驗證我的網路線是不是因為壓接或線材問題被自動降速了？",
         "answer": "您可以透過以下方法驗證：<br>1. <strong>在 Windows 中檢查</strong>：開啟『網路和共用中心』 -> 點擊您的『區域連線/乙太網路』狀態，查看『速度』欄位。如果顯示為 <code>100.0 Mbps</code> 而非 <code>1.0 Gbps</code>，說明已被協商降速。<br>2. <strong>使用網路測試儀 (測線器)</strong>：將網路線兩端插上測線器，觀察 1 至 8 號燈號是否依序、同步閃爍。如果有任何一個燈號不亮，代表該線芯斷路，將無法跑千兆網速。"
+      }
+    ]
+  },
+  {
+    "id": "nvr_streaming_protocols",
+    "title": "NVR 網路監控與影像串流協定實務 (NVR & Streaming)",
+    "englishTitle": "Network Video Recorders & Video Streaming Protocols",
+    "description": "本單元從零解析網路錄影機 (NVR) 的影像傳輸、編碼、串流轉碼與頻寬儲存規劃。涵蓋 IP Camera 與 RTSP 來源取得、H.264/H.265 編碼優缺對比、WebRTC 與 HLS 的分流監控架構、FFmpeg 與 Node.js 行程控制，以及 CBR/VBR、GOP 長度、主/子碼流、內外網 VPN 連接與 20 台攝影機儲存容量精密公式計算。",
+    "steps": [
+      {
+        "name": "1. 影像擷取源頭：IP Camera 與 RTSP 即時對話協定 (IP Cam & RTSP)",
+        "details": "攝影機本質上是連上網路的小型電腦，將畫面編碼後送出。<br><br>• <b>IP Camera 運作</b>：藉由網路孔（或 PoE 供電）連線至區域網路，並配發一個內網 IP（如 192.168.1.100）。<br>• <b>RTSP (即時串流協定)</b>：攝影機專屬的即時控制通訊協定，URL 結構通常為 <code>rtsp://帳號:密碼@IP位址:連接埠/路徑</code>。由於 RTSP 底層依賴 RTP/UDP 傳輸，網頁瀏覽器（Chrome, Edge）無法直接解析播放，必須藉由後端轉碼翻譯。"
+      },
+      {
+        "name": "2. 影像壓縮標準：H.264 (AVC) 與 H.265 (HEVC) 對比 (Video Codecs)",
+        "details": "為防止頻寬與硬碟秒爆，影像必須在攝影機端進行即時壓縮。<br><br>• <b>H.264 (AVC)</b>：相容性極高，幾乎所有瀏覽器與舊設備皆支援，編解碼資源消耗低，但壓縮效率低、檔案較大。<br>• <b>H.265 (HEVC)</b>：壓縮率提升約一倍，相同畫質下可省下一半頻寬與儲存空間，適合 4K/8K 傳輸，但演算法極度複雜，解碼時對 CPU/GPU 運算資源要求極高。"
+      },
+      {
+        "name": "3. 影像中繼加工廠：FFmpeg 與 Node.js 行程管理 (FFmpeg & Node)",
+        "details": "在 NVR 系統中，後端程式負責整合與控制影像流。<br><br>• <b>FFmpeg</b>：開源的影音中繼加工廠，負責對 RTSP 進行解碼、轉碼、即時轉封包（Remuxing，如轉成 WebRTC/HLS）與轉發推流。<br>• <b>Node.js</b>：NVR 系統為典型的 <b>I/O 密集型 (I/O-bound)</b> 任務。Node.js 的非同步事件迴圈與 Stream 流式處理，非常適合同時維持數十個網頁連線與 WebSocket，並透過 <code>child_process</code> 啟動、監控與重啟背景 FFmpeg 轉碼子行程。"
+      },
+      {
+        "name": "4. 前端播放協定：低延遲 WebRTC 與高相容 HLS (Streaming Protocols)",
+        "details": "轉碼後推送到網頁的兩大黃金組合協定：<br><br>• <b>WebRTC (即時通訊)</b>：延遲極低（小於 1 秒），極適合即時監控預覽與警報發生時的現場雙向對話。但伺服器與客戶端一對一加密推流壓力大，實務上會使用 <b>SFU (選擇性轉發單元)</b> 作為轉運中心進行路由對應與選擇性轉發，減輕攝影機與頻寬負載。<br>• <b>HLS (HTTP Live Streaming)</b>：將影像切片成小段的 <code>.ts</code> 檔案，透過標準 HTTP/Nginx 傳輸，相容性極佳，適合 24 小時連續錄影與歷史回放，但有 2 至 5 秒的延遲。"
+      },
+      {
+        "name": "5. 頻寬控制與儲存格長度：CBR/VBR 與 GOP 架構 (Bitrate & GOP)",
+        "details": "攝影機的輸出設定決定了影像的可控性與對 AI 辨識的影響。<br><br>• <b>CBR (固定位元速率)</b>：每秒位元率固定，頻寬消耗可控，防止網路突發擁堵，為安防監控首選；VBR 則根據畫面複雜度動態調整，靜態畫面極省頻寬但頻寬不可控。<br>• <b>GOP (Group of Pictures) 長度</b>：兩張完整關鍵影格 <b>I-frame</b> 之間間隔的影格數（中間皆為只記錄畫面差異的 P-frame/B-frame）。若 GOP 設得太長（如數秒），網路抖動會導致長達數秒的破圖或卡頓，使前端 YOLO AI 模型來不及描框，導致漏檢 (False Negative) 或延遲警報。"
+      },
+      {
+        "name": "6. 實務分流與儲存計算公式 (Sub-stream & Storage Calc)",
+        "details": "如何精準規劃 20 台攝影機的 NVR 儲存拓樸：<br><br>• <b>主子碼流分流</b>：YOLO AI 物件偵測為確保精準度（看清安全帽等細節），讀取高解析度的<b>主碼流 (Main Stream)</b>；而前端網頁預覽（如九宮格）為節省頻寬，讀取輕量低解析度的<b>子碼流 (Sub Stream)</b>。<br>• <b>外網存取</b>：內網 IP（如 192.168.1.100）無法直接在公網存取，需配置 Port Forwarding 或透過 <b>VPN (如 WireGuard)</b> 加密通道安全穿透。<br>• <b>儲存計算公式</b>：<br>  - 20 台攝影機 $\times$ 4 Mbps ＝ 80 Mbps 總頻寬。<br>  - 80 Mbps $div$ 8 ＝ 10 MB/s 每秒產生容量。<br>  - 10 MB/s $\times$ 3600 秒 $approx$ 36 GB 每小時容量。<br>  - 36 GB $\times$ 24 小時 $approx$ 864 GB 每天容量。<br>  - 864 GB $\times$ 7 天 $approx$ 6,048 GB (約 6 TB) 一週所需硬碟容量。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "影像位元速率頻寬與儲存空間換算公式",
+        "latex": "S_{\\text{daily}} = \\left( \\sum_{i=1}^{N} B_i \\right) \\times \\frac{1}{8} \\times 3600 \\times 24 \\times 10^{-6} \\quad (\\text{GB})",
+        "description": "S_daily 為一天的總儲存容量 (GB)，N 為攝影機總數，Bi 為每台攝影機的設定位元速率 (Bitrate, Mbps)，乘以 1/8 轉換成 MB/s，再乘以一天的秒數。"
+      },
+      {
+        "name": "總儲存生命週期保留天數計算公式",
+        "latex": "T_{\\text{retention}} = \\frac{S_{\\text{total}} \\times (1 - \\alpha)}{S_{\\text{daily}}} \\quad (\\text{Days})",
+        "description": "S_total 為硬碟總容量，alpha 為 RAID 磁碟陣列的冗餘校驗與作業系統預留空間比例 (通常設為 0.1~0.15)，S_daily 為每日產出的影像資料量。"
+      }
+    ],
+    "code": "# ==========================================\n# 專案名稱：NVR 影片切片與循環覆蓋清理模擬器\n# 目的：模擬 20 台攝影機在硬碟容量耗盡時，自動進行先進先出 (FIFO) 清除\n# ==========================================\nimport time\nimport random\nfrom collections import deque\n\nclass NVRStorageManager:\n    def __init__(self, max_capacity_gb=10.0, retention_days=3):\n        self.max_capacity_gb = max_capacity_gb\n        self.retention_days = retention_days\n        self.current_used_gb = 0.0\n        self.video_db = deque()\n        print(f\"NVR 儲存管理器初始化 | 硬碟上限: {max_capacity_gb} GB | 保留天數: {retention_days} 天\")\n\n    def write_video_clip(self, camera_id, size_gb=0.3):\n        timestamp = time.time()\n        date_str = time.strftime(\"%Y-%m-%d\", time.localtime(timestamp))\n        time_str = time.strftime(\"%H-%M\", time.localtime(timestamp))\n        file_path = f\"NVR_Storage/Cam_{camera_id}/{date_str}/{time_str}.ts\"\n        \n        while self.current_used_gb + size_gb > self.max_capacity_gb:\n            print(f\"[空間已滿] 當前已使用 {self.current_used_gb:.2f} GB，即將超出上限 {self.max_capacity_gb} GB。\")\n            self._trigger_overwrite_cleanup()\n            \n        self.video_db.append({\n            \"timestamp\": timestamp,\n            \"file_path\": file_path,\n            \"size_gb\": size_gb\n        })\n        self.current_used_gb += size_gb\n\n    def _trigger_overwrite_cleanup(self):\n        if not self.video_db:\n            return\n        oldest_clip = self.video_db.popleft()\n        self.current_used_gb -= oldest_clip[\"size_gb\"]\n        clip_time = time.strftime(\"%Y-%m-%d %H:%M:%S\", time.localtime(oldest_clip[\"timestamp\"]))\n        print(f\"[循環覆蓋] 已刪除最舊切片: {oldest_clip['file_path']} (時間: {clip_time}) | 釋放: {oldest_clip['size_gb']} GB\")\n\n    def get_status(self):\n        return {\n            \"capacity_gb\": self.max_capacity_gb,\n            \"used_gb\": self.current_used_gb,\n            \"free_gb\": self.max_capacity_gb - self.current_used_gb,\n            \"total_clips\": len(self.video_db)\n        }\n\nif __name__ == '__main__':\n    # 建立 10 GB 容量上限的虛擬 NVR 空間\n    nvr = NVRStorageManager(max_capacity_gb=10.0)\n    \n    # 模擬 40 個切片持續寫入\n    for i in range(40):\n        cam_id = random.randint(1, 4)\n        nvr.write_video_clip(camera_id=cam_id, size_gb=0.3)\n        \n    status = nvr.get_status()\n    print(f\"\\nNVR 狀態總覽 - 已使用: {status['used_gb']:.2f} GB | 剩餘: {status['free_gb']:.2f} GB | 保存檔案數: {status['total_clips']} 個\")",
+    "faq": [
+      {
+        "question": "問：在使用 Node.js + FFmpeg 的架構中，如果某一隻 IP Camera 網路不穩定頻繁瞬斷，Node.js 後端應該如何進行行程重連優化？",
+        "answer": "答：在實務中，Node.js 呼叫 <code>child_process.spawn</code> 啟動 FFmpeg 行程時，必須監聽該子行程的 <code>close</code> 或 <code>exit</code> 事件。一旦觸發該事件，代表 FFmpeg 因為 RTSP 連線中斷而自動退出。此時，Node.js 不應立即無限制地重啟，這會導致 CPU 被重試線程打滿。合理的做法是實施**指數退避算法 (Exponential Backoff)**，在重試間隔中逐步增加延遲時間（如 2s、4s、8s、16s），直到重新連接成功，避免瞬時重試打死後端。"
+      },
+      {
+        "question": "問：在儲存影片時，如果不小心在斷電或當機時寫入，MP4 檔案極易發生損毀而完全無法播放，有何編碼或容器上的防範機制？",
+        "answer": "答：這與 MP4 容器的結構有關。標準 MP4 檔案的 metadata（moov atom，內含幀索引、時長等關鍵播放資訊）通常在錄影結束、檔案關閉的最後一刻才會寫入檔案尾部。如果寫入中途突然斷電，由於缺少 moov，整個影片將無法被播放器解開。為了解決這個問題，工業安防與 HLS 預設使用 **TS 容器 (.ts 檔案)**，它沒有中央元數據結構，每一幀都有獨立的 header，即使中途斷電，僅會遺失最後斷電那一秒的畫面，其餘已寫入部分均能正常播放。"
       }
     ]
   }
