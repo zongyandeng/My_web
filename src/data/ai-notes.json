@@ -7,27 +7,27 @@
     "steps": [
       {
         "name": "1. 文件準備與寫入 (Document Ingestion & Parsing)",
-        "details": "將 PDF、Markdown 或 TXT 等非結構化文件讀入，並清除無用的特殊字元或版面資訊。"
+        "details": "將 PDF、Markdown 或 TXT 等非結構化文件讀入，並清除無用的特殊字元或版面資訊。<br><br><b>💡 專有名詞對照：</b><br>• <b>PDF (Portable Document Format / 可攜式文件格式)</b>：通用且版面固定的文件檔案格式。<br>• <b>TXT (Text File / 純文字檔)</b>：不含格式資訊的純文字檔案結構。"
       },
       {
         "name": "2. 文字分塊 (Text Chunking)",
-        "details": "因為 LLM 有 Context Window 限制，且太長的 Context 會稀釋重點，需要將文件切分成固定大小或語意完整的區塊 (Chunks)。例如：設定 Chunk Size = 500 characters, Chunk Overlap = 50 characters。"
+        "details": "因為 LLM 有 Context Window 限制，且太長的 Context 會稀釋重點，需要將文件切分成固定大小或語意完整的區塊 (Chunks)。<br><br><b>💡 專有名詞對照：</b><br>• <b>LLM (Large Language Model / 大型語言模型)</b>：經由海量文本預訓練的大規模深度學習語言模型。<br>• <b>Context Window (上下文視窗)</b>：模型一次能接收並處理的最大 Token 數量限制。<br><br><b>📊 不同分塊策略 (Chunking Strategies) 比較：</b><br><table><thead><tr><th>分塊策略</th><th>優點</th><th>缺點</th></tr></thead><tbody><tr><td>固定長度分塊 (Fixed-size)</td><td>計算極為簡單，切分速度極快，便於批次處理。</td><td>容易攔腰切斷句子，造成語意支離破碎或上下文丟失。</td></tr><tr><td>語意重疊分塊 (Overlap)</td><td>透過前後重疊（如 10% 緩衝），保留邊界上下文關聯。</td><td>會造成資料冗餘，增加 Embedding 與 LLM 處理的 Token 開銷。</td></tr><tr><td>滑動視窗/語意分塊 (Semantic)</td><td>依據標點符號或語意轉折點切分，保留語意高度完整。</td><td>演算法相對複雜，需要額外計算句子的語意相似度。</td></tr></tbody></table>"
       },
       {
         "name": "3. 向量化 (Embedding)",
-        "details": "使用 Embedding 模型 (例如 OpenAI text-embedding-3-small 或 local 的 HuggingFace 模型) 將每一個文字塊轉換成高維度的實數向量 (Vector)，代表其語意特徵。"
+        "details": "使用 Embedding 模型將每一個文字塊轉換成高維度的實數向量 (Vector)，代表其語意特徵。<br><br><b>💡 專有名詞對照：</b><br>• <b>Embedding (詞向量/向量嵌入)</b>：將離散字元轉換為連續實數向量，以在多維空間中捕捉語意關聯的技術。<br>• <b>API (Application Programming Interface / 應用程式介面)</b>：軟體系統間進行資料交互的預定義接口。"
       },
       {
         "name": "4. 儲存至向量資料庫 (Vector Database Storage)",
-        "details": "將 Chunks 以及對應的 Embedding 向量存入資料庫（如 Chroma, FAISS, Milvus 等），並建立向量索引以加速檢索。"
+        "details": "將 Chunks 以及對應的 Embedding 向量存入資料庫（如 Chroma, FAISS, Milvus 等），並建立向量索引以加速檢索。<br><br><b>💡 專有名詞對照：</b><br>• <b>Vector Database (向量資料庫)</b>：專門為高維度向量提供高效儲存、檢索與相似度搜尋的資料庫系統。<br>• <b>Index (索引)</b>：加速檢索的資料結構（如 HNSW 階層式導航小世界）。"
       },
       {
         "name": "5. 語意檢索 (Semantic Retrieval)",
-        "details": "當使用者輸入 Query 時，同樣將 Query 轉為向量，在向量資料庫中計算 Query 與知識庫 Chunks 向量之間的相似度或距離（常見的有餘弦相似度 Cosine Similarity、歐氏距離 Euclidean Distance、點積 Dot Product 三種度量方式），檢索出最相關的 Top-K 個 Chunks。"
+        "details": "當使用者輸入 Query 時，同樣將 Query 轉為向量，在向量資料庫中計算 Query 與知識庫 Chunks 向量之間的相似度或距離，檢索出最相關的 Top-K 個 Chunks。<br><br><b>💡 專有名詞對照：</b><br>• <b>Query (查詢詞)</b>：使用者輸入的原始問句或檢索關鍵字。<br>• <b>Top-K (前 K 個最相關結果)</b>：向量檢索中返回的最接近目標向量的 K 個資料項目。<br><br><b>📊 常見向量距離度量方式比較：</b><br><table><thead><tr><th>度量方式</th><th>計算特點</th><th>優缺點</th></tr></thead><tbody><tr><td>餘弦相似度 (Cosine)</td><td>計算兩個向量方向的夾角餘弦值，數值在 [-1, 1] 之間。</td><td>只關注方向，不受文本長度影響；但忽略了向量的絕對長度差異。</td></tr><tr><td>歐氏距離 (L2 Distance)</td><td>計算兩點間的實體直線距離，數值在 [0, $\\infty$) 之間。</td><td>物理直觀；但受長度影響大，通常需要先將向量進行 L2 歸一化。</td></tr><tr><td>點積 / 內積 (Dot Product)</td><td>直接將對應維度相乘並加總，計算效率極高。</td><td>計算速度最快；但必須在向量經過長度歸一化後使用才等價於餘弦。</td></tr></tbody></table>"
       },
       {
         "name": "6. 提示詞拼接與生成 (Augmentation & Generation)",
-        "details": "將檢索出的 Top-K Chunks 作為「背景上下文 (Context)」，與使用者的原始問題拼接成一個豐富的 Prompt，送給 LLM 生成最終回答。"
+        "details": "將檢索出的 Top-K Chunks 作為「背景上下文 (Context)」，與使用者的原始問題拼接成一個豐富的 Prompt，送給 LLM 生成最終回答。<br><br><b>💡 專有名詞對照：</b><br>• <b>Prompt (提示詞)</b>：引導大型語言模型生成期望回答的輸入文本。<br>• <b>Augmentation (增強)</b>：將檢索出的背景知識拼接至 Prompt 中，以擴增模型的知識邊界。"
       }
     ],
     "formulas": [
@@ -47,7 +47,7 @@
         "description": "直接將兩個向量的對應維度相乘並加總。若兩個向量都已經過 L2 歸一化（長度皆為 1），則點積的計算結果與餘弦相似度完全等價。點積計算速度極快，在現代大規模向量檢索系統中被廣泛採用。"
       }
     ],
-    "code": "import torch\nimport torch.nn.functional as F\n\n# 假設我們有 Query 向量與 Context 向量 (維度 384)\nquery_vector = torch.randn(1, 384)\ncontext_vector = torch.randn(1, 384)\n\n# 1. 餘弦相似度 (Cosine Similarity)\ncosine_sim = F.cosine_similarity(query_vector, context_vector)\nprint(f\"餘弦相似度: {cosine_sim.item():.4f}\")\n\n# 2. 歐氏距離 (Euclidean Distance / L2 Distance)\neuclidean_dist = torch.dist(query_vector, context_vector, p=2)\nprint(f\"歐氏距離: {euclidean_dist.item():.4f}\")\n\n# 3. 點積 (Dot Product / Inner Product)\ndot_product = torch.dot(query_vector.squeeze(), context_vector.squeeze())\nprint(f\"點積: {dot_product.item():.4f}\")\n\n# 簡單的 LangChain RAG 鏈結範例說明：\n# qa_chain = RetrievalQA.from_chain_type(\n#     llm=ChatOpenAI(model=\"gpt-4-turbo\"),\n#     chain_type=\"stuff\",\n#     retriever=vectorstore.as_retriever(search_kwargs={\"k\": 3})\n# )",
+    "code": "import torch\nimport torch.nn.functional as F\n\n# 假設我們有 Query 向量與 Context 向量 (維度 384)\nquery_vector = torch.randn(1, 384)\ncontext_vector = torch.randn(1, 384)\n\n# 1. 餘弦相似度 (Cosine Similarity)\ncosine_sim = F.cosine_similarity(query_vector, context_vector)\nprint(f\"餘弦相似度: {cosine_sim.item():.4f}\")\n\n# 2. 歐氏距離 (Euclidean Distance / L2 Distance)\neuclidean_dist = torch.dist(query_vector, context_vector, p=2)\nprint(f\"歐氏距離: {euclidean_dist.item():.4f}\")\n\n# 3. 點積 (Dot Product / Inner Product)\ndot_product = torch.dot(query_vector.squeeze(), context_vector.squeeze())\nprint(f\"點積: {dot_product.item():.4f}\")",
     "faq": [
       {
         "question": "問：為什麼 RAG 檢索出來的內容很多噪音或不相關？",
@@ -56,14 +56,6 @@
       {
         "question": "問：LLM 雖然拿到了正確的 Context，但依然會自己胡說八道（幻覺）怎麼辦？",
         "answer": "答：這與 Temperature 設定以及 System Prompt 有關。**解決方案**：1. 將 LLM 的 Temperature 設為 0，使其輸出高度確定。2. 在 System Prompt 中嚴格限制：'You must ONLY answer the question based on the provided context. If the answer cannot be found in the context, reply \"I don't know\". Do not make up information.'"
-      },
-      {
-        "question": "問：目前常見的大語言模型 (LLM) 都有內建 RAG 的概念在裡面嗎？",
-        "answer": "答：答案是沒有。底層大語言模型（如 GPT-4、Claude 3、Llama 3 的原始權重）本質上只是「經過海量數據訓練後的機率預測引擎」，其知識已被壓縮在參數中，模型本身無法上網或閱讀新文件。RAG（檢索增強生成）是一種系統架構，它是將檢索到的外部知識作為背景上下文送給模型。我們在 ChatGPT、Gemini 網頁版感到它有 RAG，是因為產品端在模型外部封裝了檢索搜尋的管道，純粹的 API 或開源模型本身是沒有包含此機制的。"
-      },
-      {
-        "question": "問：如果我要使用 RAG，用在本地開源模型（地端）上是最有效的嗎？",
-        "answer": "答：這取決於對「有效」的定義。若從「隱私安全與成本」維度來看，本地 RAG（如 Ollama + Llama 3 8B）最有效，資料 100% 地端保存絕不外洩，且推論免 Token 費；但若從「回答準確度與歸納推理能力」維度來看，雲端 API 模型（如 GPT-4o、Claude 3.5 Sonnet）更有效。地端小型開源模型在閱讀 RAG 檢索出的龐雜外部資料時，較容易因理解能力限制而產生偏差或幻覺，且上下文視窗 (Context Window) 受顯卡 VRAM 限制較短；而雲端大模型則擁有強大的長文本歸納能力，能精確提煉繁雜 Context 的重點。"
       }
     ]
   },
@@ -75,19 +67,19 @@
     "steps": [
       {
         "name": "1. 真陽性 (True Positive - TP)",
-        "details": "實際為正樣本 (Positive)，且模型也預測為正樣本的數量。"
+        "details": "實際為正樣本 (Positive)，且模型也預測為正樣本的數量。<br><br><b>💡 專有名詞對照：</b><br>• <b>TP (True Positive / 真陽性)</b>：實際為正樣本且模型預測為正樣本的數量。"
       },
       {
         "name": "2. 偽陽性 (False Positive - FP)",
-        "details": "實際為負樣本 (Negative)，但模型錯誤預測為正樣本的數量 (又稱 Type I error，假警報)。"
+        "details": "實際為負樣本 (Negative)，但模型錯誤預測為正樣本的數量 (又稱 Type I error，假警報)。<br><br><b>💡 專有名詞對照：</b><br>• <b>FP (False Positive / 偽陽性)</b>：實際為負樣本但模型預測為正樣本的數量。"
       },
       {
         "name": "3. 偽陰性 (False Negative - FN)",
-        "details": "實際為正樣本 (Positive)，但模型錯誤預測為負樣本的數量 (又稱 Type II error，漏警報)。"
+        "details": "實際為正樣本 (Positive)，但模型錯誤預測為負樣本的數量 (又稱 Type I error，漏警報)。<br><br><b>💡 專有名詞對照：</b><br>• <b>FN (False Negative / 偽陰性)</b>：實際為正樣本但模型預測為負樣本的數量。"
       },
       {
         "name": "4. 真陰性 (True Negative - TN)",
-        "details": "實際為負樣本 (Negative)，且模型也預測為負樣本的數量。"
+        "details": "實際為負樣本 (Negative)，且模型也預測為負樣本的數量。<br><br><b>💡 專有名詞對照：</b><br>• <b>TN (True Negative / 真陰性)</b>：實際為負樣本且模型預測為負樣本的數量。<br><br><b>📊 Precision 與 Recall 核心指標比較對照：</b><br><table><thead><tr><th>評估指標</th><th>關注焦點與計算公式</th><th>大代價/誤判場景與應用</th></tr></thead><tbody><tr><td>精準率 (Precision)</td><td>$\\frac{\\text{TP}}{\\text{TP} + \\text{FP}}$<br>預測為正的樣本中，真的為正的比例。</td><td><b>FP 嚴重</b>：垃圾郵件過濾（不能把重要信件 FP 誤判為垃圾郵件，否則用戶會漏看重要信件）。</td></tr><tr><td>召回率 (Recall)</td><td>$\\frac{\\text{TP}}{\\text{TP} + \\text{FN}}$<br>實際為正的樣本中，成功找出的比例。</td><td><b>FN 嚴重</b>：癌症檢測（絕對不能把癌症患者 FN 漏診為健康人，否則會延誤黃金治療期）。</td></tr></tbody></table>"
       }
     ],
     "formulas": [
@@ -112,7 +104,7 @@
         "description": "Precision 與 Recall 的調和平均數。當 Precision 與 Recall 互有消長 (Trade-off) 時，F1-Score 能作為綜合性評估指標。"
       }
     ],
-    "code": "from sklearn.metrics import confusion_matrix, classification_report\nimport matplotlib.pyplot as plt\nimport seaborn as sns\n\n# 實際標籤與預測標籤\ny_true = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0]\ny_pred = [0, 1, 0, 0, 0, 1, 1, 1, 1, 0]\n\n# 計算混淆矩陣\ncm = confusion_matrix(y_true, y_pred)\nprint(\"混淆矩陣:\\n\", cm)\n\n# 印出 Precision, Recall, F1-Score 報告\nprint(\"\\n分類報告:\\n\", classification_report(y_true, y_pred))\n\n# 繪製美化混淆矩陣\nsns.heatmap(cm, annot=True, fmt='d', cmap='Blues', \n            xticklabels=['Negative', 'Positive'], \n            yticklabels=['Negative', 'Positive'])\nplt.xlabel('Predicted')\nplt.ylabel('Actual')\nplt.show()",
+    "code": "from sklearn.metrics import confusion_matrix, classification_report\n\ny_true = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0]\ny_pred = [0, 1, 0, 0, 0, 1, 1, 1, 1, 0]\n\n# 計算混淆矩陣\ncm = confusion_matrix(y_true, y_pred)\nprint(\"混淆矩陣:\\n\", cm)\n\n# 分類指標報告\nprint(\"\\n分類報告:\\n\", classification_report(y_true, y_pred))",
     "faq": [
       {
         "question": "問：為什麼在醫學診斷模型中，Recall 會比 Precision 重要？",
@@ -121,10 +113,6 @@
       {
         "question": "問：如果我的測試集裡正樣本只有 1%，如何評估模型好壞？",
         "answer": "答：此時千萬不要相信 Accuracy (因為盲猜全部為負樣本就能有 99% 的 Accuracy)。**解決方案**：應優先觀察 **F1-Score** 與 **PR 曲線 (Precision-Recall Curve)**。PR 曲線下方的面積 (AUPRC) 比 ROC 曲線的面積 (AUROC) 更能真實反映極度不平衡資料集上的模型表現。"
-      },
-      {
-        "question": "問：在物件偵測（如 YOLO）的混淆矩陣中，多出來的 background 代表什麼實務意義？",
-        "answer": "答：物件偵測多分類混淆矩陣多出「背景 (background)」列與行，主要是為了評估定位誤差與檢索漏失：<br>1. <strong>預測為背景（background row - 漏檢）</strong>：代表真實場景有標記物件，但模型完全沒有框出它（被漏看了）。這代表模型的 **Recall (召回率)** 有待加強。<br>2. <strong>真實為背景（background column - 誤檢）</strong>：代表該區域本是空白背景，但模型卻無中生有框出了物件。這代表模型產生了虛警（False Alarm），會拉低模型的 **Precision (精準率)**。"
       }
     ]
   },
@@ -136,19 +124,19 @@
     "steps": [
       {
         "name": "1. 正常收斂與泛化平衡 (Good Fit)",
-        "details": "在健康的收斂折線圖中，隨著 Epoch 增加，Train Loss 與 Val Loss 皆穩定同步下降，最後雙雙趨於平緩。這代表模型在偏誤 (Bias) 與變異數 (Variance) 之間取得平衡，成功學會了資料背後的真實分佈律，具備良好的泛化能力。"
+        "details": "在健康的收斂折線圖中，隨著 Epoch 增加，Train Loss 與 Val Loss 皆穩定同步下降，最後雙雙趨於平緩。<br><br><b>💡 專有名詞對照：</b><br>• <b>Epoch (訓練輪次)</b>：模型完整遍歷整個資料集進行一次訓練的過程。"
       },
       {
         "name": "2. 過擬合 (Overfitting) - 高變異數 (High Variance) 的陷阱",
-        "details": "Train Loss 持續降低並接近零，但 Val Loss 在降至某個最低拐點後，開始「反彈上升」，兩者的 Generalization Gap 逐漸擴大。此時模型將訓練集中的特定雜訊與邊角細節當成了通用規律背下來，導致遇到新資料時判斷失準。通常因模型容量過大、正則化不足或訓練 Epoch 過長引起。"
+        "details": "Train Loss 持續降低並接近零，但 Val Loss 在降至某個最低拐點後，開始「反彈上升」，兩者的 Generalization Gap 逐漸擴大。<br><br><b>💡 專有名詞對照：</b><br>• <b>Overfitting (過擬合/過度擬合)</b>：模型在訓練集表現優異，但在測試集或驗證集表現極差的現象。<br>• <b>Val Loss (Validation Loss / 驗證集損失)</b>：模型在驗證集上計算得出的誤差數值。"
       },
       {
         "name": "3. 欠擬合 (Underfitting) - 高偏誤 (High Bias) 的困境",
-        "details": "Train Loss 與 Val Loss 都維持在很高的數值且降不下來，或者下降速度極為遲緩。這意味著模型架構太過簡單（如用線性分類器處理非線性問題），根本無法捕捉資料庫的潛在特徵結構，連訓練集都學不好，通常需透過增加模型深度、引入更多特徵或延長訓練時間來解決。"
+        "details": "Train Loss 與 Val Loss 都維持在很高的數值且降不下來，或者下降速度極為遲緩。<br><br><b>💡 專有名詞對照：</b><br>• <b>Underfitting (欠擬合/訓練不足)</b>：模型架構太過簡單，無法學會訓練資料中潛在規律的現象。<br>• <b>Train Loss (Training Loss / 訓練集損失)</b>：模型在當前訓練批次上計算得出的誤差數值。<br><br><b>📊 過擬合與欠擬合特徵及解決方案對比：</b><br><table><thead><tr><th>擬合狀態</th><th>偏誤與變異數特徵</th><th>損失折線表現</th><th>實用解決方案</th></tr></thead><tbody><tr><td>過擬合 (Overfitting)</td><td>低偏誤 (Low Bias)<br>高變異數 (High Variance)</td><td>Train Loss 接近零，而 Val Loss 觸底反彈，Gap 擴大。</td><td>加強資料擴增、使用 Dropout 捨棄特徵、調大 Weight Decay、提早中斷訓練。</td></tr><tr><td>欠擬合 (Underfitting)</td><td>高偏誤 (High Bias)<br>低變異數 (Low Variance)</td><td>Train Loss 與 Val Loss 都非常高，難以下降。</td><td>增加模型層數與通道寬度、減少 Regularization、延長訓練 Epoch。</td></tr></tbody></table>"
       },
       {
         "name": "4. 早停防線 (Early Stopping) - 防範過擬合的自動煞車",
-        "details": "在訓練過程中引入 Early Stopping 機制，實時監控每個 Epoch 的 Val Loss。當 Val Loss 達到最低點且連續設定的耐心值（Patience）個 Epoch 內沒有進一步改善，甚至開始有反彈過擬合趨勢時，系統會立即自動中斷訓練，並回滾保留 Val Loss 最低時的模型權重，從而省下無效算力並確保最佳泛化性能。"
+        "details": "在訓練過程中引入 Early Stopping 機制，實時監控每個 Epoch 的 Val Loss。<br><br><b>💡 專有名詞對照：</b><br>• <b>Early Stopping (早停機制/提前中斷)</b>：當驗證指標不再改善時自動停止訓練，防止浪費資源的機制。<br>• <b>Patience (耐心值)</b>：早停機制中，允許驗證損失不下降的最大連續 Epoch 次數。"
       }
     ],
     "formulas": [
@@ -163,23 +151,11 @@
         "description": "在 Epoch $t$ 時監控驗證集損失。若當前 Epoch $t$ 與歷史最低驗證損失 Epoch $t_{\\text{best}}$ 的差值達到或大於預設的耐心值 (Patience, $P$)，則觸發中斷，防止模型進一步過擬合。"
       }
     ],
-    "code": "# PyTorch 神經網路訓練與地端早停機制 (Early Stopping) 實作範例\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport numpy as np\n\nclass EarlyStopping:\n    def __init__(self, patience=7, delta=0, path='best_model.pth'):\n        self.patience = patience\n        self.delta = delta\n        self.path = path\n        self.counter = 0\n        self.best_score = None\n        self.early_stop = False\n        self.val_loss_min = np.Inf\n\n    def __call__(self, val_loss, model):\n        score = -val_loss\n        if self.best_score is None:\n            self.best_score = score\n            self.save_checkpoint(val_loss, model)\n        elif score < self.best_score + self.delta:\n            self.counter += 1\n            print(f\"早停計數器: {self.counter} / {self.patience} (未能在 delta={self.delta} 內降低)\")\n            if self.counter >= self.patience:\n                self.early_stop = True\n        else:\n            self.best_score = score\n            self.save_checkpoint(val_loss, model)\n            self.counter = 0\n\n    def save_checkpoint(self, val_loss, model):\n        print(f\"驗證集損失降低 ({self.val_loss_min:.6f} --> {val_loss:.6f}). 儲存最佳模型...\")\n        torch.save(model.state_dict(), self.path)\n        self.val_loss_min = val_loss\n\n# 訓練 Loop 呼叫範例\nmodel = nn.Linear(10, 2)\ncriterion = nn.CrossEntropyLoss()\noptimizer = optim.Adam(model.parameters(), lr=0.001)\nearly_stopping = EarlyStopping(patience=10)\n\nfor epoch in range(100):\n    # 1. 訓練模式\n    model.train()\n    # loss = criterion(outputs, targets) ... 反向傳播與優化 ...\n    \n    # 2. 驗證模式\n    model.eval()\n    with torch.no_grad():\n        # val_loss = criterion(val_outputs, val_targets) ...\n        val_loss = 0.5 # 這裡為假資料\n        \n    # 3. 調用早停檢查\n    early_stopping(val_loss, model)\n    if early_stopping.early_stop:\n        print(\"驗證集損失已連續 10 個 Epoch 未能改善，觸發自動中斷！\")\n        break",
+    "code": "# 簡易早停機制監控示意\nimport numpy as np\n\nclass EarlyStopping:\n    def __init__(self, patience=7, delta=0):\n        self.patience = patience\n        self.delta = delta\n        self.counter = 0\n        self.best_loss = np.Inf\n        self.early_stop = False\n\n    def step(self, val_loss):\n        if val_loss < self.best_loss - self.delta:\n            self.best_loss = val_loss\n            self.counter = 0\n        else:\n            self.counter += 1\n            if self.counter >= self.patience:\n                self.early_stop = True\n                print(\"觸發早停機制！\")",
     "faq": [
       {
         "question": "問：過擬合 (Overfitting) 與欠擬合 (Underfitting) 的物理直覺與根本成因是什麼？",
-        "answer": "答：這可以用「偏誤與變異數權衡 (Bias-Variance Tradeoff)」來理解。1. **欠擬合 (高偏誤 High Bias)**：模型太過簡單（如用直線去擬合曲線），對資料有強烈的錯誤假設，導致不論在訓練集或驗證集，其 Loss 都維持高檔。這就像背公式時只記下了最粗淺的皮毛。2. **過擬合 (高變異數 High Variance)**：模型過於複雜（如用高次多項式完美穿過所有點），對資料的微小擾動極為敏感，導致 Train Loss 接近零，而 Val Loss 卻反彈。這就像死記硬背了訓練集的每一道題（包括題目的手寫雜訊），導致遇到考題稍微變動時就完全答不上來。"
-      },
-      {
-        "question": "問：Train Loss 比 Val Loss 還要高是正常的嗎？",
-        "answer": "答：在訓練初期或是有加入強烈的 Regularization (如高比例的 Dropout, Data Augmentation) 時是正常的。因為訓練時模型受到 Regularization 的限制，而在驗證時這些限制會關閉 (model.eval())，因此驗證集表現反而可能更好。但如果是訓練中後期依然如此，需要檢查驗證集與訓練集是否分布不均（例如驗證集太過簡單）。"
-      },
-      {
-        "question": "問：在 YOLO 訓練折線圖中，定位與分類的 box_loss、cls_loss、dfl_loss 代表什麼？",
-        "answer": "答：物件偵測模型需要同時學習物體的「位置」與「類別」，其訓練指標通常包含三個損失：<br>1. <strong>box_loss (定位損失)</strong>：計算預測框與真實標註框的交併重合度。此數值一般與 1 - IoU 呈正比，數值越低代表定位越貼合。<br>2. <strong>cls_loss (分類損失)</strong>：使用交叉熵判定框內物件的分類正確性，當類別判定越精準，Loss 越低。<br>3. <strong>dfl_loss (Distribution Focal Loss)</strong>：用於學習邊界框的連續概率分佈，能大幅精細化物件邊界的預測，對重疊、遮擋或極小目標定位非常有幫助。"
-      },
-      {
-        "question": "問：早停機制 (Early Stopping) 的耐心值 (Patience) 參數該如何合理配置？",
-        "answer": "答：Patience 的配置取決於學習率 (Learning Rate) 以及 Loss 的波動幅度：1. **Patience 太小**：例如設為 2，在 Loss 因為 Mini-batch 採樣產生正常擾動（暫時性反彈）時，模型就會被提早「誤殺」中止，導致模型根本還沒有收斂。2. **Patience 太大**：例如設為 50，當模型早已嚴重過擬合時，系統還在浪費算力空轉等待，失去了早停的意義。實務上，若學習率較大且採用 Cosine Annealing 等衰減調度，Patience 建議設為 7 ~ 15，以留給模型足夠的跨越局部極小值（Local Minima）的調整週期。"
+        "answer": "答:// 訓練 Loop 呼叫範例"
       }
     ]
   },
@@ -191,57 +167,37 @@
     "steps": [
       {
         "name": "1. 標註資料集分佈特徵解讀",
-        "details": "訓練前須檢查標註框的 instances 類別數量。若各類別資料量差距過大，將會面臨類別不平衡問題。同時，觀察標註框的中心點 (cx, cy) 散布圖，若高度集中在特定區域，說明拍攝視角或場景過於固定，需防範泛化能力不足。"
+        "details": "訓練前須檢查標註框的 instances 類別數量。若各類別資料量差距過大，將會面臨類別不平衡問題。<br><br><b>💡 專有名詞對照：</b><br>• <b>Instances (樣本實例/標註物體)</b>：圖像中已標註的個別物體對象數量。"
       },
       {
         "name": "2. 物件大小比例與小目標挑戰",
-        "details": "分析標註框的寬度與高度 (w, h)。若多數標記框極小（例如面積比例低於圖片 $1\\%$），則代表屬於小物件偵測場景。由於小物件在特徵提取時像素資訊極易流失，在定位與分類上皆面臨高度挑戰。"
+        "details": "分析標註框的寬度與高度 (w, h)。若多數標記框極小（例如面積比例低於圖片 $1\\%$），則代表屬於小物件偵測場景。<br><br><b>💡 專有名詞對照：</b><br>• <b>w & h (Width & Height / 寬度與高度)</b>：邊界框的實體空間維度。"
       },
       {
-        "name": "3. 邊界框交併比 (IoU) 計算機制",
-        "details": "IoU (Intersection over Union) 衡量預測邊界框與實體標籤框的重合面積比例，介於 0 與 1 之間。它是計算定位損失 $L_{\\text{box}}$ 的底層指標，數值越高表示模型定位越精確。"
+        "name": "3. 多分量複合損失函數 (Multi-component Loss)",
+        "details": "物件偵測模型需要同時學習物體的「位置」與「類別」，其訓練指標通常包含三個損失：box_loss、cls_loss、dfl_loss。<br><br><b>💡 專有名詞對照：</b><br>• <b>DFL (Distribution Focal Loss / 分佈焦點損失)</b>：用於學習邊界框的連續概率分佈，能大幅精細化物件邊界的預測。<br>• <b>CIoU (Complete IoU / 完整交集比)</b>：除了重疊面積外，額外考量中心點距離與寬高比例的邊界框重合指標。<br><br><b>📊 物件偵測三種複合損失對比：</b><br><table><thead><tr><th>損失分量</th><th>功用與優化目標</th><th>收斂不佳時的實務影響</th></tr></thead><tbody><tr><td>box_loss (定位損失)</td><td>優化預測框與真實框的交併重合度（如 CIoU 損失）。</td><td>框不準、物體定位偏離或抖動。</td></tr><tr><td>cls_loss (分類損失)</td><td>判定預測框內物件的分類正確性。</td><td>張冠李戴、誤判物體類別。</td></tr><tr><td>dfl_loss (分佈焦點損失)</td><td>學習邊界框四個邊的連續概率分佈。</td><td>遮擋、重疊或極小物件的邊緣粗糙，定位精度差。</td></tr></tbody></table>"
       },
       {
-        "name": "4. 複合損失函數與收斂判定",
-        "details": "物件偵測的損失曲線是由定位 (box)、分類 (cls) 與細化分佈 (dfl) 三種 Loss 加權組成的複合體。在訓練折線圖中，必須確保這三項 Loss 的驗證集曲線同步平穩下降且無反彈，方能判定模型健康收斂。"
+        "name": "4. 精準率-召回率曲線 (PR Curve) 的特徵",
+        "details": "在 PR 曲線圖中，橫軸為 Recall 縱軸為 Precision。一條完美的 PR 曲線會儘可能向右上角凸起（此時 Area Under Curve 面積接近 1）。<br><br><b>💡 專有名詞對照：</b><br>• <b>PR Curve (Precision-Recall Curve / 精準率-召回率曲線)</b>：展示分類模型在不同機率閥值下，Precision 與 Recall 拉鋸變化的曲線。<br>• <b>AUC (Area Under Curve / 曲線下包絡面積)</b>：評估曲線表現的積分面積數值。"
       },
       {
-        "name": "5. 精準度與召回率的場景權衡",
-        "details": "精準率 (Precision) 指預測框 the 真實程度，召回率 (Recall) 則代表對真實目標的抓取能力。在工安等違規偵測中，Recall（避免漏檢）通常比 Precision（避免誤警）更為關鍵，需透過微調信心門檻 (Confidence Threshold) 取得平衡。"
+        "name": "5. 平均精度均值 (mAP) 的物理意義",
+        "details": "mAP 是所有類別的 Average Precision (AP) 的平均值，是物件偵測最權威的綜合指標。<br><br><b>💡 專有名詞對照：</b><br>• <b>mAP (Mean Average Precision / 平均精度均值)</b>：所有類別精準率-召回率曲線積分面積的平均數值。<br><br><b>📊 mAP@0.5 與 mAP@0.5:0.95 差別比較：</b><br><table><thead><tr><th>評估指標</th><th>交集比 (IoU) 閥值設定</th><th>特徵與實務評估偏重</th></tr></thead><tbody><tr><td>mAP@0.5</td><td>IoU 設為固定值 0.5。</td><td>只要框有對準一半即算正確。主要評估模型<b>「有沒有找到物體（檢出率）」</b>。</td></tr><tr><td>mAP@0.5:0.95</td><td>在 0.5 到 0.95 之間以 0.05 為步長進行平均。</td><td>對定位精度要求極為嚴苛。主要評估模型<b>「框得夠不夠精準（精確對齊度）」</b>。</td></tr></tbody></table>"
       },
       {
-        "name": "6. 平均精度均值 (mAP) 嚴格度指標",
-        "details": "AP 為 Precision-Recall 曲線下的面積，mAP 是所有類別 AP 的平均值。mAP@50 代表在 IoU 0.5 門檻下的寬鬆指標；而 mAP@50:95 則是同時評估 IoU 從 0.50 到 0.95 多個門檻下的均值，是衡量定位貼合度高低的核心嚴格指標。"
+        "name": "6. 混淆矩陣中的背景類別 (Background Row/Col)",
+        "details": "物件偵測多分類混淆矩陣多出「背景 (background)」列與行，主要是為了評估定位誤差與檢索漏失。<br><br><b>💡 專有名詞對照：</b><br>• <b>Background (背景)</b>：圖像中不屬於任何標註類別的空白無物體區域。"
       }
     ],
     "formulas": [
       {
-        "name": "邊界框交併比 (IoU - Intersection over Union)",
-        "latex": "\\text{IoU} = \\frac{|B_{\\text{pred}} \\cap B_{\\text{gt}}|}{|B_{\\text{pred}} \\cup B_{\\text{gt}}|}",
-        "description": "預測邊界框 $B_{\\text{pred}}$ 與真實標註框 $B_{\\text{gt}}$ 的交集面積除以聯集面積。用以設定預測正確與否的重合度閥值。"
-      },
-      {
-        "name": "YOLO 總損失函數概念式 (YOLO Total Loss)",
-        "latex": "\\mathcal{L}_{\\text{total}} = \\lambda_{\\text{box}} \\mathcal{L}_{\\text{box}} + \\lambda_{\\text{cls}} \\mathcal{L}_{\\text{cls}} + \\lambda_{\\text{dfl}} \\mathcal{L}_{\\text{dfl}}",
-        "description": "由定位損失 (box)、分類損失 (cls) 與邊界概率分佈損失 (dfl) 組合而成，$\\lambda$ 代表各損失項的調節權重。"
-      },
-      {
-        "name": "類別不平衡比例 (Imbalance Ratio)",
-        "latex": "\\text{Imbalance Ratio} = \\frac{\\max_{c \\in \\mathcal{C}} N_c}{\\min_{c \\in \\mathcal{C}} N_c}",
-        "description": "最大與最小類別標註數之比例。若比值過大，說明資料集偏斜嚴重，可能導致少數類別的預測 recall 表現低落。"
+        "name": "平均精度均值 (mAP) 計算公式",
+        "latex": "\\text{mAP} = \\frac{1}{C} \\sum_{i=1}^{C} \\text{AP}_i = \\frac{1}{C} \\sum_{i=1}^{C} \\int_{0}^{1} P_i(R) \\, dR",
+        "description": "對每個類別 i，將其 Precision-Recall 曲線進行積分求得面積 AP，再對所有類別 C 取平均值。mAP 越高，代表模型偵測效能越好。"
       }
     ],
-    "code": "# 影像辨識 YOLO 物件偵測指標評估模擬\nimport numpy as np\n\ndef calculate_iou(boxA, boxB):\n    # box = [x1, y1, x2, y2]\n    xA = max(boxA[0], boxB[0])\n    yA = max(boxA[1], boxB[1])\n    xB = min(boxA[2], boxB[2])\n    yB = min(boxA[3], boxB[3])\n    \n    interArea = max(0, xB - xA) * max(0, yB - yA)\n    boxAArea = (boxA[2] - boxA[0]) * (boxA[3] - boxA[1])\n    boxBArea = (boxB[2] - boxB[0]) * (boxB[3] - boxB[1])\n    \n    iou = interArea / float(boxAArea + boxBArea - interArea)\n    return iou\n\n# 模擬真實框與預測框\nreal_box = [100, 100, 210, 210]\npred_box = [105, 95, 215, 205]\n\niou_score = calculate_iou(real_box, pred_box)\nprint(f\"IoU 定位精準度: {iou_score:.4f}\")\n\n# YOLO 格式 (cx, cy, w, h) 與像素座標 (x1, y1, x2, y2) 轉換\ndef yolo_to_bbox(cx, cy, w, h, img_w, img_h):\n    # 歸一化座標轉像素座標\n    x1 = int((cx - w / 2) * img_w)\n    y1 = int((cy - h / 2) * img_h)\n    x2 = int((cx + w / 2) * img_w)\n    y2 = int((cy + h / 2) * img_h)\n    return [x1, y1, x2, y2]",
-    "faq": [
-      {
-        "question": "問：面對資料集類別不平衡，實務上有哪些改善策略？",
-        "answer": "答：1. <strong>數據工程</strong>：針對標記數偏低的少數類別進行過採樣 (Oversampling) 或收集特定的擴充樣張。 2. <strong>數據擴增</strong>：採用針對類別敏感的 Class-aware Augmentation，提升少數樣本在批次訓練中的權重。 3. <strong>演算法優化</strong>：在 Loss 函數中引入 Focal Loss 機制，自動壓低易分類樣本的權重，迫使模型關注困難且少數的特徵。"
-      },
-      {
-        "question": "問：小物件偵測的難點為何？可採取哪些技術來突破？",
-        "answer": "答：小物件在圖片中佔比極低，特徵圖歷經多層卷積下採樣後其語意幾乎消失。<strong>改進方案</strong>：1. <strong>提高輸入尺寸</strong>：提升模型輸入解析度（如從 640 提高到 960 或 1280）。2. <strong>特徵金字塔</strong>：加強 FPN / PANet 等深淺層多尺度特徵的融合。3. <strong>子圖推理 (SAHI)</strong>：藉由滑動窗口切圖進行推論，再拼合邊界框以降低漏檢。"
-      }
-    ]
+    "code": "# 模擬計算 YOLO 推論 mAP 的過程\nimport numpy as np\n\ndef calculate_ap(recalls, precisions):\n    # 11 點插值法或全積分 AP 計算\n    mrec = np.concatenate(([0.0], recalls, [1.0]))\n    mpre = np.concatenate(([0.0], precisions, [0.0]))\n    for i in range(len(mpre) - 2, -1, -1):\n        mpre[i] = max(mpre[i], mpre[i + 1])\n    i = np.where(mrec[1:] != mrec[:-1])[0]\n    ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])\n    return ap\n\nmock_recalls = np.array([0.0, 0.1, 0.3, 0.5, 0.8, 1.0])\nmock_precisions = np.array([1.0, 0.95, 0.88, 0.82, 0.60, 0.0])\nprint(f\"AP 計算結果: {calculate_ap(mock_recalls, mock_precisions):.4f}\")"
   },
   {
     "id": "finetuning_lora",
@@ -410,88 +366,39 @@
   },
   {
     "id": "image_segmentation",
-    "title": "影像分割技術與實務應用 (Image Segmentation)",
-    "englishTitle": "Image Segmentation Theory & Practical Implementation",
-    "description": "影像分割（Image Segmentation）是電腦視覺中「像素級別（Pixel-level）」的分類任務，要求 AI 精準描繪物件的邊緣輪廓。本單元深入剖析影像分割的三大流派（語意、實例、全景）、交除併（IoU）評估指標、主流前沿模型（SAM、YOLOv8/v11），並提供如何使用 Ultralytics YOLOv8 進行推論與實作影像分割的核心步驟與 Python 代碼實作指引。<br><br><h3 style=\"color:var(--accent-1); margin-top:20px;\">影像分割三大技術流派對比</h3><table class=\"gpu-table\"><thead><tr><th>分割類型</th><th>核心概念</th><th>視覺表現方式</th><th>實務舉例</th></tr></thead><tbody><tr><td style=\"font-weight:700;\">Semantic Segmentation (語意分割)</td><td>將相同類別的像素標上一致的標籤，不區分個體。</td><td>畫面中所有的「人」都填塗成相同顏色。</td><td>自駕車道路與障礙物區域標示、遙測空拍土地覆蓋監測。</td></tr><tr><td style=\"font-weight:700; color:var(--accent-2);\">Instance Segmentation (實例分割)</td><td>除了區分類別外，還要能偵測並標示同類別中「不同個體」的邊界。</td><td>畫面中有多個人，AI 會分別填塗為紅、黃、藍、綠不同顏色。</td><td>智慧零售客流計數、一鍵智慧人像去背、醫學影像腫瘤邊緣勾勒。</td></tr><tr><td style=\"font-weight:700;\">Panoptic Segmentation (全景分割)</td><td>結合前兩者，既區分前景的可數實例，也標示背景不可數的語意區域。</td><td>區分每個人的同時，也精準分割天空、草地與路面。</td><td>高精度自動駕駛三維地圖構建、全景虛擬背景融合。</td></tr></tbody></table>",
+    "title": "影像語意分割與標註解讀 (Image Segmentation)",
+    "englishTitle": "Image Segmentation & U-Net Architecture",
+    "description": "影像分割是像素級的密集預測任務 (Pixel-level Prediction)。本單元解析影像分割的三大任務（語意分割、實例分割、全景分割）的核心差異，並解構 U-Net 的對稱 Encoder-Decoder 架構、跳躍連結的特徵保留，以及 Dice Loss 的收斂優勢。",
     "steps": [
       {
-        "name": "1. 影像分割的核心原理與像素級分類",
-        "details": "影像分割本質上是像素級別的分類（Pixel-level Classification）。與傳統物件偵測（Object Detection）僅以矩形方框（Bounding Box）框出物體不同，影像分割會為每個物件生成精確的多邊形掩碼（Polygon Mask），將前景像素從背景中抽離，以達到最高的幾何精度。"
+        "name": "1. 影像分割的三大核心任務與範疇",
+        "details": "影像分割依據辨識粒度與重疊物體處理，分為語意分割、實例分割與全景分割。<br><br><b>💡 專有名詞對照：</b><br>• <b>Segmentation (影像分割)</b>：將影像中每個像素標註上對應類別的像素級分類任務。<br><br><b>📊 三大影像分割任務對比：</b><br><table><thead><tr><th>任務類型</th><th>辨識與標記對象</th><th>重疊或相同物體處理</th></tr></thead><tbody><tr><td>語意分割 (Semantic)</td><td>只分大類別（如人、路面、背景）。</td><td>不區分個體。兩個重疊的人會被塗成同一個色塊。</td></tr><tr><td>實例分割 (Instance)</td><td>只偵測並分割「感興趣個體」（如個別的人、車）。</td><td>精準區分個體。每個人會塗上不同的顏色，不處理背景。</td></tr><tr><td>全景分割 (Panoptic)</td><td>大一統分割：結合語意與實例。</td><td>既區分前景個體（人、車），又分割背景語意（草地、天空）。</td></tr></tbody></table>"
       },
       {
-        "name": "2. 影像分割的三大技術流派",
-        "details": "在實務應用中，影像分割可分為三大核心流派：語意分割（Semantic Segmentation）負責將同類別像素劃歸同一標籤而不區分個體；實例分割（Instance Segmentation）需額外區分出同一類別中不同的物件個體；全景分割（Panoptic Segmentation）則將兩者大一統，全面標示出前景實例與背景環境（如草地、天空）。"
+        "name": "2. 像素級標註 (Mask) 與重疊干擾",
+        "details": "標註資料 (Ground Truth) 為二值化的遮罩 (Mask)。若影像中有多個相同物體重疊，標註時必須精確保留邊界資訊，否則模型訓練後邊界將模糊成一片，造成檢測誤差。<br><br><b>💡 專有名詞對照：</b><br>• <b>Mask (遮罩/掩膜)</b>：影像分割中表示特定物件區域的二值化矩陣像素點集合。"
       },
       {
-        "name": "3. 從 CNN 經典到 Transformer 基礎模型 (SAM)",
-        "details": "在語意分割的技術演進中，傳統 CNN 的 U-Net 奠定了經典架構標竿。U-Net 採用左右對稱的 U 字型結構：左側為收縮路徑 (Contracting Path / Encoder)，負責重複進行 3x3 卷積與 Max Pooling 以提取高維特徵；右側為擴張路徑 (Expansive Path / Decoder)，負責進行上採樣與反卷積逐步還原空間尺寸。其核心靈魂在於引入了「跳躍連接 (Skip Connection)」，直接將編碼器的淺層高解析度幾何特徵在通道維度上與解碼器的深層特徵進行拼接，從而完美保留邊緣輪廓與幾何細節。隨後，技術演進至 Mask R-CNN，以及當前基於 Transformer 且擁有 Zero-shot 泛化能力的 Segment Anything (SAM) 基礎大模型。"
+        "name": "3. U-Net 的對稱型 Encoder-Decoder 架構",
+        "details": "U-Net 採用對稱的 U 字型結構。左側的 Encoder 負責提取高維抽象語意；右側的 Decoder 負責進行上採樣，將特徵圖逐步還原回原始影像解析度。<br><br><b>💡 專有名詞對照：</b><br>• <b>Encoder (編碼器)</b>：通過卷積與下採樣壓縮空間解析度、提取深層特徵的網路結構。<br>• <b>Decoder (解碼器)</b>：通過上採樣還原空間解析度、重構像素預測的網路結構。"
       },
       {
-        "name": "4. 【實作步驟一】建立 Ubuntu 虛擬環境 (venv) 進行防撞隔離",
-        "details": "在 Linux 遠端伺服器 (Ubuntu) 實作時，首先需建立獨立的工作區。在終端機中執行 `mkdir AI_Practice` 並 `cd AI_Practice`。為防範 Python 全域套件版本衝突的「依賴地獄」，先執行 `sudo apt install python3-venv`，再透過 `python3 -m venv myenv` 建立名為 `myenv` 的虛擬環境。最後使用 `source myenv/bin/activate` 啟動，當終端機提示字元最前方出現 `(myenv)` 時，即代表無菌實驗室架設完畢。"
+        "name": "4. 跳躍連結 (Skip Connection) 的物理本質",
+        "details": "Encoder 在降維過程中會遺失高頻的幾何邊緣細節。U-Net 引入跳躍連結，直接將左側 Encoder 降維前的高解析度空間特徵直接與右側 Decoder 對應層拼接。這確保了物體微小的幾何邊界資訊在解碼時不會流失。<br><br><b>💡 專有名詞對照：</b><br>• <b>Skip Connection (跳躍連結/殘差連接)</b>：繞過部分卷積層將前層特徵圖與後層特徵圖進行直接拼接或相加的結構。"
       },
       {
-        "name": "5. 【實作步驟二】啟動 Tmux 護罩與安裝 Ultralytics",
-        "details": "影像分割的大模型運算耗時長，網路中斷會導致 SSH 指令中斷。因此必須安裝 Tmux 作為「防斷線保護罩」：執行 `sudo apt install tmux` 後，利用 `tmux new -s ai_run` 開啟虛擬會話。在此保護罩下，執行 `pip install ultralytics` 一鍵安裝 YOLO、PyTorch 與 OpenCV。若需退回背景，可按下快捷鍵 `Ctrl + b` 後按 `d` (Detach)；需要返回時，只需輸入 `tmux attach -t ai_run` 即可。"
-      },
-      {
-        "name": "6. 【實作步驟三】隔空傳圖與 Wget/SCP 圖片抓取",
-        "details": "實作需要測試圖片。若是直接抓取網路圖，可執行 `wget https://ultralytics.com/images/bus.jpg -O test.jpg`；若是從本機 Windows 傳送，則打開本機新終端機執行 `scp ~/Desktop/test.jpg 帳號@伺服器IP:~/AI_Practice/`，透過 SSH 加密通道將圖片安全傳送至伺服器端。"
-      },
-      {
-        "name": "7. 【實作步驟四】二值遮罩 (Tensor) 提取與縮排地獄除錯",
-        "details": "在 Python 中，`results[0].masks.data` 的輸出張量格式為 `torch.Size([N, H, W])`（如 `[5, 640, 480]`），代表圖片已被拆解成 N 層二維矩陣，1 代表物體，0 代表背景。利用 `cv2.imwrite` 保存 `mask * 255` 即可輸出可視化的黑白灰階遮罩。在編寫程式時，需嚴格防範 Tab 與空白鍵混用導致的 `TabError` 縮排錯誤，統一使用 4 個空白鍵是防錯鐵則。"
-      },
-      {
-        "name": "8. 【實作步驟五】信心門檻調優與一對一迴圈重構",
-        "details": "當遇到模型將影子誤判為物件的 False Positive 問題時，可在預測時加入 `conf=0.4`（及格分數提升）來過濾低信心度雜訊；同時，為解決雙層迴圈輸出雜亂的缺點，利用 `masks[i]` 與 `boxes[i]` 的一對一映射關係，重構為單個 `for i in range(len(masks))` 迴圈，一次整齊印出遮罩路徑、類別與置信度。"
-      },
-      {
-        "name": "9. 模型評估指標：交除併 (IoU) 與 Dice 係數",
-        "details": "評估分割準確度的核心數學指標是 IoU (交除併)。它計算的是模型預測的像素掩碼與真實標籤掩碼的交集面積除以聯集面積。在醫學分割或細微目標分割中，也經常使用 Dice Coefficient (等同於像素級 F1-Score) 來加強評估重合的精度。"
-      },
-      {
-        "name": "10. 遙測實務應用：河川水體語意分割 (River Segmentation)",
-        "details": "在遙測與防災監測中，河川辨識不採用粗糙的方框偵測，而是語意分割（將圖像像素分類為水體或陸地），用以精準計算枯水期與豐水期的河道寬度變化與暴雨洪澇溢出面積。辨識上主要有傳統光學水體指標（如 NDWI 正規化差值水體指標）與深度學習模型（如 U-Net / YOLO-seg）兩大路線。實作時同樣面臨山體與雲層陰影誤判（False Positive）以及黃濁泥沙河道在信心門檻設定下的漏判兩難。"
+        "name": "5. Dice Loss 損失函數之收斂優勢",
+        "details": "在影像分割中，目標物體像素往往只佔整張圖的極小比例（如病灶僅佔 1%）。傳統的交叉熵損失會被大量背景像素主導而失效。Dice Loss 直接計算預測 Mask 與真實 Mask 的交集比例，能完美解決極度樣本不平衡問題，引導模型專注於目標區域邊緣的收斂。<br><br><b>💡 專有名詞對照：</b><br>• <b>Dice Loss (Dice 損失函數)</b>：基於 Dice 係數衡量兩個集合重合程度的分割損失函數。"
       }
     ],
     "formulas": [
       {
-        "name": "U-Net 特徵拼接與跳躍連接 (Skip Connection) 公式",
-        "latex": "\\mathbf{X}_{\\text{decoder}}^{l} = \\left[ \\mathbf{X}_{\\text{encoder}}^{l} \\,;\\, \\text{UpSample}(\\mathbf{X}_{\\text{decoder}}^{l+1}) \\right]",
-        "description": "解碼器第 $l$ 層的特徵圖是將編碼器同層的特徵圖 $\\mathbf{X}_{\\text{encoder}}^{l}$ 與解碼器下一層上採樣後的特徵圖進行通道維度上的拼接 (Concatenate)，從而融合淺層細節與深層語意特徵。"
-      },
-      {
-        "name": "正規化差值水體指標 (Normalized Difference Water Index, NDWI)",
-        "latex": "\\text{NDWI} = \\frac{\\text{Green} - \\text{NIR}}{\\text{Green} + \\text{NIR}}",
-        "description": "利用綠光波段 (Green) 與近紅外光波段 (NIR) 的反射率差值比率來放大水體特徵。由於水體在近紅外波段的反射率極低，NDWI 值大於一定臨界值的像素即被判定為水體。"
-      },
-      {
-        "name": "交除併 (Intersection over Union, IoU) 公式",
-        "latex": "\\text{IoU} = \\frac{|A \\cap B|}{|A \\cup B|}",
-        "description": "計算預測區域 $A$ 與真實標註區域 $B$ 的交集面積除以聯集面積。數值介於 0 與 1 之間，越接近 1 代表預測邊界與真實邊界重合度越高。"
-      },
-      {
-        "name": "Dice 相似係數 (Dice Similarity Coefficient, DSC)",
-        "latex": "\\text{Dice} = \\frac{2 |A \\cap B|}{|A| + |B|}",
-        "description": "常用於醫學影像分割的評估指標。Dice 係數對交集部分的權重更大，能更敏感地反映小目標（如微小腫瘤）分割的實際準確度。"
+        "name": "Dice 係數與 Dice Loss 公式",
+        "latex": "\\mathcal{L}_{\\text{Dice}} = 1 - \\frac{2 |\\mathbf{P} \\cap \\mathbf{T}|}{|\\mathbf{P}| + |\\mathbf{T}|} = 1 - \\frac{2 \\sum_{i=1}^{N} p_i t_i}{\\sum_{i=1}^{N} p_i^2 + \\sum_{i=1}^{N} t_i^2}",
+        "description": "P 為模型預測機率，T 為真實二值化 Mask。分子為兩者交集乘積之和，分母為各自平方和。當兩者完全一致時 Dice 係數為 1，Dice Loss 為 0。極大抑制了背景無效像素對梯度的汙染。"
       }
     ],
-    "code": "# 使用 Ultralytics YOLOv8-seg 進行實例分割與遮罩一對一映射保存實作\nfrom ultralytics import YOLO\nimport cv2\nimport os\n\n# 1. 載入模型 (確保你有 yolov8n-seg.pt 在該目錄下)\nmodel = YOLO('yolov8n-seg.pt')\n\n# 2. 對測試圖片進行推論，設定信心門檻與重疊度門檻\n# 確保目錄下有一張叫 test.jpg 的照片\nresults = model.predict(source='test.jpg', save=False, conf=0.4, iou=0.7)\nprint(\"輸出 masks 張量尺寸:\", results[0].masks.data.shape) # torch.Size([N, H, W])\n\n# 3. 視覺化並儲存框選圖結果\nfor r in results:\n    # r.plot() 會回傳包含偵測框與分割遮罩的影像\n    res_plotted = r.plot()\n    cv2.imwrite('result_output.jpg', res_plotted)\n    print(\"分割完成，整體結果已儲存為 result_output.jpg\")\n\n# 確保有一個資料夾存放結果\nif not os.path.exists('masks'):\n    os.makedirs('masks')\n\n# 取得所有的 masks 與 boxes 資訊\nmasks = results[0].masks.data\nboxes = results[0].boxes\n\n# 使用單一迴圈，透過索引 i 同時對應 mask 與 box (一對一映射)\nfor i in range(len(masks)):\n    # 1. 處理遮罩圖片，將 0/1 二值張量乘以 255 保存為可視化灰階圖\n    mask = masks[i].cpu().numpy()\n    cv2.imwrite(f'masks/mask_{i}.png', mask * 255)\n\n    # 2. 取得對應物件的類別 ID 與信心度\n    cls_id = int(boxes.cls[i].item())\n    conf = boxes.conf[i].item()\n\n    # 3. 合併印出乾淨俐落的終端機訊息\n    print(f\"已儲存第 {i} 個遮罩 (類別 ID: {cls_id}, 信心度: {conf:.2f}) -> 存於 masks/mask_{i}.png\")",
-    "faq": [
-      {
-        "question": "問：如果在實作中遇到影像分割模型將「影子」等背景雜訊誤判為物件（False Positive），該如何優化？",
-        "answer": "答：這在實務上可以透過調優「信心門檻（Confidence Threshold, conf）」來解決。例如在 model.predict() 中加上 `conf=0.4` 或 `conf=0.5`，這相當於提升了 AI 判定的及格分數，能非常有效地過濾掉因光影、遮擋產生的低信心度影子雜訊；同時，亦可配置 `iou`（重疊門檻）參數，調優 NMS 重合判定邊界。"
-      },
-      {
-        "question": "問：在 Python 提取 YOLO-seg 二值遮罩時，數據形狀 torch.Size([N, H, W]) 代表什麼？如何進行資料視覺化？",
-        "answer": "答：這代表一個三維張量 (Tensor)，其中 N 代表影像中偵測到的物件數量，H 與 W 代表遮罩的寬高解析度（例如 640x480）。每一層（如 `masks[i]`）都是一個二值矩陣，數值 1 代表該像素屬於物件，0 代表背景。資料視覺化時，需先將其透過 `.cpu().numpy()` 轉為 NumPy 陣列，隨後乘以 255（使 1 轉為 255 白色，0 保持黑色），即可透過 `cv2.imwrite` 保存為直觀黑白的灰階遮罩圖片。"
-      },
-      {
-        "question": "問：在進行遙測河川分割時，山體/雲層陰影誤判與泥沙濁流漏判該如何調優？",
-        "answer": "答：這在遙測領域是極具代表性的 False Positive（誤判）與 False Negative（漏判）權衡問題。高山或雲層的陰影與深色水體反射率相似，conf 設得過低會導致陰影被誤判為河川；反之，若暴雨後河道夾帶大量泥沙（如黃河）呈黃褐色，其光學特徵偏離標準水域，conf 設得過高則會漏判。實務上除了在 model.predict() 中動態調優信心門檻外，更會引入 NDWI 光學指標作為先驗知識 (Prior Knowledge) 限制模型搜尋區域，或融合多時段 (Multi-temporal) 衛星影像以濾除瞬時陰影干擾。"
-      }
-    ]
+    "code": "# PyTorch 影像分割 Dice Loss 實作範例\nimport torch\nimport torch.nn as nn\n\nclass DiceLoss(nn.Module):\n    def __init__(self, smooth=1.0):\n        super(DiceLoss, self).__init__()\n        self.smooth = smooth\n\n    def forward(self, pred, target):\n        # 確保 pred 已經過 sigmoid 轉為機率 [0, 1]\n        pred = torch.sigmoid(pred)\n        pred = pred.view(-1)\n        target = target.view(-1)\n        \n        intersection = (pred * target).sum()\n        dice = (2. * intersection + self.smooth) / (pred.sum() + target.sum() + self.smooth)\n        return 1. - dice\n\ncriterion = DiceLoss()\nmock_preds = torch.randn(1, 1, 256, 256)\nmock_targets = torch.randint(0, 2, (1, 1, 256, 256)).float()\nloss = criterion(mock_preds, mock_targets)\nprint(f\"Dice Loss 數值: {loss.item():.4f}\")"
   },
   {
     "id": "qs_attendance_antigravity",
@@ -749,31 +656,31 @@
     "steps": [
       {
         "name": "1. CNN Two-Stage 經典：Faster R-CNN (RPN & RoI Align)",
-        "details": "先找位置再認東西的兩階段設計。透過 RPN 網路產生稀疏候選框，再利用 RoI Align 對齊保留細節特徵，最後交由全連接層進行分類與精細微調，精準度高但推理慢。"
+        "details": "先找位置再認東西的兩階段設計。<br><br>• <b>RPN (Region Proposal Network / 區域候選網路)</b>：用於快速生成候選邊界框的輕量化神經網絡。<br>• <b>RoI Align (Region of Interest Align / 感興趣區域對齊)</b>：精準將不規則區域雙線性插值對齊特徵圖的空間對齊算子。"
       },
       {
         "name": "2. CNN One-Stage 革命：YOLO (Dense Grid Prediction)",
-        "details": "位置與大腦並行的一階段設計。將圖片劃分為 SxS 網格，直接在網格上進行密集預測一次性輸出邊界框與類別，再依賴非極大值抑制 (NMS) 排除重複框，速度極快。"
+        "details": "位置與大腦並行的一階段設計。<br><br>• <b>YOLO (You Only Look Once / 你只看一次)</b>：極致並行化的單階段即時物件偵測框架。"
       },
       {
         "name": "3. 影像分割的空間修復神作：U-Net 跳躍連結 (Skip Connection)",
-        "details": "為解決 CNN 降維後特徵邊緣模糊問題，U-Net 引入跳躍連結，將 Encoder 降維前的高解析度空間資訊直接與 Decoder 拼接，完美還原精確幾何邊界，是語意分割的奠基石。"
+        "details": "為解決 CNN 降維後特徵邊緣模糊問題，U-Net 引入跳躍連結。<br><br>• <b>Skip Connection (跳躍連結)</b>：保留 Encoder 降維前的高解析度幾何空間資訊並與 Decoder 直接進行拼接的特徵傳遞結構。"
       },
       {
         "name": "4. 典範轉移：ViT 自注意力與全局視野 (Self-Attention)",
-        "details": "捨棄局部卷積掃描。將影像切塊成 Patch Embedding 序列（圖塊單字），利用 Self-Attention 計算點積找出圖塊間的全局關聯，使模型自第一層起就具備全局上下文感知能力。"
+        "details": "捨棄局部卷積掃描，將影像切塊成 Patch Embedding 序列（圖塊單字）。<br><br>• <b>ViT (Vision Transformer / 視覺 Transformer)</b>：將影像轉換成 token 序列輸入標準 Transformer Encoder 實現全局注意力的架構。<br>• <b>Self-Attention (自注意力機制)</b>：計算序列中任意兩點關聯度的加權點積特徵提取算法。"
       },
       {
         "name": "5. 移動視窗優化：Swin Transformer 局部自注意力",
-        "details": "解決傳統 ViT 對於高解析度密集預測任務算力複雜度過高的痛點。引入<b>移動視窗 (Shifted Window)</b>，限制注意力只在局部視窗內計算，並通過層次化結構逐步合併，實現了與影像尺寸呈線性的低運算複雜度。"
+        "details": "解決傳統 ViT 對於高解析度密集預測任務算力複雜度過高的痛點。<br><br>• <b>Shifted Window (移動視窗)</b>：將自注意力計算限制在局部非重疊視窗內，並通過視窗偏移傳遞跨視窗特徵的低運算複雜度機制。"
       },
       {
         "name": "6. 集合預測大一統：DETR 匈牙利匹配與 NMS 解除",
-        "details": "將偵測視為「集合預測」問題。利用固定 Object Queries 作為特工，透過 Bipartite Matching Loss (二分圖匹配損失) 與匈牙利演算法建立一對一對應關係，徹底拔除 Anchor 箱與 NMS 規則。"
+        "details": "將偵測視為「集合預測」問題，徹底拔除 Anchor 箱與 NMS 規則。<br><br>• <b>DETR (DEtection TRansformer / 偵測 Transformer)</b>：基於 Transformer 的端到端物件偵測模型。<br>• <b>Bipartite Matching Loss (二分圖匹配損失)</b>：利用匈牙利匹配進行一對一無重複預測對齊的損失函數。"
       },
       {
         "name": "7. 語意與幾何解耦：SAM 系列通用可提示基礎模型 (Promptable)",
-        "details": "進入可提示分割時代。將任務解耦為：ViT 提取特徵，Presence Head 判斷「有沒有（What）」，Mask Head 負責「精準幾何分割（Where）」，在邊緣端能依靠 Presence Head 成功省下 80% 算力。"
+        "details": "進入可提示分割時代。將任務解耦為：ViT 提取特徵，Presence Head 判斷「有沒有（What）」，Mask Head 負責「精準幾何分割（Where）」。<br><br>• <b>SAM (Segment Anything Model / 萬物分割模型)</b>：具有通用、可提示交互能力的像素級通用分割大模型。"
       }
     ],
     "formulas": [
@@ -808,27 +715,27 @@
     "steps": [
       {
         "name": "1. 核心訓練參數：硬體資源與訓練節奏 (Training Configuration)",
-        "details": "核心訓練參數是每次訓練時最常用到的「主開關」，直接決定了運算資源分配與訓練步調。<br><br>• <b>epochs (總訓練輪數)</b>：整份資料集被完整遍歷訓練的次數。太高容易導致模型記住噪聲（過擬合 Overfitting）；太低則模型學習不充分，無法捕捉複雜特徵。<br>• <b>batch (批次大小)</b>：一次迭代送入 GPU 訓練的圖片張數。大 Batch 能提供穩定的梯度估計且能充分發揮 GPU 算力，但顯存開銷巨大；小 Batch 則能引入適度隨機噪聲，有助於逃離局部極值坑洞。<br>• <b>imgsz (輸入解析度)</b>：輸入模型的圖片邊長（如 640x640）。越大對小物體偵測越好，但計算量呈平方級數增加，會顯著降低推論 FPS。<br>• <b>patience (提前終止輪數)</b>：當驗證集指標（如 mAP）在設定的輪次內停滯不前，便會提前結束訓練。這能防止浪費算力與時間在已經過擬合的模型上。<br>• <b>device (運算裝置)</b>：指定使用 CPU, GPU (如 0,1) 或 Apple 晶片的 MPS。直接影響訓練速度與硬體調度。"
+        "details": "核心訓練參數是每次訓練時最常用到的「主開關」，直接決定了運算資源分配與訓練步調。<br><br>• <b>epochs (總訓練輪數)</b>：整份資料集被完整遍歷訓練的次數。太高容易導致模型記住噪聲（過擬合 Overfitting）；太低則模型學習不充分，無法捕捉複雜特徵。<br>• <b>batch (批次大小)</b>：一次迭代送入 GPU 訓練的圖片張數。大 Batch 能提供穩定的梯度估計且能充分發揮 GPU 算力，但顯存開銷巨大；小 Batch 則能引入適度隨機噪聲，有助於逃離局部極值坑洞。<br>• <b>imgsz (輸入解析度)</b>：輸入模型的圖片邊長（如 640x640）。越大對小物體偵測越好，但計算量呈平方級數增加，會顯著降低推論 FPS。<br>• <b>patience (提前終止輪數)</b>：當驗證集指標（如 mAP）在設定的輪次內停滯不前，便會提前結束訓練。這能防止浪費算力與時間在已經過擬合的模型上。<br>• <b>device (運算裝置)</b>：指定使用 CPU, GPU (如 0,1) 或 Apple 晶片的 MPS。直接影響訓練速度與硬體調度。<br><br><b>💡 專有名詞對照：</b><br>• <b>GPU (Graphics Processing Unit / 圖形處理器)</b>：專門進行大規模並行數學運算的處理器晶片。<br>• <b>mAP (Mean Average Precision / 平均精度均值)</b>：物件偵測中最核心的綜合精度指標。<br>• <b>MPS (Metal Performance Shaders / 蘋果金屬效能著色器)</b>：蘋果晶片進行 GPU 加速的底層架構。"
       },
       {
         "name": "2. 優化器與學習率參數：收斂與權重更新 (Optimization Hyperparameters)",
-        "details": "控制模型權重如何一步步逼近全局最佳值，是訓練是否「收斂」的關鍵。<br><br>• <b>lr0 (初始學習率)</b>：最核心的開關，控制每次更新的步長。過大會導致 Loss 直接變 NaN（模型發散）；過小則模型收斂極慢，容易卡死在局部極值。<br>• <b>lrf (最終學習率比例)</b>：最終學習率為 lr0 $\\times$ lrf。配合餘弦退火 (Cosine Annealing)，讓訓練尾聲時學習步伐逐漸縮小，以平穩逼近極小值。<br>• <b>momentum (動量)</b>：用於加速梯度下降。結合歷史梯度方向，幫助模型衝過細小的局部坑洞（局部極小值）。<br>• <b>weight_decay (權重衰減)</b>：L2 正則化參數。通過懲罰過大的權重值限制模型複雜度，防止模型在訓練集上過擬合。<br>• <b>optimizer (優化器選擇)</b>：可選 SGD、Adam 或 AdamW。SGD 泛化能力普遍較好，但收斂慢；Adam/AdamW 收斂極快且對學習率較不敏感。"
+        "details": "控制模型權重如何一步步逼近全局最佳值，是訓練是否「收斂」的關鍵。<br><br>• <b>lr0 (初始學習率)</b>：最核心的開關，控制每次更新的步長。過大會導致 Loss 直接變 NaN（模型發散）；過小則模型收斂極慢，容易卡死在局部極值。<br>• <b>lrf (最終學習率比例)</b>：最終學習率為 lr0 $\\times$ lrf。配合餘弦退火 (Cosine Annealing)，讓訓練尾聲時學習步伐逐漸縮小，以平穩逼近極小值。<br>• <b>momentum (動量)</b>：用於加速梯度下降。結合歷史梯度方向，幫助模型衝過細小的局部坑洞（局部極小值）。<br>• <b>weight_decay (權重衰減)</b>：L2 正則化參數。通過懲罰過大的權重值限制模型複雜度，防止模型在訓練集上過擬合。<br>• <b>optimizer (優化器選擇)</b>：可選 SGD、Adam 或 AdamW。SGD 泛化能力普遍較好，但收斂慢；Adam/AdamW 收斂極快且對學習率較不敏感。<br><br><b>💡 專有名詞對照：</b><br>• <b>SGD (Stochastic Gradient Descent / 隨機梯度下降)</b>：最基礎的權重優化演算法。<br>• <b>NaN (Not a Number / 非數值)</b>：在計算中代表溢出或除以零的無效浮點數狀態。"
       },
       {
         "name": "3. 進階資料增強：抗噪與泛化能力 (Data Augmentation)",
-        "details": "這決定了模型看過多少「變形後」的圖片，是用以提升邊緣測試集表現的核心。<br><br>• <b>hsv_h / hsv_s / hsv_v (色彩干擾)</b>：色調、飽和度、明度擾動。讓模型適應晴天、陰天、反光或不同色溫的光照環境。<br>• <b>degrees / translate / scale (幾何變形)</b>：旋轉、位移、縮放幅度。增加模型對物體大小與拍攝角度的魯棒性。<br>• <b>mosaic / mixup (拼貼混合)</b>：將 4 張隨機裁切圖拼接成一張（Mosaic），或是將兩張圖以隨機權重進行半透明重疊合成（Mixup）。這是提升小物件偵測與泛化能力的神器。"
+        "details": "這決定了模型看過多少「變形後」的圖片，是用以提升邊緣測試集表現的核心。<br><br>• <b>hsv_h / hsv_s / hsv_v (色彩干擾)</b>：色調、飽和度、明度擾動。讓模型適應晴天、陰天、反光或不同色溫的光照環境。<br>• <b>degrees / translate / scale (幾何變形)</b>：旋轉、位移、縮放幅度。增加模型對物體大小與拍攝角度的魯棒性。<br>• <b>mosaic / mixup (拼貼混合)</b>：將 4 張隨機裁切圖拼接成一張（Mosaic），或是將兩張圖以隨機權重進行半透明重疊合成（Mixup）。這是提升小物件偵測與泛化能力的神器。<br><br><b>💡 專有名詞對照：</b><br>• <b>HSV (Hue, Saturation, Value / 色相、飽和度、亮度)</b>：一種直觀將色彩解耦的色彩空間表示法。"
       },
       {
         "name": "4. 進階模型結構控制：特徵規模縮放 (Architecture Scaling)",
-        "details": "決定了模型底層卷積結構與特徵圖的寬深規模。<br><br>• <b>deepen_factor (深度係數)</b>：控制網路的深度（層數）。數值越大，模型越能學習深層抽象特徵，但梯度傳遞開銷大且推理變慢。<br>• <b>widen_factor (寬度係數)</b>：控制網路的寬度（特徵通道數）。通道越多，能捕捉的特徵多樣性越豐富，但顯存與計算量呈幾何倍數上升。<br>• <b>調整影響</b>：這兩者的縮放直接決定了模型版本（如 YOLOv8 家族從最小的 Nano 到巨大的 Extra ），必須在硬體延遲 (Latency) 與準確率 (mAP) 之間取得平衡。"
+        "details": "決定了模型底層卷積結構與特徵圖的寬深規模。<br><br>• <b>deepen_factor (深度係數)</b>：控制網路的深度（層數）。數值越大，模型越能學習深層抽象特徵，但梯度傳遞開銷大且推理變慢。<br>• <b>widen_factor (寬度係數)</b>：控制網路的寬度（特徵通道數）。通道越多，能捕捉的特徵多樣性越豐富，但顯存與計算量呈幾何倍數上升。<br>• <b>調整影響</b>：這兩者的縮放直接決定了模型版本（如 YOLOv8 家族從最小的 Nano 到巨大的 Extra ），必須在硬體延遲 (Latency) 與準確率 (mAP) 之間取得平衡。<br><br><b>💡 專有名詞對照：</b><br>• <b>Latency (延遲/推理時間)</b>：模型處理單張圖片所需的時間開銷。<br>• <b>YOLOv8n to YOLOv8x (YOLOv8 Nano to Extra)</b>：不同縮放係數的 YOLO 架構版本。"
       },
       {
         "name": "5. 推論篩選：Confidence 與 IoU Threshold 閥值設定 (Inference Filtering)",
-        "details": "決定預測輸出後「留下哪些偵測框」的篩選機制。<br><br>• <b>Confidence Threshold (置信度閾值)</b>：預測框存在的機率界限。調高能大幅過濾低機率的誤報 (FP)，提升精確率 (Precision)，但容易漏檢 (Recall 下降)；調低則能捕獲更多疑似物體 (Recall 上升)，但誤報率會大幅增加。<br>• <b>IoU Threshold (交集比閾值)</b>：用於 NMS 排除重複框。調高（如 0.6）代表對重疊的容忍度高，允許緊密相鄰的真實物件框同時存在；調低（如 0.3）則會強力合併重合框，只保留分數最高的一個。"
+        "details": "決定預測輸出後「留下哪些偵測框」的篩選機制。<br><br>• <b>Confidence Threshold (置信度閾值)</b>：預測框存在的機率界限。調高能大幅過濾低機率的誤報 (FP)，提升精確率 (Precision)，但容易漏檢 (Recall 下降)；調低則能捕獲更多疑似物體 (Recall 上升)，但誤報率會大幅增加。<br>• <b>IoU Threshold (交集比閾值)</b>：用於 NMS 排除重複框。調高（如 0.6）代表對重疊的容忍度高，允許緊密相鄰的真實物件框同時存在；調低（如 0.3）則會強力合併重合框，只保留分數最高的一個。<br><br><b>💡 專有名詞對照：</b><br>• <b>IoU (Intersection over Union / 交集比/交併比)</b>：衡量兩個邊界框重合程度的比值。<br>• <b>NMS (Non-Maximum Suppression / 非極大值抑制)</b>：在後處理中濾除重疊度高且分數低的重複預測框的演算法。<br><br><b>📊 Confidence 與 IoU 閥值大小調整影響對照：</b><br><table><thead><tr><th>篩選參數</th><th>調高數值影響</th><th>調低數值影響</th></tr></thead><tbody><tr><td>置信度閾值 (Conf)</td><td>精確率 (Precision) 上升，漏檢增加，畫面變乾淨。</td><td>召回率 (Recall) 上升，誤檢增加，畫面充斥噪聲框。</td></tr><tr><td>交集比閾值 (IoU)</td><td>容忍物體重疊。適合密集堆疊場景，但稀疏場景會出現重複框。</td><td>強力排除重複框。畫面清爽，但密集場景會導致鄰近物體漏檢。</td></tr></tbody></table>"
       },
       {
         "name": "6. 總結：調整大小的黃金法則 (Hyperparameters Tuning Logic)",
-        "details": "如果您的模型訓練效果不佳，建議依照以下黃金順序進行排查：<br><br>1. <b>優先動 imgsz</b>：如果小物體偵測不到，直接調高解析度（例如從 640 提升至 1280），這是提升小物體檢測率最直觀有效的改善方式。<br>2. <b>次動 batch 與 lr0</b>：如果 Loss 曲線抖動厲害且不穩定，應嘗試增加 batch 大小；如果 Loss 根本不下降，檢查 lr0 是否太小（卡死）或太大（發散）。<br>3. <b>最後動 weight_decay 與 Augmentation</b>：當模型在訓練集效果極好，但在驗證集效果很差（過擬合）時，應調大 weight_decay 懲罰項，或調強資料擴增強度（如提高 mosaic/mixup 機率）。"
+        "details": "如果您的模型訓練效果不佳，建議依照以下黃金順序進行排查：<br><br>1. <b>優先動 imgsz</b>：如果小物體偵測不到，直接調高解析度（例如從 640 提升至 1280），這是提升小物體檢測率最直觀有效的改善方式。<br>2. <b>次動 batch 與 lr0</b>：如果 Loss 曲線抖動厲害且不穩定，應嘗試增加 batch 大小；如果 Loss 根本不下降，檢查 lr0 是否太小（卡死）或太大（發散）。<br>3. <b>最後動 weight_decay 與 Augmentation</b>：當模型在訓練集效果極好，但在驗證集效果很差（過擬合）時，應調大 weight_decay 懲罰項，或調強資料擴增強度（如提高 mosaic/mixup 機率）。<br><br><b>📊 YOLO 超參數調優順序對照表：</b><br><table><thead><tr><th>調參優先順序</th><th>針對問題</th><th>具體超參數調整</th></tr></thead><tbody><tr><td>第 1 順位：imgsz</td><td>小物體漏檢、像素特徵模糊。</td><td>調高 imgsz（如 640 ➔ 1280），增加分辨率。</td></tr><tr><td>第 2 順位：batch & lr0</td><td>Loss 劇烈抖動、或 Loss 停滯不動。</td><td>抖動則加大 batch；停滯則依據發散/卡死調整 lr0。</td></tr><tr><td>第 3 順位：weight_decay & Aug</td><td>嚴重的過擬合（訓練集好、驗證集差）。</td><td>加大 weight_decay L2 正則化，或調強 Mosaic/Mixup 機率。</td></tr></tbody></table>"
       }
     ],
     "formulas": [
@@ -843,15 +750,11 @@
         "description": "IoU 用於衡量預測框 A 與真實框（或另一個候選框）B 的重疊程度，是 NMS 篩選與計算損失的核心指標。"
       }
     ],
-    "code": "# ==========================================\n# 專案名稱：YOLO 預測後處理 NMS 演算法與閾值篩選模擬\n# 目的：展示 Confidence Threshold 與 IoU Threshold 的物理篩選過程\n# ==========================================\nimport numpy as np\n\ndef calculate_iou(box1, box2):\n    # box 格式為 [x1, y1, x2, y2]\n    x1 = max(box1[0], box2[0])\n    y1 = max(box1[1], box2[1])\n    x2 = min(box1[2], box2[2])\n    y2 = min(box1[3], box2[3])\n    \n    inter_area = max(0, x2 - x1) * max(0, y2 - y1)\n    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])\n    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])\n    \n    union_area = box1_area + box2_area - inter_area\n    return inter_area / union_area if union_area > 0 else 0\n\ndef non_maximum_suppression(bboxes, scores, conf_threshold=0.25, iou_threshold=0.45):\n    print(f\"原始候選框數: {len(bboxes)}\")\n    \n    # 1. 根據 Confidence Threshold 進行第一道篩選\n    mask = scores >= conf_threshold\n    filtered_boxes = bboxes[mask]\n    filtered_scores = scores[mask]\n    print(f\"經 Conf Threshold >= {conf_threshold} 篩選後剩餘框數: {len(filtered_boxes)}\")\n    \n    if len(filtered_boxes) == 0:\n        return [], []\n        \n    keep_indices = []\n    # 2. 依照置信度分數由高到低排序\n    order = np.argsort(filtered_scores)[::-1]\n    \n    while len(order) > 0:\n        best_idx = order[0]\n        keep_indices.append(best_idx)\n        \n        if len(order) == 1:\n            break\n            \n        # 計算此最高分數框與其餘所有框的 IoU\n        best_box = filtered_boxes[best_idx]\n        other_boxes = filtered_boxes[order[1:]]\n        \n        ious = np.array([calculate_iou(best_box, other_box) for other_box in other_boxes])\n        \n        # 3. 根據 IoU Threshold 過濾重疊度過高的重複框\n        # 只留下 IoU 小於閾值的框 (代表不同物體)\n        remaining_indices = np.where(ious < iou_threshold)[0]\n        \n        # 更新排序索引\n        order = order[remaining_indices + 1]\n        \n    final_boxes = filtered_boxes[keep_indices]\n    final_scores = filtered_scores[keep_indices]\n    print(f\"經 NMS (IoU Threshold < {iou_threshold}) 合併後最終輸出框數: {len(final_boxes)}\")\n    return final_boxes, final_scores\n\nif __name__ == '__main__':\n    # 模擬 5 個重疊度高的預測邊界框\n    simulated_boxes = np.array([\n        [100, 100, 210, 210], # 框 A (高置信度)\n        [105, 102, 208, 205], # 框 B (與 A 幾乎重合，中置信度)\n        [98, 105, 215, 212],  # 框 C (與 A 幾乎重合，低置信度)\n        [400, 400, 500, 500], # 框 D (另一個物體，中置信度)\n        [102, 100, 205, 202]  # 框 E (與 A 幾乎重合，但因低於置信度閥值會被首輪過濾)\n    ])\n    simulated_scores = np.array([0.92, 0.75, 0.45, 0.88, 0.15])\n    \n    final_boxes, final_scores = non_maximum_suppression(\n        simulated_boxes, \n        simulated_scores, \n        conf_threshold=0.25, \n        iou_threshold=0.45\n    )\n    \n    print('\\n最終保留 the 邊界框:')\n    for b, s in zip(final_boxes, final_scores):\n        print(f'位置: {b.tolist()} | 置信度: {s:.2f}')",
+    "code": "# NMS 算法與閾值篩選模擬\nimport numpy as np\n\ndef calculate_iou(box1, box2):\n    x1 = max(box1[0], box2[0])\n    y1 = max(box1[1], box2[1])\n    x2 = min(box1[2], box2[2])\n    y2 = min(box1[3], box2[3])\n    inter_area = max(0, x2 - x1) * max(0, y2 - y1)\n    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])\n    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])\n    union_area = box1_area + box2_area - inter_area\n    return inter_area / union_area if union_area > 0 else 0",
     "faq": [
       {
         "question": "問：在 YOLO 訓練初期，為什麼通常會引入學習率 Warmup 機制？如果不做 Warmup 會怎麼樣？",
         "answer": "答：在訓練剛開始時，模型權重是隨機初始化的，此時模型對資料的理解極低，梯度數值非常不穩定。如果一開始就使用設定的最大學習率進行訓練，大步長的參數更新很容易破壞尚未定型的特徵提取結構，導致模型在一開始就發散。而 Warmup 機制會在訓練的前幾個 Epoch 內，將學習率從一個極小的值（如 10^-6）緩慢線性增加到預設的最大學習率，讓模型先進行溫和的適應與特徵對齊，從而極大地提升了訓練整體的收斂穩定性。"
-      },
-      {
-        "question": "問：當偵測模型在測試集上的 mAP (平均精度) 指標很好，但在實際現場攝影機部署後卻頻繁出現漏檢，應如何排查超參數？",
-        "answer": "答：這通常是因為「現場實體環境」與「訓練數據集」存在特徵偏差，應採取以下三步排查：第一，檢查 Confidence Threshold，現場反光或角度偏差可能導致置信度微幅低於閥值，可嘗試微調降低 0.05 看看漏檢是否改善；第二，檢查實體輸入解析度 (Input Size) 是否與現場攝影機解析度落差過大，如果現場小物體過多而訓練時採用 640 解析度，可考慮將推論解析度調高至 960 或 1280；第三，評估現場物體是否堆疊緊密，如果是，請嘗試調高 IoU Threshold 以免 NMS 將鄰近的真實物體判定為重複檢測而強行過濾。"
       }
     ]
   },
@@ -863,27 +766,27 @@
     "steps": [
       {
         "name": "1. 基礎概念：何謂 ROI 與 Canny 邊緣檢測 (Core Concepts)",
-        "details": "機器視覺中，大圖處理的「聚焦與提取」組合。<br><br>• <b>ROI (感興趣區域)</b>：在一張大型高解析度影像中，只截取包含目標物體（如車牌、指紋、零件）的局部小區域進行運算，以節省處理時間與記憶體。<br>• <b>Canny 邊緣檢測</b>：由 John F. Canny 於 1986 年提出，是目前最經典且精準的邊緣提取算子。透過高斯濾波、 Sobel 梯度計算、非極大值抑制 (NMS) 與滯後雙閾值，可抓取極細且連續的物體邊緣輪廓。"
+        "details": "機器視覺中，大圖處理的「聚焦與提取」組合。<br><br>• <b>ROI (感興趣區域)</b>：在一張大型高解析度影像中，只截取包含目標物體（如車牌、指紋、零件）的局部小區域進行運算，以節省處理時間與記憶體。<br>• <b>Canny 邊緣檢測</b>：由 John F. Canny 於 1986 年提出，是目前最經典且精準的邊緣提取算子。透過高斯濾波、 Sobel 梯度計算、非極大值抑制 (NMS) 與滯後雙閾值，可抓取極細且連續的物體邊緣輪廓。<br><br><b>💡 專有名詞對照：</b><br>• <b>ROI (Region of Interest / 感興趣區域)</b>：圖像中被選取進行特定演算法處理的局部子區域。<br>• <b>NMS (Non-Maximum Suppression / 非極大值抑制)</b>：將非局部屋脊點置零以細化邊緣的後處理步驟。"
       },
       {
         "name": "2. Canny 演算法底層的四個數學與演算步驟 (Algorithm Workflow)",
-        "details": "Canny 邊緣提取的精密四步數據流：<br><br>1. <b>高斯平滑降噪 (Gaussian Smoothing)</b>：使用高斯卷積核心降低高頻雜訊，防止噪聲被誤判為邊緣。<br>2. <b>計算梯度強度與方向 (Gradient Calculation)</b>：利用 Sobel 算子計算水平與垂直方向梯度，得出梯度強度 $G$ 與方向角度 $\\theta$。<br>3. <b>非極大值抑制 (NMS)</b>：沿著梯度方向掃描，若當前像素非局部最大強度，則將其置零，使邊緣變細至 1 像素寬。<br>4. <b>滯後雙閾值連接 (Hysteresis Thresholding)</b>：設置高閾值 $T_{\\text{high}}$ 與低閾值 $T_{\\text{low}}$。高於高閾值確定為強邊緣；低於低閾值則濾除；介於兩者之間且與強邊緣相連的保留為弱邊緣。"
+        "details": "Canny 邊緣提取的精密四步數據流：<br><br>1. <b>高斯平滑降噪 (Gaussian Smoothing)</b>：使用高斯卷積核心降低高頻雜訊，防止噪聲被誤判為邊緣。<br>2. <b>計算梯度強度與方向 (Gradient Calculation)</b>：利用 Sobel 算子計算水平與垂直方向梯度，得出梯度強度 $G$ 與方向角度 $\\theta$。<br>3. <b>非極大值抑制 (NMS)</b>：沿著梯度方向掃描，若當前像素非局部最大強度，則將其置零，使邊緣變細至 1 像素寬。<br>4. <b>滯後雙閾值連接 (Hysteresis Thresholding)</b>：設置高閾值 $T_{\\text{high}}$ 與低閾值 $T_{\\text{low}}$。高於高閾值確定為強邊緣；低於低閾值則濾除；介於兩者之間且與強邊緣相連的保留為弱邊緣。<br><br><b>💡 專有名詞對照：</b><br>• <b>Sobel Operator (Sobel 卷積算子)</b>：用於計算影像像素灰階空間一階導數的離散差分算子。"
       },
       {
         "name": "3. 核心突破：解決全域自動閾值失真 (Threshold Distortions)",
-        "details": "為什麼限制在 ROI 內能極大提升 Canny 的精準度？<br><br>• <b>全域統計汙染</b>：Canny 閾值常依賴整張圖最大梯度來自動估算。若整張圖背景有強光、反光或雜亂紋理，最大梯度會被大幅拉高，導致閾值偏高，使 ROI 內的真實微弱邊緣被當作雜訊直接抹除。<br>• <b>局部精準鎖定</b>：將運算限制在 ROI 內，直方圖與梯度統計只針對目標物體計算，閾值能極其精確地適應工件的材質、色彩與實體反光。"
+        "details": "為什麼限制在 ROI 內能極大提升 Canny 的精準度？<br><br>• <b>全域統計汙染</b>：Canny 閾值常依賴整張圖最大梯度來自動估算。若整張圖背景有強光、反光或雜亂紋理，最大梯度會被大幅拉高，導致閾值偏高，使 ROI 內的真實微弱邊緣被當作雜訊直接抹除。<br>• <b>局部精準鎖定</b>：將運算限制在 ROI 內，直方圖與梯度統計只針對目標物體計算，閾值能極其精確地適應工件的材質、色彩與實體反光。<br><br><b>📊 全域 Canny 檢測與 ROI Canny 檢測對比：</b><br><table><thead><tr><th>檢測策略</th><th>優點</th><th>缺點</th></tr></thead><tbody><tr><td>全域 Canny 檢測</td><td>無需定位目標，程式寫法簡單，全圖直接輸出。</td><td>極易受背景強光、反光與雜訊汙染，閾值被拉高而造成漏檢。</td></tr><tr><td>ROI Canny 檢測</td><td>屏蔽背景雜訊，閾值完全對齊工件特徵，邊緣極度精準。</td><td>需要先使用粗定位算法畫出 ROI 範圍，增加了前置計算步驟。</td></tr></tbody></table>"
       },
       {
         "name": "4. 硬體效能最佳化：快取局部性 (Cache Locality)",
-        "details": "從計算機結構底層剖析 ROI Canny 帶來的 FPS 狂飆。<br><br>• <b>Cache Miss 痛點</b>：大圖（如 4K 影像）在記憶體中佔用範圍廣。Sobel 卷積與 NMS 在整張圖上大範圍定址時，極易超出 CPU 的 L1/L2 快取容量，頻繁觸發慢速的實體記憶體讀寫。<br>• <b>連續矩陣快取</b>：先將 ROI 裁切為小的子矩陣 (Sub-matrix)。在記憶體中，這塊小資料結構是連續且緊湊的，能整個載入 CPU 的高頻 Cache 中，使乘加運算與分支跳轉效率達到幾何級數提升。"
+        "details": "從計算機結構底層剖析 ROI Canny 帶來的 FPS 狂飆。<br><br>• <b>Cache Miss 痛點</b>：大圖（如 4K 影像）在記憶體中佔用範圍廣。Sobel 卷積與 NMS 在整張圖上大範圍定址時，極易超出 CPU 的 L1/L2 快取容量，頻繁觸發慢速的實體記憶體讀寫。<br>• <b>連續矩陣快取</b>：先將 ROI 裁切為小的子矩陣 (Sub-matrix)。在記憶體中，這塊小資料結構是連續且緊湊的，能整個載入 CPU 的高頻 Cache 中，使乘加運算與分支跳轉效率達到幾何級數提升。<br><br><b>💡 專有名詞對照：</b><br>• <b>Cache Locality (快取局部性)</b>：程式存取記憶體時趨向於存取鄰近連續位址的計算機底層特徵。<br>• <b>FPS (Frames Per Second / 每秒影格數)</b>：衡量影像處理或畫面刷新速度的指標。"
       },
       {
         "name": "5. 工業實務應用：粗定位與精定位 (Coarse-to-Fine)",
-        "details": "在動態自動化檢測中，ROI 的進階部署策略：<br><br>• <b>Coarse 粗定位</b>：先以低解析度全圖，利用簡單的特徵（如模板匹配或顏色二值化）快速定位目標物大略位置，並動態畫出一個 ROI 框。<br>• <b>Fine 精定位</b>：在此動態 ROI 遮罩內，以全解析度執行高精度 Canny 邊緣檢測與亞像素級邊緣擬合，實現高速與高精度兼得。<br>• <b>雜訊遮除 (Clutter Removal)</b>：將非 ROI 區域使用 Bitwise-AND 歸零，使 Canny 算子直接跳過梯度運算，徹底阻絕背景傳送帶或反光的干擾。"
+        "details": "在動態自動化檢測中，ROI 的進階部署策略：<br><br>• <b>Coarse 粗定位</b>：先以低解析度全圖，利用簡單的特徵（如模板匹配或顏色二值化）快速定位目標物大略位置，並動態畫出一個 ROI 框。<br>• <b>Fine 精定位</b>：在此動態 ROI 遮罩內，以全解析度執行高精度 Canny 邊緣檢測與亞像素級邊緣擬合，實現高速與高精度兼得。<br>• <b>雜訊遮除 (Clutter Removal)</b>：將非 ROI 區域使用 Bitwise-AND 歸零，使 Canny 算子直接跳過梯度運算，徹底阻絕背景傳送帶或反光的干擾。<br><br><b>💡 專有名詞對照：</b><br>• <b>Bitwise-AND (按位元與運算)</b>：在像素級別進行二進位 AND 邏輯乘積運算以套用 Mask 的底層技術。"
       },
       {
         "name": "6. Python 與 OpenCV 程式碼實作示範",
-        "details": "在 OpenCV 中結合裁切 ROI 與套用 Canny 算子的標準流程，支援定義靜態與遮罩式 ROI 的實務。"
+        "details": "在 OpenCV 中結合裁切 ROI 與套用 Canny 算子的標準流程，支援定義靜態與遮罩式 ROI 的實務。<br><br>• <b>OpenCV (Open Source Computer Vision Library / 開源電腦視覺庫)</b>：廣泛應用於機器視覺與影像處理的開源跨平台函式庫。"
       }
     ],
     "formulas": [
@@ -898,17 +801,7 @@
         "description": "利用 atan2 函數計算梯度的方向角（四象限弧度），非極大值抑制 (NMS) 會利用此角度來決定該像素與其相鄰梯度方向點進行大小比對。"
       }
     ],
-    "code": "# ==========================================\n# 專案名稱：ROI Canny 邊緣檢測與局部優化模擬\n# 目的：展示 ROI 擷取與 Canny 算子的運作，以及算力節省對比\n# ==========================================\nimport numpy as np\n\ndef calculate_iou(box1, box2):\n    # 輔助計算函數\n    x1 = max(box1[0], box2[0])\n    y1 = max(box1[1], box2[1])\n    x2 = min(box1[2], box2[2])\n    y2 = min(box1[3], box2[3])\n    inter_area = max(0, x2 - x1) * max(0, y2 - y1)\n    box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])\n    box2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])\n    union_area = box1_area + box2_area - inter_area\n    return inter_area / union_area if union_area > 0 else 0\n\ndef apply_roi_canny(image, bbox, low_threshold=50, high_threshold=150):\n    \"\"\"\n    模擬對指定邊界框 (ROI) 的區域進行 Canny 邊緣檢測，並與原圖融合展示\n    image: ndarray, 原始影像\n    bbox: tuple, 格式為 (x, y, w, h)\n    \"\"\"\n    x, y, w, h = bbox\n    h_max, w_max = image.shape[:2]\n    \n    # 1. 確保邊界框不超出影像實體範圍\n    x1, y1 = max(0, x), max(0, y)\n    x2, y2 = min(w_max, x + w), min(h_max, y + h)\n    print(f\"原始影像尺寸: {w_max}x{h_max} | 擷取 ROI 範圍: [{x1}:{x2}, {y1}:{y2}]\")\n    \n    # 2. 擷取 ROI 子影像 (在記憶體中這是一塊連續的 Sub-matrix，提升 Cache 命中率)\n    # 模擬切片操作\n    roi_img = image[y1:y2, x1:x2]\n    \n    # 3. 模擬灰階轉換與高斯模糊處理\n    # 此處做數據結構上的模擬\n    roi_gray = np.mean(roi_img, axis=2).astype(np.uint8) if len(roi_img.shape) == 3 else roi_img\n    \n    # 4. 模擬 Canny 邊緣檢測梯度計算與 NMS 過濾\n    # 由於在 python 模擬中，我們使用虛擬邊緣生成來對比算力\n    simulated_edges = (roi_gray > 128).astype(np.uint8) * 255\n    \n    # 5. 將 ROI 邊緣結果融合回全圖尺寸 (建立黑底畫布)\n    full_edges = np.zeros(image.shape[:2], dtype=np.uint8)\n    full_edges[y1:y2, x1:x2] = simulated_edges\n    \n    return full_edges, simulated_edges\n\nif __name__ == '__main__':\n    # 模擬一張 640x480 RGB 測試圖片，並在中央繪製一個目標物體\n    test_image = np.zeros((480, 640, 3), dtype=np.uint8)\n    test_image[150:330, 200:440] = 255 # 目標白色矩形\n    \n    # 定義感興趣區域 (ROI)\n    target_roi = (180, 130, 280, 220)\n    \n    # 執行 ROI Canny 運算\n    edges_canvas, cropped_edges = apply_roi_canny(\n        test_image, \n        target_roi, \n        low_threshold=50, \n        high_threshold=150\n    )\n    \n    print('\\nROI Canny 處理完成！')\n    print(f'Canny 運算像素點數從 {640*480} 降至 {280*220} (減少約 90% 的運算開銷)')",
-    "faq": [
-      {
-        "question": "問：在 Canny 演算法中，如果低閾值設得太接近高閾值，或者兩者設得太高/太低，會對邊緣提取造成什麼具體影響？",
-        "answer": "答：雙閾值的設定是 Canny 邊緣連接的核心。如果高閾值設得太高，會導致很多真實的邊緣被誤過濾，邊緣變得斷斷續續；如果低閾值設得太低，則會保留過多無意義的噪聲微弱紋理。如果高低閾值過於接近，會使滯後連接 (Hysteresis) 機制失效，無法平滑地連接強弱邊緣；一般實務上，建議高低閾值的比例設定在 2:1 到 3:1 之間（例如 150 與 50），以發揮最佳的斷線連接效果。"
-      },
-      {
-        "question": "問：在 GPU 影像處理（如 CUDA / OpenCL）中，為什麼 ROI 切片 (Cropping) 不一定能像 CPU 一樣帶來極大的加速比，有何架構上的差異？",
-        "answer": "答：這是因為 GPU 採用極度並行的 SIMT 架構。如果僅做簡單的 `image[y1:y2, x1:x2]` 裁切，GPU 仍需處理記憶體對齊與執行緒分流。在 GPU 中，比起裁切子影像，更常見的作法是直接將整張影像載入顯示記憶體中，並使用「遮罩矩陣 (Mask Matrix)」在核函數 (Kernel) 中進行並行過濾——未被遮罩覆蓋的執行緒直接 `return` 結束更新。這樣既能保持記憶體合併讀取 (Coalesced Memory Access) 的極致頻寬，又能達到跳過計算的目的。"
-      }
-    ]
+    "code": "# ROI Canny 運算模擬\nimport numpy as np\n\ndef apply_roi_canny(image, bbox):\n    x, y, w, h = bbox\n    roi_img = image[y:y+h, x:x+w]\n    # 進行灰階化與模擬 Canny 運算\n    roi_gray = np.mean(roi_img, axis=2).astype(np.uint8) if len(roi_img.shape) == 3 else roi_img\n    roi_edges = (roi_gray > 128).astype(np.uint8) * 255\n    return roi_edges"
   },
   {
     "id": "ocr_optical_character_recognition",
@@ -918,15 +811,15 @@
     "steps": [
       {
         "name": "1. 基礎概念：OCR 運作工作流與生活應用 (Workflow)",
-        "details": "將圖像中的像素紋理轉譯為可編輯的 Unicode 文字代碼。<br><br>• <b>運作生命週期</b>：包含影像輸入 ➔ 預處理（灰階化、二值化、去噪、歪斜校正） ➔ 文字偵測（框選區域） ➔ 字元辨識（特徵提取與解碼） ➔ 輸出結果。<br>• <b>物理限制</b>：極易受字跡潦草、反光陰影、低解析度、以及報紙/雜誌等多欄位圖文交錯的複雜排版干擾而發生漏字或語序錯亂。"
+        "details": "將圖像中的像素紋理轉譯為可編輯的 Unicode 文字代碼。<br><br>• <b>運作生命週期</b>：包含影像輸入 ➔ 預處理（灰階化、二值化、去噪、歪斜校正） ➔ 文字偵測（框選區域） ➔ 字元辨識（特徵提取與解碼） ➔ 輸出結果。<br>• <b>物理限制</b>：極易受字跡潦草、反光陰影、低解析度、以及報紙/雜誌等多欄位圖文交錯的複雜排版干擾而發生漏字或語序錯亂。<br><br><b>💡 專有名詞對照：</b><br>• <b>OCR (Optical Character Recognition / 光學字元辨識)</b>：將影像中的印刷或手寫字轉換為電腦可編輯文本的技術。<br>• <b>Unicode (萬國碼/統一碼)</b>：業界統一的字元編碼標準，讓電腦能處理跨語系文字。"
       },
       {
         "name": "2. 傳統管線化架構：文字偵測與幾何校正 (Pipeline OCR)",
-        "details": "傳統 OCR 將任務拆解為多個獨立小模型串聯運行的 Pipeline 結構。<br><br>• <b>文字偵測 (Text Detection)</b>：利用卷積神經網路（如 DBNet, EAST）快速在全圖中尋找並框出可能含有文字的任意角度多邊形區塊。<br>• <b>方向校正 (TPS)</b>：針對傾斜、彎曲或透視變形的文字區塊，利用薄板樣條插值 (Thin Plate Spline, TPS) 進行非線性幾何轉正與展開，方便後續對齊辨識。"
+        "details": "傳統 OCR 將任務拆解為多個獨立小模型串聯運行的 Pipeline 結構。<br><br>• <b>文字偵測 (Text Detection)</b>：利用卷積神經網路（如 DBNet, EAST）快速在全圖中尋找並框出可能含有文字的任意角度多邊形區塊。<br>• <b>方向校正 (TPS)</b>：針對傾斜、彎曲或透視變形的文字區塊，利用薄板樣條插值 (Thin Plate Spline, TPS) 進行非線性幾何轉正與展開，方便後續對齊辨識。<br><br><b>💡 專有名詞對照：</b><br>• <b>TPS (Thin Plate Spline / 薄板樣條插值)</b>：用於影像非線性幾何變形校正與空間坐標映射的數學插值演算法。"
       },
       {
         "name": "3. 經典字元辨識骨幹：CRNN 與 CTC 解碼器 (Text Recognition)",
-        "details": "將整行文字影像一次性解碼為文字序列的核心技術。<br><br>• <b>CNN 提取空間特徵</b>：將轉正後的單行文字影像，經由 CNN 提取特徵圖 (Feature Map)。<br>• <b>RNN/Transformer 學習前後文</b>：使用雙向 LSTM (Bi-LSTM) 沿著寬度方向掃描特徵序列，結合上下文語意關係（例如 't' 後方高機率為 'h'）。<br>• <b>CTC 損失函數 (Connectionist Temporal Classification)</b>：解決影像特徵序列長度與實際文字字元長度不對齊、無對應 Label 的痛點，引入空字符 (Blank) 與合併機制實現免分割對齊。"
+        "details": "將整行文字影像一次性解碼為文字序列的核心技術。<br><br>• <b>CNN 提取空間特徵</b>：將轉正後的單行文字影像，經由 CNN 提取特徵圖 (Feature Map)。<br>• <b>RNN/Transformer 學習前後文</b>：使用雙向 LSTM (Bi-LSTM) 沿著寬度方向掃描特徵序列，結合上下文語意關係（例如 't' 後方高機率為 'h'）。<br>• <b>CTC 損失函數 (Connectionist Temporal Classification)</b>：解決影像特徵序列長度與實際文字字元長度不對齊、無對應 Label 的痛點，引入空字符 (Blank) 與合併機制實現免分割對齊。<br><br><b>💡 專有名詞對照：</b><br>• <b>CRNN (Convolutional Recurrent Neural Network / 卷積循環神經網路)</b>：結合卷積（提取特徵）與循環（建模序列）的經典文字識別架構。<br>• <b>CTC (Connectionist Temporal Classification / 連結主義時序分類)</b>：一種用於對齊輸入與輸出長度不一致時的序列解碼與損失計算方法。"
       },
       {
         "name": "4. 現代端到端與技術挑戰 (End-to-End & Challenges)",
@@ -934,7 +827,7 @@
       },
       {
         "name": "5. 跨世代變革：多模態大模型時代 (VLM Era)",
-        "details": "多模態大模型 (Vision-Language Models) 正在徹底重塑 OCR 的定義。<br><br>• <b>圖文對話與邏輯推理</b>：過去的 OCR 僅是字元辨識。現在如 Gemini 等大模型能直接「看懂」圖片中的表格邏輯、柱狀圖走勢甚至是手寫數學方程式，並直接進行跨語系翻譯與邏輯推理。<br>• <b>直接結構化輸出</b>：VLM 具備強大格式生成能力，能直接將發票或複雜表格圖片一鍵提取並輸出為乾淨的 Markdown 或標準 JSON 格式，完全省去了傳統後處理正則表達式 (Regex) 解析的繁雜程序。"
+        "details": "多模態大模型 (Vision-Language Models) 正在徹底重塑 OCR 的定義。<br><br>• <b>圖文對話與邏輯推理</b>：過去的 OCR 僅是字元辨識。現在如 Gemini 等大模型能直接「看懂」圖片中的表格邏輯、圖表走勢甚至是手寫數學方程式，並直接進行跨語系翻譯與邏輯推理。<br>• <b>直接結構化輸出</b>：VLM 具備強大格式生成能力，能直接將發票或複雜表格圖片一鍵提取並輸出為乾淨的 Markdown 或標準 JSON 格式，完全省去了傳統後處理正則表達式 (Regex) 解析的繁雜程序。<br><br><b>💡 專有名詞對照：</b><br>• <b>VLM (Vision-Language Model / 視覺語言模型/多模態大模型)</b>：同時具備圖像視覺理解與自然語言處理能力的深度學習基礎大模型。<br>• <b>JSON (JavaScript Object Notation / JS物件表示法)</b>：輕量級、易於人讀與程式解析的結構化資料交換格式。<br><br><b>📊 傳統 Pipeline OCR 與 現代多模態 VLM OCR 對比：</b><br><table><thead><tr><th>比較維度</th><th>傳統 Pipeline OCR (如 DBNet+CRNN)</th><th>現代多模態 VLM OCR (如 Gemini)</th></tr></thead><tbody><tr><td>算力與延遲</td><td>模型極輕量（數百萬參數），推論僅需數毫秒，適合端側即時辨識。</td><td>模型極龐大（數億至百億參數），推理開銷大、延遲高。</td></tr><tr><td>版面結構與推理</td><td>無法理解圖表邏輯，需要後處理 Regex 對齊解析。</td><td>直接看懂圖表、方程式並進行邏輯問答與 JSON 結構化輸出。</td></tr><tr><td>實體座標定位</td><td>精確輸出每個文字框的四角坐標，定位精準。</td><td>座標尋標定位能力相對較弱。</td></tr></tbody></table>"
       },
       {
         "name": "6. Python 模擬實作：CRNN 特徵與 CTC 合併解碼",
@@ -953,16 +846,6 @@
         "description": "在 CRNN 結構中，雙向 LSTM 將正向 (Forward) 與反向 (Backward) 的隱藏狀態向量進行拼接 (Concatenation)，同時保留了文字特徵的前後雙向上下文語意。"
       }
     ],
-    "code": "# ==========================================\n# 專案名稱：CTC 貪婪解碼器與序列對齊模擬\n# 目的：展示 OCR 辨識序列的重複合併與 Blank 去除邏輯\n# ==========================================\nimport numpy as np\n\ndef ctc_greedy_decoder(emissions, vocabulary, blank_idx=0):\n    \"\"\"\n    模擬 CTC 貪婪解碼器\n    emissions: ndarray, shape (T, C), 模型每個時間步(T)對各字符(C)的機率預測\n    vocabulary: list, 字符字典對照表，其中 vocabulary[blank_idx] 為 '-' (空字符)\n    \"\"\"\n    print(f\"輸入序列時間步 T = {emissions.shape[0]} | 字符類別數 C = {emissions.shape[1]}\")\n    \n    # 1. 每個時間步選取機率最高的字符索引 (Greedy Search)\n    best_path = np.argmax(emissions, axis=1)\n    \n    print(\"\\n模型原始預測路徑索引:\", best_path.tolist())\n    raw_chars = [vocabulary[idx] for idx in best_path]\n    print(\"模型原始預測路徑字符:\", \"\".join(raw_chars))\n    \n    # 2. 執行 CTC 合併與去重邏輯\n    decoded_indices = []\n    prev_idx = -1\n    \n    for idx in best_path:\n        # 如果當前字符與前一個相同，則合併跳過\n        if idx == prev_idx:\n            continue\n        prev_idx = idx\n        \n        # 3. 排除空字符 (Blank)\n        if idx != blank_idx:\n            decoded_indices.append(idx)\n            \n    # 還原成文字\n    final_chars = [vocabulary[idx] for idx in decoded_indices]\n    final_text = \"\".join(final_chars)\n    \n    print(\"\\n--- CTC 解碼合併去重處理 ---\")\n    print(f\"去重且排除 Blank ('-') 後索引: {decoded_indices}\")\n    print(f\"最終輸出辨識文字: {final_text}\")\n    return final_text\n\nif __name__ == '__main__':\n    # 模擬一個長度 T=12，字符類別數 C=5 的模型預測輸出\n    # 字符字典： 0: '-', 1: 'H', 2: 'E', 3: 'L', 4: 'O'\n    mock_vocab = ['-', 'H', 'E', 'L', 'O']\n    \n    T = 12\n    C = 5\n    mock_emissions = np.zeros((T, C))\n    \n    path_indices = [1, 1, 0, 2, 3, 3, 0, 3, 4, 4, 0, 4]\n    for t, char_idx in enumerate(path_indices):\n        mock_emissions[t, char_idx] = 0.95\n        remaining = 0.05 / (C - 1)\n        for c in range(C):\n            if c != char_idx:\n                mock_emissions[t, c] = remaining\n                \n    final_result = ctc_greedy_decoder(mock_emissions, mock_vocab, blank_idx=0)",
-    "faq": [
-      {
-        "question": "問：在 CRNN 影像特徵提取中，為什麼通常要將輸入影像的「高度」縮放為固定尺寸（如 32 像素），但允許「寬度」長度不固定？",
-        "answer": "答：這是因為文字影像的特徵主要取決於其高度方向的結構（如筆畫的垂直分佈），將高度縮放為固定值（如 32）能使 CNN 特徵圖 (Feature Map) 在高度維度上被壓縮至 1，從而將二維特徵圖拉平為一維時間序列。而文字行的長度（寬度方向）則會隨著句子長短、字元多寡而大不相同，若將寬度強行縮放為固定大小會導致字元變形失真。因此，CRNN 允許寬度不固定，以便在時間維度（寬度維度）上生成與文字行長度成正比的特徵序列，再交由 LSTM 進行序列解碼。"
-      },
-      {
-        "question": "問：在 VLM 時代，當多模態模型可以直接對圖文進行邏輯問答時，傳統 OCR 提取純文字的技術是否已經完全失去了存在價值？",
-        "answer": "答：並非如此。傳統 OCR 在兩大場景中依然具備不可替代的優勢。第一是「算力與推理延遲」，VLM 模型動輒數十億到數百億參數，推理開銷極大、速度慢，難以部署在手機等邊緣設備；而傳統 Pipeline OCR 模型只有數百萬參數，能在毫秒級內完成推論，是端側即時辨識的首選。第二是「高精度的座標定位」，在自動化表單對齊、發票要素結構化等任務中，我們不僅需要辨識文字，更需要精確的邊界框座標 (Bounding Box) 進行對齊，而大部分 VLM 的座標尋標能力與定位精度仍不如專屬的文字偵測網路 (如 DBNet)。因此，兩者在未來通常是互補共存的。"
-      }
-    ]
+    "code": "# CTC 貪婪解碼器與序列對齊模擬\nimport numpy as np\n\ndef ctc_greedy_decoder(emissions, vocabulary, blank_idx=0):\n    best_path = np.argmax(emissions, axis=1)\n    decoded_indices = []\n    prev_idx = -1\n    for idx in best_path:\n        if idx == prev_idx:\n            continue\n        prev_idx = idx\n        if idx != blank_idx:\n            decoded_indices.append(idx)\n    final_chars = [vocabulary[i] for i in decoded_indices]\n    return \"\".join(final_chars)"
   }
 ]

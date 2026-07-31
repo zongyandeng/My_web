@@ -210,6 +210,24 @@ function renderSingleAINote(note) {
   const container = document.getElementById('ai-note-content');
   if (!container) return;
 
+  // 輔助函數：處理 step 的 details 切割，返回 summary 與 collapsible details
+  const getStepDetailsHTML = (details) => {
+    if (!details) return '';
+    const parts = details.split('<br><br>');
+    const summary = parts[0];
+    const rest = parts.slice(1).join('<br><br>');
+    if (!rest) {
+      return `<div class="node-desc">${summary}</div>`;
+    }
+    return `
+      <div class="node-desc">${summary}</div>
+      <div class="collapsible-detail" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.15); width: 100%;">
+        ${rest}
+      </div>
+      <button class="view-more-btn" style="margin-top: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--accent-1); padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit;">🔍 查看更多</button>
+    `;
+  };
+
   let stepsHTML = '';
   note.steps.forEach(step => {
     stepsHTML += `
@@ -217,7 +235,7 @@ function renderSingleAINote(note) {
         <div class="node-num">${step.name.split('.')[0]}</div>
         <div class="node-text">
           <div class="node-title">${step.name}</div>
-          <div class="node-desc">${step.details}</div>
+          ${getStepDetailsHTML(step.details)}
         </div>
       </div>
     `;
@@ -232,7 +250,7 @@ function renderSingleAINote(note) {
             <div class="node-num">${idx + 1}</div>
             <div class="node-text">
               <div class="node-title">${step.name}</div>
-              <div class="node-desc">${step.details}</div>
+              ${getStepDetailsHTML(step.details)}
             </div>
           </div>
           ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
@@ -259,7 +277,7 @@ function renderSingleAINote(note) {
               <div class="node-num">${idx + 1}</div>
               <div class="node-text" style="width: 100%;">
                 <div class="node-title">${step.name}</div>
-                <div class="node-desc">${step.details}</div>
+                ${getStepDetailsHTML(step.details)}
                 ${stepImgHTML}
               </div>
             </div>
@@ -282,7 +300,7 @@ function renderSingleAINote(note) {
               <div class="node-num">${idx + 1}</div>
               <div class="node-text" style="width: 100%;">
                 <div class="node-title">${step.name}</div>
-                <div class="node-desc">${step.details}</div>
+                ${getStepDetailsHTML(step.details)}
                 ${stepImgHTML}
               </div>
             </div>
@@ -324,7 +342,7 @@ function renderSingleAINote(note) {
         </div>
         <div class="matrix-explanation" id="matrix-exp">
           <h4>TP (True Positive) - 真陽性</h4>
-          <p><strong>定義：</strong>實際為正樣本，且模型也預測為正樣本的數量。</p>
+          <p><strong>定義：</strong>實際為正樣本，且模型也預測為正樣本 the 數量。</p>
           <p style="margin-top:10px;"><strong>實例：</strong>病人生病，且檢測報告也顯示陽性（有病）。</p>
         </div>
       </div>
@@ -352,7 +370,7 @@ function renderSingleAINote(note) {
             <!-- Y 軸標籤 -->
             <text x="25" y="25" fill="var(--text-muted)" font-size="10" text-anchor="middle">高 Loss</text>
             <text x="25" y="220" fill="var(--text-muted)" font-size="10" text-anchor="middle">低 Loss</text>
-
+ 
             <!-- Train Loss 曲線 (綠) -->
             <path id="train-loss-path" d="" fill="none" stroke="var(--accent-2)" stroke-width="3" stroke-dasharray="1000" stroke-dashoffset="0"/>
             
@@ -376,7 +394,7 @@ function renderSingleAINote(note) {
       </div>
     `;
   }
-
+ 
   let formulasHTML = '';
   if (note.formulas && note.formulas.length > 0) {
     formulasHTML = `<h3>核心公式與物理意義 (Formulas)</h3>`;
@@ -390,7 +408,7 @@ function renderSingleAINote(note) {
       `;
     });
   }
-
+ 
   let codeHTML = '';
   if (note.code) {
     codeHTML = `
@@ -398,7 +416,7 @@ function renderSingleAINote(note) {
       <pre><code class="language-python">${escapeHTML(note.code)}</code></pre>
     `;
   }
-
+ 
   let faqHTML = '';
   if (note.faq && note.faq.length > 0) {
     faqHTML = `<div class="faq-section"><div class="faq-title">💡 常見問題與解決對策 (FAQ)</div>`;
@@ -412,7 +430,7 @@ function renderSingleAINote(note) {
     });
     faqHTML += `</div>`;
   }
-
+ 
   container.innerHTML = `
     <h2 style="font-size:2rem; margin-bottom:10px; color:var(--text-main); font-weight:800;">${note.title}</h2>
     <p style="color:var(--accent-1); font-weight:600; font-size:1.1rem; margin-bottom:20px;">${note.englishTitle}</p>
@@ -426,16 +444,33 @@ function renderSingleAINote(note) {
     ${codeHTML}
     ${faqHTML}
   `;
-
+ 
   // 觸發數學公式與代碼美化
   triggerKaTeX('ai-note-content');
   triggerPrism();
 
+  // 註冊「查看更多/收合內容」按鈕點擊事件
+  container.querySelectorAll('.view-more-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const parent = btn.closest('.node-text') || btn.closest('.flowchart-node') || btn.parentNode;
+      const detail = parent.querySelector('.collapsible-detail');
+      if (detail) {
+        const isHidden = detail.style.display === 'none';
+        detail.style.display = isHidden ? 'block' : 'none';
+        btn.textContent = isHidden ? '🔺 收合內容' : '🔍 查看更多';
+        btn.style.background = isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+        btn.style.borderColor = isHidden ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)';
+        btn.style.color = isHidden ? 'var(--accent-2)' : 'var(--accent-1)';
+      }
+    });
+  });
+ 
   // 註冊混淆矩陣互動點擊
   if (note.id === 'confusion_matrix') {
     registerMatrixClicks();
   }
-
+ 
   // 註冊折線圖滑動條與計算
   if (note.id === 'loss_curves') {
     registerChartSimulator();
