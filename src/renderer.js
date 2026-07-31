@@ -1176,11 +1176,23 @@ function renderSingleNetworkNote(note) {
   let stepsHTML = '';
   note.steps.forEach((step, idx) => {
     stepsHTML += `
-      <div class="flowchart-node detection-node">
-        <div class="node-num">${idx + 1}</div>
-        <div class="node-text" style="width: 100%;">
-          <div class="node-title">${step.name}</div>
-          <div class="node-desc">${step.details}</div>
+      <div class="flowchart-node detection-node collapsed" style="flex-direction: row; align-items: flex-start;">
+        <div class="node-num" style="margin-top: 2px;">${idx + 1}</div>
+        <div class="node-text" style="width: 100%; display: flex; flex-direction: column;">
+          <div class="node-title-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div class="node-title" style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main);">${step.name}</div>
+            <div class="expand-icon" style="color: var(--accent-2); font-size: 0.85rem; transition: transform 0.3s ease; font-family: monospace; user-select: none;">展開 ▼</div>
+          </div>
+          ${step.summary ? `
+            <div class="node-summary" style="margin-top: 8px; font-size: 0.88rem; color: var(--accent-1); font-weight: 600; line-height: 1.4;">
+              ${step.summary}
+            </div>
+          ` : ''}
+          <div class="node-details-wrapper" style="max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s ease;">
+            <div class="node-desc" style="margin-top: 15px; border-top: 1px dashed rgba(255, 255, 255, 0.08); padding-top: 15px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
+              ${step.details}
+            </div>
+          </div>
         </div>
       </div>
       ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
@@ -1207,12 +1219,76 @@ function renderSingleNetworkNote(note) {
     <p style="color:var(--text-muted); line-height:1.6; margin-bottom:30px; font-size:1rem;">${note.description}</p>
     
     <h3>概念拆解與處理步驟 (Process Flow)</h3>
+    <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:15px; display:flex; align-items:center; gap:5px;">
+      <span>💡 提示：點擊任何步驟卡片即可展開/收合詳細說明。</span>
+    </p>
     <div class="flowchart">
       ${stepsHTML}
     </div>
     
     ${faqHTML}
   `;
+
+  // 1. 註冊點擊卡片展開/收合的事件
+  const nodes = container.querySelectorAll('.flowchart-node');
+  nodes.forEach(node => {
+    node.addEventListener('click', (e) => {
+      // 點擊複製按鈕或代碼內部時不觸發折疊
+      if (e.target.classList.contains('terminal-copy-btn') || e.target.closest('.terminal-copy-btn') || e.target.closest('.terminal-body')) {
+        return;
+      }
+      
+      const wrapper = node.querySelector('.node-details-wrapper');
+      const icon = node.querySelector('.expand-icon');
+      if (!wrapper) return;
+      
+      const isCollapsed = node.classList.contains('collapsed');
+      if (isCollapsed) {
+        node.classList.remove('collapsed');
+        node.classList.add('expanded');
+        // 使用 scrollHeight 確保動態拉展，多增加一些安全 Buffer
+        wrapper.style.maxHeight = wrapper.scrollHeight + 150 + 'px';
+        wrapper.style.marginTop = '15px';
+        if (icon) {
+          icon.textContent = '收合 ▲';
+          icon.style.color = 'var(--text-muted)';
+        }
+      } else {
+        node.classList.remove('expanded');
+        node.classList.add('collapsed');
+        wrapper.style.maxHeight = '0';
+        wrapper.style.marginTop = '0';
+        if (icon) {
+          icon.textContent = '展開 ▼';
+          icon.style.color = 'var(--accent-2)';
+        }
+      }
+    });
+  });
+
+  // 2. 註冊複製按鈕的事件代理
+  container.addEventListener('click', (e) => {
+    if (e.target.classList.contains('terminal-copy-btn')) {
+      const textToCopy = e.target.getAttribute('data-code');
+      if (textToCopy) {
+        // 將字串中的 \\n 還原為斷行，並清除可能的多餘引號
+        const rawCode = textToCopy.replace(/\\n/g, '\n');
+        navigator.clipboard.writeText(rawCode).then(() => {
+          const originalText = e.target.textContent;
+          e.target.textContent = '已複製！';
+          e.target.style.background = 'var(--accent-2)';
+          e.target.style.color = 'white';
+          e.target.style.borderColor = 'var(--accent-2)';
+          setTimeout(() => {
+            e.target.textContent = originalText;
+            e.target.style.background = '';
+            e.target.style.color = '';
+            e.target.style.borderColor = '';
+          }, 1500);
+        });
+      }
+    }
+  });
 
   // 觸發數學公式與代碼美化
   triggerKaTeX('network-note-content');

@@ -665,9 +665,9 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 15px 25px;
+  padding: 20px 25px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -683,6 +683,112 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--accent-2);
   background: rgba(16, 185, 129, 0.1);
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+/* --- macOS 終端機與代碼模擬器樣式 --- */
+.mac-terminal {
+  background: #0f141c;
+  border: 1px solid #1e2530;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  margin: 15px 0;
+  font-family: 'Fira Code', Consolas, Monaco, monospace;
+  text-align: left;
+}
+
+.terminal-header {
+  background: #181f29;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #1e2530;
+  position: relative;
+}
+
+.terminal-buttons {
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.terminal-button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.btn-red { background: #ff5f56; }
+.btn-yellow { background: #ffbd2e; }
+.btn-green { background: #27c93f; }
+
+.terminal-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #707e94;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+}
+
+.terminal-body {
+  padding: 18px 20px;
+  color: #abb2bf;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: #0f141c;
+}
+
+.terminal-prompt {
+  color: #98c379;
+  font-weight: 700;
+  margin-right: 8px;
+  user-select: none;
+}
+
+.terminal-cmd {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.terminal-desc {
+  border-top: 1px dashed #242f3e;
+  margin-top: 12px;
+  padding-top: 12px;
+  color: #8c96a5;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  font-family: var(--font-sans);
+}
+
+.terminal-footer {
+  padding: 8px 16px;
+  background: #141a24;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #1e2530;
+}
+
+.terminal-copy-btn {
+  background: #1e2530;
+  border: 1px solid #2d3848;
+  color: #abb2bf;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+}
+
+.terminal-copy-btn:hover {
+  background: var(--accent-2);
+  color: white;
+  border-color: var(--accent-2);
 }
 
 .flowchart-arrow {
