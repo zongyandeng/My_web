@@ -210,106 +210,57 @@ function renderSingleAINote(note) {
   const container = document.getElementById('ai-note-content');
   if (!container) return;
 
-  // 輔助函數：處理 step 的 details 切割，返回 summary 與 collapsible details
-  const getStepDetailsHTML = (details) => {
-    if (!details) return '';
-    const parts = details.split('<br><br>');
-    const summary = parts[0];
-    const rest = parts.slice(1).join('<br><br>');
-    if (!rest) {
-      return `<div class="node-desc">${summary}</div>`;
-    }
-    return `
-      <div class="node-desc">${summary}</div>
-      <div class="collapsible-detail" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.15); width: 100%;">
-        ${rest}
-      </div>
-      <button class="view-more-btn" style="margin-top: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--accent-1); padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit;">🔍 查看更多</button>
-    `;
-  };
+  let stepsHTML = '<div class="flowchart">';
+  note.steps.forEach((step, idx) => {
+    // 處理 step.details 的 <br><br> 分隔
+    const parts = step.details ? step.details.split('<br><br>') : [];
+    const summary = parts[0] || '';
+    const rest = parts.slice(1).join('<br><br>') || '';
+    const hasDetails = !!rest;
 
-  let stepsHTML = '';
-  note.steps.forEach(step => {
+    // 針對特定單元處理圖片插入
+    let stepImgHTML = '';
+    if (note.id === 'object_detection') {
+      if (idx === 0) {
+        stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/yolo_label_dist.png" alt="YOLO 資料集標註分布圖" class="note-img"></div>`;
+      } else if (idx === 3) {
+        stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/yolo_train_curves.png" alt="YOLO 訓練與驗證曲線" class="note-img"></div>`;
+      } else if (idx === 5) {
+        stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/yolo_confusion_matrix.png" alt="YOLO 物件偵測混淆矩陣" class="note-img"></div>`;
+      }
+    } else if (note.id === 'image_segmentation') {
+      if (idx === 2) {
+        stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/unet_architecture.png" alt="U-Net 影像分割神經網路架構圖" class="note-img"></div>`;
+      }
+    }
+
     stepsHTML += `
-      <div class="flowchart-node" data-step-name="${step.name}">
-        <div class="node-num">${step.name.split('.')[0]}</div>
-        <div class="node-text">
-          <div class="node-title">${step.name}</div>
-          ${getStepDetailsHTML(step.details)}
+      <div class="flowchart-node detection-node collapsed" style="flex-direction: row; align-items: flex-start; cursor: pointer;">
+        <div class="node-num" style="margin-top: 2px;">${idx + 1}</div>
+        <div class="node-text" style="width: 100%; display: flex; flex-direction: column;">
+          <div class="node-title-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div class="node-title" style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-main);">${step.name}</div>
+            ${(hasDetails || stepImgHTML) ? `<div class="expand-icon" style="color: var(--accent-2); font-size: 0.85rem; transition: transform 0.3s ease; font-family: monospace; user-select: none;">展開 ▼</div>` : ''}
+          </div>
+          ${summary ? `
+            <div class="node-summary" style="margin-top: 8px; font-size: 0.88rem; color: var(--accent-1); font-weight: 600; line-height: 1.4;">
+              ${summary}
+            </div>
+          ` : ''}
+          ${(hasDetails || stepImgHTML) ? `
+            <div class="node-details-wrapper" style="max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.3s ease; width: 100%;">
+              <div class="node-desc" style="margin-top: 15px; border-top: 1px dashed rgba(255, 255, 255, 0.08); padding-top: 15px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; width: 100%;">
+                ${rest}
+                ${stepImgHTML}
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
+      ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
     `;
   });
-
-  // 如果是 RAG，加上箭頭視覺效果
-  if (note.id === 'rag') {
-    stepsHTML = `
-      <div class="flowchart">
-        ${note.steps.map((step, idx) => `
-          <div class="flowchart-node">
-            <div class="node-num">${idx + 1}</div>
-            <div class="node-text">
-              <div class="node-title">${step.name}</div>
-              ${getStepDetailsHTML(step.details)}
-            </div>
-          </div>
-          ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
-        `).join('')}
-      </div>
-    `;
-  } else if (note.id === 'object_detection') {
-    stepsHTML = `
-      <div class="flowchart">
-        ${note.steps.map((step, idx) => {
-          let stepImgHTML = '';
-          if (idx === 0) {
-            // 資料分布
-            stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/yolo_label_dist.png" alt="YOLO 資料集標註分布圖" class="note-img"></div>`;
-          } else if (idx === 3) {
-            // 訓練曲線
-            stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/yolo_train_curves.png" alt="YOLO 訓練與驗證曲線" class="note-img"></div>`;
-          } else if (idx === 5) {
-            // 混淆矩陣
-            stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/yolo_confusion_matrix.png" alt="YOLO 物件偵測混淆矩陣" class="note-img"></div>`;
-          }
-          return `
-            <div class="flowchart-node detection-node">
-              <div class="node-num">${idx + 1}</div>
-              <div class="node-text" style="width: 100%;">
-                <div class="node-title">${step.name}</div>
-                ${getStepDetailsHTML(step.details)}
-                ${stepImgHTML}
-              </div>
-            </div>
-            ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
-          `;
-        }).join('')}
-      </div>
-    `;
-  } else if (note.id === 'image_segmentation') {
-    stepsHTML = `
-      <div class="flowchart">
-        ${note.steps.map((step, idx) => {
-          let stepImgHTML = '';
-          if (idx === 2) {
-            // U-Net 架構圖
-            stepImgHTML = `<div class="note-img-wrapper"><img src="src/img/unet_architecture.png" alt="U-Net 影像分割神經網路架構圖" class="note-img"></div>`;
-          }
-          return `
-            <div class="flowchart-node detection-node">
-              <div class="node-num">${idx + 1}</div>
-              <div class="node-text" style="width: 100%;">
-                <div class="node-title">${step.name}</div>
-                ${getStepDetailsHTML(step.details)}
-                ${stepImgHTML}
-              </div>
-            </div>
-            ${idx < note.steps.length - 1 ? '<div class="flowchart-arrow">↓</div>' : ''}
-          `;
-        }).join('')}
-      </div>
-    `;
-  }
+  stepsHTML += '</div>';
 
   // 混淆矩陣互動特有區塊
   let specialInteractiveHTML = '';
@@ -437,6 +388,9 @@ function renderSingleAINote(note) {
     <p style="color:var(--text-muted); line-height:1.6; margin-bottom:30px; font-size:1rem;">${note.description}</p>
     
     <h3>演算法與處理步驟 (Process Flow)</h3>
+    <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:15px; display:flex; align-items:center; gap:5px;">
+      <span>💡 提示：點擊任何步驟卡片即可展開/收合詳細說明。</span>
+    </p>
     ${stepsHTML}
     
     ${specialInteractiveHTML}
@@ -449,19 +403,39 @@ function renderSingleAINote(note) {
   triggerKaTeX('ai-note-content');
   triggerPrism();
 
-  // 註冊「查看更多/收合內容」按鈕點擊事件
-  container.querySelectorAll('.view-more-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const parent = btn.closest('.node-text') || btn.closest('.flowchart-node') || btn.parentNode;
-      const detail = parent.querySelector('.collapsible-detail');
-      if (detail) {
-        const isHidden = detail.style.display === 'none';
-        detail.style.display = isHidden ? 'block' : 'none';
-        btn.textContent = isHidden ? '🔺 收合內容' : '🔍 查看更多';
-        btn.style.background = isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)';
-        btn.style.borderColor = isHidden ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)';
-        btn.style.color = isHidden ? 'var(--accent-2)' : 'var(--accent-1)';
+  // 註冊點擊卡片展開/收合的事件
+  const nodes = container.querySelectorAll('.flowchart-node');
+  nodes.forEach(node => {
+    node.addEventListener('click', (e) => {
+      // 點擊複製按鈕、代碼塊、或表格內部時不觸發折疊
+      if (e.target.closest('pre') || e.target.closest('table') || e.target.closest('.math-block') || e.target.closest('code')) {
+        return;
+      }
+      
+      const wrapper = node.querySelector('.node-details-wrapper');
+      const icon = node.querySelector('.expand-icon');
+      if (!wrapper) return;
+      
+      const isCollapsed = node.classList.contains('collapsed');
+      if (isCollapsed) {
+        node.classList.remove('collapsed');
+        node.classList.add('expanded');
+        // 使用 scrollHeight 確保動態拉展，多增加一些安全 Buffer
+        wrapper.style.maxHeight = wrapper.scrollHeight + 350 + 'px';
+        wrapper.style.marginTop = '15px';
+        if (icon) {
+          icon.textContent = '收合 ▲';
+          icon.style.color = 'var(--text-muted)';
+        }
+      } else {
+        node.classList.remove('expanded');
+        node.classList.add('collapsed');
+        wrapper.style.maxHeight = '0';
+        wrapper.style.marginTop = '0';
+        if (icon) {
+          icon.textContent = '展開 ▼';
+          icon.style.color = 'var(--accent-2)';
+        }
       }
     });
   });
