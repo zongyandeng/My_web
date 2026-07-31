@@ -378,5 +378,60 @@
         "answer": "您可以透過以下方法驗證：<br>1. <strong>在 Windows 中檢查</strong>：開啟『網路和共用中心』 -> 點擊您的『區域連線/乙太網路』狀態，查看『速度』欄位。如果顯示為 <code>100.0 Mbps</code> 而非 <code>1.0 Gbps</code>，說明已被協商降速。<br>2. <strong>使用網路測試儀 (測線器)</strong>：將網路線兩端插上測線器，觀察 1 至 8 號燈號是否依序、同步閃爍。如果有任何一個燈號不亮，代表該線芯斷路，將無法跑千兆網速。"
       }
     ]
+  },
+  {
+    "id": "nvr_streaming_protocols",
+    "title": "NVR 網路監控與影像串流協定實務 (NVR & Streaming)",
+    "englishTitle": "Network Video Recorders & Video Streaming Protocols",
+    "description": "本單元從零解析網路錄影機 (NVR) 的影像傳輸、編碼、串流轉碼與頻寬儲存規劃。涵蓋 IP Camera 與 RTSP 來源取得、H.264/H.265 編碼優缺對比、WebRTC 與 HLS 的分流監控架構、FFmpeg 與 Node.js 行程控制，以及 CBR/VBR、GOP 長度、主/子碼流、內外網 VPN 連接與 20 台攝影機儲存容量精密公式計算。",
+    "steps": [
+      {
+        "name": "1. 影像擷取源頭：IP Camera 與 RTSP 即時對話協定 (IP Cam & RTSP)",
+        "details": "攝影機本質上是連上網路的小型電腦，將畫面編碼後送出。<br><br>• <b>IP Camera 運作</b>：藉由網路孔（或 PoE 供電）連線至區域網路，並配發一個內網 IP（如 192.168.1.100）。<br>• <b>RTSP (即時串流協定)</b>：攝影機專屬的即時控制通訊協定，URL 結構通常為 <code>rtsp://帳號:密碼@IP位址:連接埠/路徑</code>。由於 RTSP 底層依賴 RTP/UDP 傳輸，網頁瀏覽器（Chrome, Edge）無法直接解析播放，必須藉由後端轉碼翻譯。"
+      },
+      {
+        "name": "2. 影像壓縮標準：H.264 (AVC) 與 H.265 (HEVC) 對比 (Video Codecs)",
+        "details": "為防止頻寬與硬碟秒爆，影像必須在攝影機端進行即時壓縮。<br><br>• <b>H.264 (AVC)</b>：相容性極高，幾乎所有瀏覽器與舊設備皆支援，編解碼資源消耗低，但壓縮效率低、檔案較大。<br>• <b>H.265 (HEVC)</b>：壓縮率提升約一倍，相同畫質下可省下一半頻寬與儲存空間，適合 4K/8K 傳輸，但演算法極度複雜，解碼時對 CPU/GPU 運算資源要求極高。"
+      },
+      {
+        "name": "3. 影像中繼加工廠：FFmpeg 與 Node.js 行程管理 (FFmpeg & Node)",
+        "details": "在 NVR 系統中，後端程式負責整合與控制影像流。<br><br>• <b>FFmpeg</b>：開源的影音中繼加工廠，負責對 RTSP 進行解碼、轉碼、即時轉封包（Remuxing，如轉成 WebRTC/HLS）與轉發推流。<br>• <b>Node.js</b>：NVR 系統為典型的 <b>I/O 密集型 (I/O-bound)</b> 任務。Node.js 的非同步事件迴圈與 Stream 流式處理，非常適合同時維持數十個網頁連線與 WebSocket，並透過 <code>child_process</code> 啟動、監控與重啟背景 FFmpeg 轉碼子行程。"
+      },
+      {
+        "name": "4. 前端播放協定：低延遲 WebRTC 與高相容 HLS (Streaming Protocols)",
+        "details": "轉碼後推送到網頁的兩大黃金組合協定：<br><br>• <b>WebRTC (即時通訊)</b>：延遲極低（小於 1 秒），極適合即時監控預覽與警報發生時的現場雙向對話。但伺服器與客戶端一對一加密推流壓力大，實務上會使用 <b>SFU (選擇性轉發單元)</b> 作為轉運中心進行路由對應與選擇性轉發，減輕攝影機與頻寬負載。<br>• <b>HLS (HTTP Live Streaming)</b>：將影像切片成小段的 <code>.ts</code> 檔案，透過標準 HTTP/Nginx 傳輸，相容性極佳，適合 24 小時連續錄影與歷史回放，但有 2 至 5 秒的延遲。"
+      },
+      {
+        "name": "5. 頻寬控制與儲存格長度：CBR/VBR 與 GOP 架構 (Bitrate & GOP)",
+        "details": "攝影機的輸出設定決定了影像的可控性與對 AI 辨識的影響。<br><br>• <b>CBR (固定位元速率)</b>：每秒位元率固定，頻寬消耗可控，防止網路突發擁堵，為安防監控首選；VBR 則根據畫面複雜度動態調整，靜態畫面極省頻寬但頻寬不可控。<br>• <b>GOP (Group of Pictures) 長度</b>：兩張完整關鍵影格 <b>I-frame</b> 之間間隔的影格數（中間皆為只記錄畫面差異的 P-frame/B-frame）。若 GOP 設得太長（如數秒），網路抖動會導致長達數秒的破圖或卡頓，使前端 YOLO AI 模型來不及描框，導致漏檢 (False Negative) 或延遲警報。"
+      },
+      {
+        "name": "6. 實務分流與儲存計算公式 (Sub-stream & Storage Calc)",
+        "details": "如何精準規劃 20 台攝影機的 NVR 儲存拓樸：<br><br>• <b>主子碼流分流</b>：YOLO AI 物件偵測為確保精準度（看清安全帽等細節），讀取高解析度的<b>主碼流 (Main Stream)</b>；而前端網頁預覽（如九宮格）為節省頻寬，讀取輕量低解析度的<b>子碼流 (Sub Stream)</b>。<br>• <b>外網存取</b>：內網 IP（如 192.168.1.100）無法直接在公網存取，需配置 Port Forwarding 或透過 <b>VPN (如 WireGuard)</b> 加密通道安全穿透。<br>• <b>儲存計算公式</b>：<br>  - 20 台攝影機 $\times$ 4 Mbps ＝ 80 Mbps 總頻寬。<br>  - 80 Mbps $div$ 8 ＝ 10 MB/s 每秒產生容量。<br>  - 10 MB/s $\times$ 3600 秒 $approx$ 36 GB 每小時容量。<br>  - 36 GB $\times$ 24 小時 $approx$ 864 GB 每天容量。<br>  - 864 GB $\times$ 7 天 $approx$ 6,048 GB (約 6 TB) 一週所需硬碟容量。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "影像位元速率頻寬與儲存空間換算公式",
+        "latex": "S_{\\text{daily}} = \\left( \\sum_{i=1}^{N} B_i \\right) \\times \\frac{1}{8} \\times 3600 \\times 24 \\times 10^{-6} \\quad (\\text{GB})",
+        "description": "S_daily 為一天的總儲存容量 (GB)，N 為攝影機總數，Bi 為每台攝影機的設定位元速率 (Bitrate, Mbps)，乘以 1/8 轉換成 MB/s，再乘以一天的秒數。"
+      },
+      {
+        "name": "總儲存生命週期保留天數計算公式",
+        "latex": "T_{\\text{retention}} = \\frac{S_{\\text{total}} \\times (1 - \\alpha)}{S_{\\text{daily}}} \\quad (\\text{Days})",
+        "description": "S_total 為硬碟總容量，alpha 為 RAID 磁碟陣列的冗餘校驗與作業系統預留空間比例 (通常設為 0.1~0.15)，S_daily 為每日產出的影像資料量。"
+      }
+    ],
+    "code": "# ==========================================\n# 專案名稱：NVR 影片切片與循環覆蓋清理模擬器\n# 目的：模擬 20 台攝影機在硬碟容量耗盡時，自動進行先進先出 (FIFO) 清除\n# ==========================================\nimport time\nimport random\nfrom collections import deque\n\nclass NVRStorageManager:\n    def __init__(self, max_capacity_gb=10.0, retention_days=3):\n        self.max_capacity_gb = max_capacity_gb\n        self.retention_days = retention_days\n        self.current_used_gb = 0.0\n        self.video_db = deque()\n        print(f\"NVR 儲存管理器初始化 | 硬碟上限: {max_capacity_gb} GB | 保留天數: {retention_days} 天\")\n\n    def write_video_clip(self, camera_id, size_gb=0.3):\n        timestamp = time.time()\n        date_str = time.strftime(\"%Y-%m-%d\", time.localtime(timestamp))\n        time_str = time.strftime(\"%H-%M\", time.localtime(timestamp))\n        file_path = f\"NVR_Storage/Cam_{camera_id}/{date_str}/{time_str}.ts\"\n        \n        while self.current_used_gb + size_gb > self.max_capacity_gb:\n            print(f\"[空間已滿] 當前已使用 {self.current_used_gb:.2f} GB，即將超出上限 {self.max_capacity_gb} GB。\")\n            self._trigger_overwrite_cleanup()\n            \n        self.video_db.append({\n            \"timestamp\": timestamp,\n            \"file_path\": file_path,\n            \"size_gb\": size_gb\n        })\n        self.current_used_gb += size_gb\n\n    def _trigger_overwrite_cleanup(self):\n        if not self.video_db:\n            return\n        oldest_clip = self.video_db.popleft()\n        self.current_used_gb -= oldest_clip[\"size_gb\"]\n        clip_time = time.strftime(\"%Y-%m-%d %H:%M:%S\", time.localtime(oldest_clip[\"timestamp\"]))\n        print(f\"[循環覆蓋] 已刪除最舊切片: {oldest_clip['file_path']} (時間: {clip_time}) | 釋放: {oldest_clip['size_gb']} GB\")\n\n    def get_status(self):\n        return {\n            \"capacity_gb\": self.max_capacity_gb,\n            \"used_gb\": self.current_used_gb,\n            \"free_gb\": self.max_capacity_gb - self.current_used_gb,\n            \"total_clips\": len(self.video_db)\n        }\n\nif __name__ == '__main__':\n    # 建立 10 GB 容量上限的虛擬 NVR 空間\n    nvr = NVRStorageManager(max_capacity_gb=10.0)\n    \n    # 模擬 40 個切片持續寫入\n    for i in range(40):\n        cam_id = random.randint(1, 4)\n        nvr.write_video_clip(camera_id=cam_id, size_gb=0.3)\n        \n    status = nvr.get_status()\n    print(f\"\\nNVR 狀態總覽 - 已使用: {status['used_gb']:.2f} GB | 剩餘: {status['free_gb']:.2f} GB | 保存檔案數: {status['total_clips']} 個\")",
+    "faq": [
+      {
+        "question": "問：在使用 Node.js + FFmpeg 的架構中，如果某一隻 IP Camera 網路不穩定頻繁瞬斷，Node.js 後端應該如何進行行程重連優化？",
+        "answer": "答：在實務中，Node.js 呼叫 <code>child_process.spawn</code> 啟動 FFmpeg 行程時，必須監聽該子行程的 <code>close</code> 或 <code>exit</code> 事件。一旦觸發該事件，代表 FFmpeg 因為 RTSP 連線中斷而自動退出。此時，Node.js 不應立即無限制地重啟，這會導致 CPU 被重試線程打滿。合理的做法是實施**指數退避算法 (Exponential Backoff)**，在重試間隔中逐步增加延遲時間（如 2s、4s、8s、16s），直到重新連接成功，避免瞬時重試打死後端。"
+      },
+      {
+        "question": "問：在儲存影片時，如果不小心在斷電或當機時寫入，MP4 檔案極易發生損毀而完全無法播放，有何編碼或容器上的防範機制？",
+        "answer": "答：這與 MP4 容器的結構有關。標準 MP4 檔案的 metadata（moov atom，內含幀索引、時長等關鍵播放資訊）通常在錄影結束、檔案關閉的最後一刻才會寫入檔案尾部。如果寫入中途突然斷電，由於缺少 moov，整個影片將無法被播放器解開。為了解決這個問題，工業安防與 HLS 預設使用 **TS 容器 (.ts 檔案)**，它沒有中央元數據結構，每一幀都有獨立的 header，即使中途斷電，僅會遺失最後斷電那一秒的畫面，其餘已寫入部分均能正常播放。"
+      }
+    ]
   }
 ]
