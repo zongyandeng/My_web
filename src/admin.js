@@ -715,11 +715,10 @@ async function publishToGitHub() {
 
   try {
     // Step 1: 取得遠端目標檔案的最新 SHA 碼
-    const getRes = await fetch(`${apiUrl}?ref=${branch}`, {
+    const getRes = await fetch(`${apiUrl}?ref=${branch}&t=${Date.now()}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Cache-Control': 'no-cache'
+        'Accept': 'application/vnd.github.v3+json'
       }
     });
 
