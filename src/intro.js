@@ -1185,6 +1185,28 @@ class IntroController {
       .login-shake {
         animation: login-shake 0.4s ease-in-out;
       }
+      .admin-entry-btn {
+        border-color: var(--intro-accent2, #a855f7) !important;
+        color: var(--intro-accent2, #a855f7) !important;
+        background: rgba(168, 85, 247, 0.04) !important;
+        margin-right: 12px;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .admin-entry-btn:hover {
+        background: var(--intro-accent2, #a855f7) !important;
+        color: #05070f !important;
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        transform: translateY(-1px);
+      }
     `;
     document.head.appendChild(style);
   }
@@ -1224,6 +1246,44 @@ class IntroController {
       window.location.hash = '';
       window.dispatchEvent(new CustomEvent('intro-preview-done'));
     }
+
+    // 渲染前台管理員快捷入口
+    this.checkAndRenderAdminEntry();
+  }
+
+  checkAndRenderAdminEntry() {
+    const userRole = sessionStorage.getItem('user-role');
+    if (userRole !== 'admin') return;
+
+    // 避免在後台 admin.html 頁面又渲染這個按鈕 (後台本身就是修改畫面)
+    if (window.location.pathname.endsWith('admin.html')) return;
+
+    // 避免重複渲染
+    if (document.getElementById('admin-entry-btn')) return;
+
+    // 尋找前台導覽列
+    const navbar = document.querySelector('.navbar');
+    if (!navbar) return;
+
+    // 確保樣式已載入
+    this.injectLoginCSS();
+
+    const settingsToggle = document.getElementById('settings-toggle');
+    const adminBtn = document.createElement('button');
+    adminBtn.id = 'admin-entry-btn';
+    adminBtn.className = 'settings-btn admin-entry-btn';
+    adminBtn.innerHTML = '🛠️ 管理後台';
+    adminBtn.style.setProperty('--intro-accent2', this.colors.accent2);
+    
+    adminBtn.addEventListener('click', () => {
+      window.location.href = 'admin.html';
+    });
+
+    if (settingsToggle) {
+      navbar.insertBefore(adminBtn, settingsToggle);
+    } else {
+      navbar.appendChild(adminBtn);
+    }
   }
 }
 
@@ -1250,4 +1310,9 @@ window.playIntroPreview = function(type) {
       intro.init();
     });
   }
+
+  // 當 DOM 完全載入後，確保非預覽且已登入管理員能動態渲染按鈕
+  document.addEventListener('DOMContentLoaded', () => {
+    intro.checkAndRenderAdminEntry();
+  });
 })();
