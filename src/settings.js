@@ -835,4 +835,32 @@ document.addEventListener('DOMContentLoaded', () => {
   window.settingsManager = settingsMgr;
   // 將 effectsManager 挂在 window 下，與舊程式碼相容
   window.effectsManager = settingsMgr.effectsManager;
+
+  // 手機版導覽列漢堡按鈕事件綁定
+  const mobileToggle = document.getElementById('mobile-menu-toggle');
+  const navLinks = document.querySelector('.nav-links');
+  if (mobileToggle && navLinks) {
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mobileToggle.classList.toggle('active');
+      navLinks.classList.toggle('active');
+    });
+
+    // 點擊頁面其他地方時，自動收合選單
+    document.addEventListener('click', (e) => {
+      if (navLinks.classList.contains('active') && !navLinks.contains(e.target) && !mobileToggle.contains(e.target)) {
+        mobileToggle.classList.remove('active');
+        navLinks.classList.remove('active');
+      }
+    });
+
+    // 點擊連結後收合選單
+    const links = navLinks.querySelectorAll('a');
+    links.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileToggle.classList.remove('active');
+        navLinks.classList.remove('active');
+      });
+    });
+  }
 });

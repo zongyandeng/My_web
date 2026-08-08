@@ -191,6 +191,11 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
+/* 行動端選單切換按鈕 - 桌機版預設隱藏 */
+.mobile-menu-toggle {
+  display: none;
+}
+
 /* 主題切換按鈕 */
 .theme-toggle-btn {
   background: var(--bg-card);
@@ -1104,31 +1109,144 @@ pre[class*="language-"] {
 }
 
 @media (max-width: 768px) {
-  /* 導覽列優化：在手機上轉換成精美水平滑動導覽列，不隱藏 */
+  /* 導覽列優化：手機版採用滿版毛玻璃下拉式隱藏選單 */
   .navbar {
-    padding: 0 15px;
+    padding: 0 20px;
     height: 60px;
   }
   .nav-logo {
-    font-size: 1.15rem;
-    gap: 5px;
+    font-size: 1.2rem;
+    gap: 6px;
   }
+  
+  /* 行動端選單切換按鈕 (漢堡選單) */
+  .mobile-menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+    margin-left: 15px;
+  }
+
+  .mobile-menu-toggle .bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-main);
+    border-radius: 2px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                background-color 0.3s ease;
+  }
+
+  /* 漢堡選單變換為 X 按鈕動畫 */
+  .mobile-menu-toggle.active .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+    background: var(--accent-gradient);
+  }
+  .mobile-menu-toggle.active .bar:nth-child(2) {
+    opacity: 0;
+  }
+  .mobile-menu-toggle.active .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+    background: var(--accent-gradient);
+  }
+
+  /* 行動端導覽連結 - 改為隱藏式下拉選單 (毛玻璃效果) */
   .nav-links {
-    display: flex !important; /* 蓋掉桌機的排版，確保手機版有顯示 */
-    gap: 12px;
-    font-size: 0.85rem;
-    overflow-x: auto;
-    white-space: nowrap;
-    max-width: calc(100% - 150px);
-    padding: 5px 0;
-    -webkit-overflow-scrolling: touch;
+    position: fixed;
+    top: 60px; /* 對齊 navbar 高度 */
+    left: 0;
+    width: 100%;
+    height: auto;
+    background: var(--bg-navbar);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-bottom: 1px solid var(--border-color);
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 40px 25px 40px;
+    max-width: 100% !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                opacity 0.3s ease;
+    z-index: 999;
+    display: flex !important; /* 確保透過 opacity & transform 做動畫，不再用 display:none 造成卡頓 */
   }
-  .nav-links::-webkit-scrollbar {
-    display: none; /* 隱藏行動端導覽列的滾動條 */
+
+  .nav-links.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
   }
-  .theme-toggle-btn {
-    padding: 6px 10px;
-    font-size: 0.75rem;
+
+  .nav-links li {
+    width: 100%;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .nav-links.active li {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 為子選單項目加上依序浮現動畫效果 */
+  .nav-links.active li:nth-child(1) { transition-delay: 0.05s; }
+  .nav-links.active li:nth-child(2) { transition-delay: 0.1s; }
+  .nav-links.active li:nth-child(3) { transition-delay: 0.15s; }
+  .nav-links.active li:nth-child(4) { transition-delay: 0.2s; }
+  .nav-links.active li:nth-child(5) { transition-delay: 0.25s; }
+  .nav-links.active li:nth-child(6) { transition-delay: 0.3s; }
+
+  .nav-links a {
+    display: block;
+    padding: 15px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+    color: var(--text-muted);
+    transition: color 0.3s ease, background-color 0.3s ease;
+  }
+
+  .nav-links li:last-child a {
+    border-bottom: none;
+  }
+
+  .nav-links a::after {
+    display: none; /* 手機端不需要底線懸停動畫 */
+  }
+
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--text-main);
+    text-shadow: 0 0 10px var(--accent-1);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* 設定與切換按鈕微調 */
+  .theme-toggle-btn, .settings-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 15px;
+  }
+
+  /* 3D 卡片調整為單欄排版以利手機操作 */
+  .menu-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+    max-width: 100%;
+    padding: 0 10px;
   }
 
   /* 側邊欄優化：在手機上轉換為水平滑動 Tab Bar */
