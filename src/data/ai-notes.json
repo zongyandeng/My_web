@@ -847,5 +847,64 @@
       }
     ],
     "code": "# CTC 貪婪解碼器與序列對齊模擬\nimport numpy as np\n\ndef ctc_greedy_decoder(emissions, vocabulary, blank_idx=0):\n    best_path = np.argmax(emissions, axis=1)\n    decoded_indices = []\n    prev_idx = -1\n    for idx in best_path:\n        if idx == prev_idx:\n            continue\n        prev_idx = idx\n        if idx != blank_idx:\n            decoded_indices.append(idx)\n    final_chars = [vocabulary[i] for i in decoded_indices]\n    return \"\".join(final_chars)"
+  },
+  {
+    "id": "river_water_color_svdd",
+    "title": "河川水色異常檢測專案 (River Water Color Anomaly Detection via SVDD)",
+    "englishTitle": "River Water Color Anomaly Detection via SVDD",
+    "description": "本單元解構實驗室河川監控水色辨識專案的核心技術流程。介紹如何透過 IP CAM 撈取串流影像並進行時間序列分割，利用 SAM 2 與影像處理技術進行河道去背與尺寸標準化，並使用預訓練 CNN 提取中間層特徵，最後透過 SVDD (支持向量資料描述) 單類別模型建立超球體邊界，實現兼具誤報與漏報平衡的自動化異常推播與回饋機制。",
+    "steps": [
+      {
+        "name": "1. 資料獲取與序列分配 (Data Ingestion & Time-Series Splitting)",
+        "details": "使用 IP CAM 擷取河川連續影像，並使用時間序列分割避免資料洩漏。<br><br><b>💡 專有名詞對照：</b><br>• <b>IP CAM (IP Camera / 網路攝影機)</b>：利用網路協定傳輸影像訊號的數位監控攝影機。<br>• <b>Time-Series Splitting (時間序列分割)</b>：嚴格依時間順序劃分訓練集（過去）與測試集（未來），模擬部署後的未知狀況。<br>• <b>Random Sampling (隨機抽樣)</b>：將資料打散隨機分配，在河川影像中易因相鄰畫面高度相似而導致資料洩漏。<br>• <b>Data Leakage (資料洩漏)</b>：測試資料的特徵提前暴露在訓練集中，使模型評估結果過於樂觀。<br><br><b>📊 隨機抽樣 vs 時間序列分割比較對照表：</b><br><table><thead><tr><th>分配策略</th><th>實作方式</th><th>優點</th><th>缺點與河川場景評估</th></tr></thead><tbody><tr><td>隨機抽樣 (Random Sampling)</td><td>將所有圖片打散，隨機抽樣分配至訓練集與測試集。</td><td>訓練集與測試集分布高度一致，評估分數高。</td><td><b>極不推薦</b>：前後幾分鐘影像高度相似，造成資料洩漏，無法檢驗對未來的泛化力。</td></tr><tr><td>時間序列分割 (Time-Series Splitting)</td><td>用前幾個月的資料進行訓練，之後時間段或不同季節的資料測試。</td><td>真實模擬實際部署情境，評估模型適應季節氣候變化的能力。</td><td>訓練與測試集可能存在概念漂移 (Concept Drift)，需要持續收集新資料更新。</td></tr></tbody></table>"
+      },
+      {
+        "name": "2. 資料庫人工審查與清洗 (Data Ingestion & Manual Review)",
+        "details": "經由人工審查挑選代表各時段正常的穩定河川水色影像，排除光影、氣候與設備故障的干擾。<br><br><b>💡 專有名詞對照：</b><br>• <b>QA (Quality Assurance / 品質保證)</b>：在資料工程中建立的人工或自動化審查與標記流程，確保訓練集 100% 乾淨。<br>• <b>Ground Truth (地面實況/真實標註資料)</b>：人工審查確認為絕對正常的水色影像，作為異常檢測模型的基準線。<br><br><b>❌ 需排除的常見干擾因子：</b><br>1. <b>氣候異常</b>：暴雨過後夾帶的大量泥沙暴增、水位暴漲。<br>2. <b>光影干擾</b>：清晨逆光、正午太陽強烈反射折射、以及夜間路燈反光。<br>3. <b>設備故障</b>：鏡頭外罩被水氣遮擋起霧、蛛網落葉遮蔽、或是串流卡頓。"
+      },
+      {
+        "name": "3. 影像分割前處理與遮蔽 (River Segmentation & Preprocessing)",
+        "details": "使用影像分割模型（如 SAM 2）擷取河川區域，並進行背景去背、影像縮放與標準化處理。<br><br><b>💡 專有名詞對照：</b><br>• <b>SAM 2 (Segment Anything Model 2 / 萬物分割模型第二代)</b>：Meta 開源的通用分割大模型，支援點/框提示對河流進行像素級動態切割。<br>• <b>Mask (遮罩/掩膜)</b>：二值化矩陣，將河川區域標為 1，其餘岸邊背景、樹木晃動區域標為 0。<br>• <b>Resizing (調整大小/影像縮放)</b>：將影像縮放至預訓練 CNN 規定的固定維度（如 224x224）。<br>• <b>Normalization (數值標準化)</b>：將像素值除以 255 縮放到 [0, 1] 之間，加速網絡權重收斂。<br><br><b>📊 背景保留 vs 背景塗黑(設為零) 比較對抗表：</b><br><table><thead><tr><th>預處理方式</th><th>特徵萃取聚焦度</th><th>背景雜訊干擾 (如樹木/行人)</th><th>水色異常檢測精確度</th></tr></thead><tbody><tr><td>背景保留 (全圖輸入)</td><td>低（模型會同時學習岸邊與背景特徵）。</td><td>高。岸邊樹木晃動或光影變化易被誤判為水色異常。</td><td>較低。容易受到無關特徵的汙染。</td></tr><tr><td>背景塗黑 / 設為零 (Masked Image)</td><td>高。特徵萃取器 100% 聚焦在河川本體水面。</td><td>無。無關背景完全被遮蔽排除。</td><td>高。SVDD 僅學習純水色的光譜與紋理特徵。</td></tr></tbody></table>"
+      },
+      {
+        "name": "4. CNN 特徵提取與層級選擇 (Feature Extraction via CNN Layers)",
+        "details": "將去背後的影像送入預訓練的 CNN 模型（如 ResNet 或 VGG），提取其中間卷積層特徵而非最後分類輸出。<br><br><b>💡 專有名詞對照：</b><br>• <b>CNN (Convolutional Neural Network / 卷積神經網路)</b>：適合處理影像空間局部關聯特徵的深度學習網絡。<br>• <b>ResNet (Residual Network / 殘差網路)</b>：藉由殘差跳躍連接解決深層網路梯度消失的經典視覺骨幹。<br>• <b>VGG (Visual Geometry Group / 視覺幾何群組網路)</b>：結構規整、特徵提取層次分明的前期經典 CNN 架構。<br><br><b>📊 中間卷積層特徵 vs 最後分類層特徵對比表：</b><br><table><thead><tr><th>層級位置</th><th>特徵本質與維度</th><th>對水色細微變化敏感度</th><th>SVDD 異常檢測效果</th></tr></thead><tbody><tr><td>中間卷積層 (Convolutional Layer)</td><td>保留豐富的空間幾何、局部色彩分布與紋理細節。</td><td><b>極高</b>。能精準捕捉水面懸浮物、顆粒與微小色度偏轉。</td><td><b>優異</b>。特徵更具一般性，能精細建立正常邊界。</td></tr><tr><td>最後分類層 (Fully Connected / FC Layer)</td><td>高度抽象，維度已被壓縮至特定類別機率（如 ImageNet 千類）。</td><td>極低。水色變化非原本分類目標，特徵已被過度壓縮丟失。</td><td>差。極易發生漏報。</td></tr></tbody></table>"
+      },
+      {
+        "name": "5. SVDD 模型訓練與邊界包覆 (SVDD Model Training & Hypersphere)",
+        "details": "利用大量正常的河川特徵在特徵空間中尋找一個最小的超球體 (Hypersphere)，建立異常檢測邊界。<br><br><b>💡 專有名詞對照：</b><br>• <b>SVDD (Support Vector Data Description / 支持向量資料描述)</b>：一種類似 SVM 的單類別異常檢測演算法，優化目標是在高維特徵空間包覆正常樣本的最小超球體。<br>• <b>Hypersphere (超球體)</b>：高維空間中的球形邊界，由中心 $c$ 與半徑 $R$ 決定。<br>• <b>One-Class Classification (單一類別分類)</b>：僅使用單一正常類別樣本進行訓練，判定未知輸入是否屬於該類別的任務。<br><br><b>📊 SVDD (單類別分類) vs 傳統二元/多元分類比較表：</b><br><table><thead><tr><th>模型類型</th><th>訓練樣本需求</th><th>面對資料極度不平衡時</th><th>異常檢測適用性</th></tr></thead><tbody><tr><td>單類別分類 (如 SVDD)</td><td>只需要極大量、乾淨的「正常」類別樣本。</td><td><b>完全免疫</b>。無須收集稀少、且難以窮盡的異常樣本。</td><td><b>極高</b>。專為「正常極多、異常極少且短暫」的監控場景而生。</td></tr><tr><td>二元 / 多元分類 (如 YOLO/ResNet)</td><td>需要均衡的「正常」與「各種類別異常」標記樣本。</td><td>表現崩潰。模型會嚴重偏向多數類別，產生大量漏報。</td><td>低。無法預測未在訓練集中出現的新型汙染異常。</td></tr></tbody></table>"
+      },
+      {
+        "name": "6. 驗證評估與閾值微調 (Validation & Threshold Fine-Tuning)",
+        "details": "使用包含異常水色的獨立驗證集測試模型，統計誤報與漏報情況，並透過調整超球體半徑放寬或收窄判定閾值。<br><br><b>💡 專有名詞對照：</b><br>• <b>False Alarm (誤報)</b>：將正常水色影像誤判為異常，拉低模型的 Precision (精準率)。<br>• <b>Missed Detection (漏報)</b>：真正的水色異常/汙染未被檢出，拉低模型的 Recall (召回率)。<br>• <b>ROC-AUC (Receiver Operating Characteristic - Area Under Curve)</b>：綜合評估不同閾值下真陽性率與假陽性率變化的積分面積。<br>• <b>PR Curve (Precision-Recall Curve / 精準率-召回率曲線)</b>：專門在高度不平衡資料集下評估 Precision 與 Recall 權衡的圖表。<br><br><b>📊 放寬超球體半徑 vs 收窄超球體半徑影響對照表：</b><br><table><thead><tr><th>閾值半徑調整</th><th>誤報率 (False Alarm Rate)</th><th>漏報率 (Missed Detection Rate)</th><th>評估決策偏向</th></tr></thead><tbody><tr><td>放寬半徑 / 調高閾值 (放寬門檻)</td><td><b>顯著降低</b>。原本位於邊緣的正常波動被包覆進去。</td><td><b>顯著升高</b>。臨界的輕微異常水色也會被包入正常範圍。</td><td>偏向保守監控。寧可放過，不願虛驚推播。</td></tr><tr><td>收窄半徑 / 調低閾值 (收緊門檻)</td><td><b>顯著升高</b>。微小環境干擾（如光影變化）即會觸發警報。</td><td><b>顯著降低</b>。任何微弱的水色偏離皆會被抓出來。</td><td>偏向敏感警示。寧可錯殺誤報，絕不漏過汙染。</td></tr></tbody></table>"
+      },
+      {
+        "name": "7. 系統部署與回饋優化機制 (System Deployment & Feedback Loop)",
+        "details": "定期擷取 RTSP 即時影像，將特徵輸入模型檢測，超出閾值則發送包含相機編號、時間與截圖的推播通知，並設計假異常回報回饋按鈕以動態優化模型。<br><br><b>💡 專有名詞對照：</b><br>• <b>RTSP (Real-Time Streaming Protocol / 即時串流協定)</b>：用於控制即時影像串流傳輸的網路應用層協定。<br>• <b>Feedback Loop (回饋優化機制)</b>：將線上的假警報/誤報樣本經管理員標記後，回收至訓練集，重新微調閥值或重新訓練模型，實現系統自我演進的閉環架構。<br><br><b>🔄 回饋標記資料之雙重優化策略：</b><br>1. <b>動態微調閥值</b>：分析管理員標記為「假警報」的影像在特徵空間中與中心的距離，將半徑微幅拓寬以包覆該臨界情境。<br>2. <b>特徵空間重新適應</b>：將這些誤報資料視為新的正常樣本重新加入資料庫，下次模型定期重新訓練時，使超球體形狀適應這些新的環境特徵（如特定角度的陽光反光）。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "SVDD 超球體優化目標函數與對偶問題 (Dual Problem Formulation)",
+        "latex": "\\max_{\\alpha_i} \\sum_{i=1}^{N} \\alpha_i K(\\mathbf{x}_i, \\mathbf{x}_i) - \\sum_{i,j=1}^{N} \\alpha_i \\alpha_j K(\\mathbf{x}_i, \\mathbf{x}_j) \\quad \\text{s.t.} \\quad \\sum_{i=1}^{N} \\alpha_i = 1, \\quad 0 \\le \\text{}\\alpha_i \\le C",
+        "description": "藉由引入拉格朗日乘子 $\\alpha_i$ 與核函數 $K$，將 SVDD 原型優化問題轉換為對偶問題進行求解。其中 $\\alpha_i > 0$ 的樣本即為支持向量（位於超球體邊界上）。超球體半徑 $R$ 可透過任一邊界支持向量與中心點 $c = \\sum \\alpha_i \\mathbf{x}_i$ 的距離求得。"
+      },
+      {
+        "name": "核函數距離異常判定公式 (Anomaly Distance Calculation)",
+        "latex": "d^2(\\mathbf{z}) = K(\\mathbf{z}, \\mathbf{z}) - 2\\sum_{i=1}^{N} \\alpha_i K(\\mathbf{z}, \\mathbf{x}_i) + \\sum_{i,j=1}^{N} \\alpha_i \\alpha_j K(\\mathbf{x}_i, \\mathbf{x}_j) > R^2",
+        "description": "當新圖像特徵 $\\mathbf{z}$ 輸入時，計算其到超球體中心的距離平方 $d^2(\\mathbf{z})$。若距離大於 $R^2$（即判定公式成立），則代表該影像特徵落在球體邊界之外，觸發異常水色警報。"
+      }
+    ],
+    "code": "import torch\nimport torch.nn as nn\nimport torchvision.models as models\nimport numpy as np\nfrom sklearn.svm import OneClassSVM\n\n# 1. 載入預訓練 ResNet50 並截取中間層 (作為特徵提取器)\nclass FeatureExtractor(nn.Module):\n    def __init__(self):\n        super(FeatureExtractor, self).__init__()\n        resnet = models.resnet50(pretrained=True)\n        # 截取卷積層 (前 7 層)，排除後續的 AdaptiveAvgPool 與 FC 層\n        self.features = nn.Sequential(*list(resnet.children())[:-2])\n        self.pool = nn.AdaptiveAvgPool2d((1, 1))\n        \n    def forward(self, x):\n        with torch.no_grad():\n            x = self.features(x)   # 輸出 shape: [batch, 2048, 7, 7]\n            x = self.pool(x)       # 輸出 shape: [batch, 2048, 1, 1]\n            return x.view(x.size(0), -1)  # 展平為 2048 維特徵向量\n\n# 2. 模擬特徵提取與 SVDD 模型訓練\nextractor = FeatureExtractor()\nextractor.eval()\n\n# 假設我們有 10 張正常河川圖片的張量 (維度: 3通道, 224x224)\nmock_normal_images = torch.randn(10, 3, 224, 224)\nnormal_features = extractor(mock_normal_images).numpy() # shape: [10, 2048]\n\n# 使用 OneClassSVM (等價於高斯核 SVDD 數學結構)\nsvdd_model = OneClassSVM(nu=0.1, kernel='rbf', gamma='scale')\nsvdd_model.fit(normal_features)\n\n# 3. 推理即時影像\nmock_realtime_image = torch.randn(1, 3, 224, 224)\nrealtime_feature = extractor(mock_realtime_image).numpy()\n\n# 判定異常: -1 代表異常，1 代表正常\nprediction = svdd_model.predict(realtime_feature)\ndistance_to_boundary = svdd_model.decision_function(realtime_feature)\n\nprint(f\"SVDD 判定結果 (1為正常, -1為異常): {prediction[0]}\")\nprint(f\"到超球體邊界之距離得分 (越小代表越異常): {distance_to_boundary[0]:.4f}\")",
+    "faq": [
+      {
+        "question": "問：如果 SAM 2 輸出的影像分割遮罩 (Mask) 在即時影片中出現抖動、斷裂或瞬間閃爍，會對 SVDD 的判定造成什麼影響？如何防範？",
+        "answer": "答：抖動或斷裂會導致輸入 SVDD 的河道面積突然減小或出現大片黑影，這在特徵空間中會產生巨大的特徵偏移，從而引發嚴重的<b>「假異常/誤報」</b>。<b>防範措施</b>：1. <b>時間滑動窗口濾波 (Temporal Smoothing)</b>：在特徵提取前，對連續數格的 Mask 進行像素級中值濾波或累積疊加，平滑突變。2. <b>卡爾曼濾波 (Kalman Filter)</b>：追蹤河道邊界框，當 SAM 2 瞬間失效時，使用上一幀的邊界框進行預測插值，維持去背圖像穩定性。"
+      },
+      {
+        "question": "問：河川在夜間時紅外線攝影模式下的水色特徵，與白天彩色水色完全不同，且常受路燈反光干擾，SVDD 模型該如何因應？",
+        "answer": "答：單一超球體無法同時包覆「白天彩色」與「夜間灰階紅外」兩套截然不同的分布。若強行融合，會導致超球體過大而產生嚴重的漏報。<b>解決方案</b>：實施<b>「多模型/多閾值雙軌制」</b>。1. 系統根據時間戳記或環境照度感測器自動切換模型。2. 白天使用「彩色水色 SVDD」，夜間切換至專為紅外線灰階特徵訓練的「夜間 SVDD 專用模型」。3. 對於路燈反光的熱點區域，在 Mask 前處理時將該靜態區域直接排除，防止反光擾動引發警報。"
+      }
+    ]
   }
 ]
