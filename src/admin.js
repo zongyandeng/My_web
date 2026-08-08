@@ -1,4 +1,6 @@
 // --- 線上編輯器核心邏輯 (Admin Control Panel) ---
+import { renderSingleAINote, renderSingleNetworkNote, renderHardwareDetail, renderCommandsForGroup } from './renderer.js';
+
 
 // 1. 全域資料狀態
 let currentDataSource = 'test-notes.json';
@@ -497,117 +499,65 @@ function deleteTopic() {
   document.getElementById('no-selection-view').style.display = 'flex';
 }
 
-// 12. 預覽渲染邏輯 (模擬現有前端渲染，調用 KaTeX/Prism.js)
+// 12. 預覽渲染邏輯 (模擬現有前端渲染，直接調用 renderer.js 中的正式渲染函數)
 function renderPreview() {
   const panel = document.getElementById('preview-panel');
   if (selectedIndex === -1) return;
 
   const item = fileData[selectedIndex];
-  const config = SCHEMA_CONFIGS[currentDataSource];
 
-  let html = `
-    <h2 class="preview-title" style="margin-bottom:8px; border-bottom: 2px solid var(--accent-1); padding-bottom:8px;">${item.title || ''}</h2>
-    <h4 style="color:var(--text-muted); margin-bottom:16px;">${item.englishTitle || ''}</h4>
-    <p style="line-height:1.7; margin-bottom:24px; white-space: pre-wrap;">${item.description || ''}</p>
-  `;
-
-  // 渲染 AI 步驟與公式
-  if (currentDataSource === 'ai-notes.json' || currentDataSource === 'network-notes.json') {
-    if (item.steps && item.steps.length > 0) {
-      html += `<h3 style="color:var(--accent-2); margin:20px 0 10px;">學習步驟</h3>`;
-      item.steps.forEach(step => {
-        html += `
-          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; padding:16px; margin-bottom:12px;">
-            <h5 style="margin-bottom:8px; color:var(--accent-1);">${step.name || ''}</h5>
-            ${step.summary ? `<p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:6px;">${step.summary}</p>` : ''}
-            <p style="font-size:0.95rem; line-height:1.6;">${step.details || ''}</p>
-          </div>
-        `;
-      });
-    }
-
-    if (item.formulas && item.formulas.length > 0) {
-      html += `<h3 style="color:var(--accent-2); margin:20px 0 10px;">關鍵數學公式</h3>`;
-      item.formulas.forEach(form => {
-        html += `
-          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; padding:16px; margin-bottom:12px;">
-            <h5 style="margin-bottom:8px; color:var(--accent-1);">${form.name || ''}</h5>
-            <div style="padding:12px; background:rgba(0,0,0,0.2); border-radius:4px; text-align:center; margin-bottom:8px; overflow-x:auto;">
-              ${form.latex || ''}
-            </div>
-            <p style="font-size:0.9rem; color:var(--text-muted);">${form.description || ''}</p>
-          </div>
-        `;
-      });
-    }
-  }
-
-  // 渲染硬體規格與指南
-  if (currentDataSource === 'hardware-notes.json' || currentDataSource === 'test-notes.json') {
-    if (item.specs && item.specs.length > 0) {
-      html += `<h3 style="color:var(--accent-2); margin:20px 0 10px;">硬體核心規格</h3>`;
-      item.specs.forEach(spec => {
-        html += `
-          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; padding:16px; margin-bottom:12px;">
-            <h5 style="margin-bottom:4px; color:var(--accent-1);">${spec.name || ''} - <span style="color:#fff;">${spec.value || ''}</span></h5>
-            <p style="font-size:0.9rem; color:var(--text-muted);">${spec.description || ''}</p>
-          </div>
-        `;
-      });
-    }
-
-    if (item.guides && item.guides.length > 0) {
-      html += `<h3 style="color:var(--accent-2); margin:20px 0 10px;">硬體評估與建議</h3>`;
-      item.guides.forEach(guide => {
-        html += `
-          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; padding:16px; margin-bottom:12px;">
-            <h5 style="margin-bottom:8px; color:var(--accent-1);">${guide.card || ''} (${guide.recommendation || ''})</h5>
-            <p style="font-size:0.9rem; margin-bottom:4px;"><strong style="color:var(--accent-2);">優點:</strong> ${guide.pros || ''}</p>
-            <p style="font-size:0.9rem;"><strong style="color:#ef4444;">缺點:</strong> ${guide.cons || ''}</p>
-          </div>
-        `;
-      });
-    }
-  }
-
-  // 渲染指令清單
-  if (currentDataSource === 'commands-notes.json') {
-    if (item.commands && item.commands.length > 0) {
-      html += `<h3 style="color:var(--accent-2); margin:20px 0 10px;">命令清單</h3>`;
-      item.commands.forEach(cmd => {
-        html += `
-          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; padding:16px; margin-bottom:12px;">
-            <h5 style="margin-bottom:4px; color:var(--accent-1);">${cmd.desc || ''}</h5>
-            <code style="display:block; padding:8px 12px; background:#000; border-radius:4px; margin-bottom:8px; font-family:var(--font-mono); font-size:0.9rem; color:var(--accent-2);">${cmd.cmd || ''}</code>
-            <p style="font-size:0.9rem; color:var(--text-muted);">${cmd.explanation || ''}</p>
-          </div>
-        `;
-      });
-    }
-  }
-
-  // 渲染 FAQ
-  if (item.faq && item.faq.length > 0) {
-    html += `<h3 style="color:var(--accent-2); margin:20px 0 10px;">❓ 常見問答</h3>`;
-    item.faq.forEach(q => {
-      html += `
-        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:8px; padding:16px; margin-bottom:12px;">
-          <h5 style="margin-bottom:6px; color:#f59e0b;">問: ${q.question || ''}</h5>
-          <p style="font-size:0.95rem; line-height:1.6; color:var(--text-main);">答: ${q.answer || ''}</p>
-        </div>
-      `;
-    });
-  }
-
-  // 渲染 Code Block
-  if (config.hasCode && item.code) {
-    html += `
-      <h3 style="color:var(--accent-2); margin:20px 0 10px;">💻 Python 示範程式碼</h3>
-      <pre style="border-radius:8px;"><code class="language-python">${escapeHtml(item.code)}</code></pre>
+  // 清空面板並動態建構與正式網頁 100% 相同的 HTML 容器結構，以利 renderer.js 正確抓取與渲染
+  panel.innerHTML = '';
+  
+  if (currentDataSource === 'ai-notes.json') {
+    const contentNode = document.createElement('section');
+    contentNode.className = 'note-content-container';
+    contentNode.id = 'ai-note-content';
+    panel.appendChild(contentNode);
+    renderSingleAINote(item);
+  } else if (currentDataSource === 'network-notes.json') {
+    const contentNode = document.createElement('section');
+    contentNode.className = 'note-content-container';
+    contentNode.id = 'network-note-content';
+    panel.appendChild(contentNode);
+    renderSingleNetworkNote(item);
+  } else if (currentDataSource === 'hardware-notes.json' || currentDataSource === 'test-notes.json') {
+    const wrapper = document.createElement('section');
+    wrapper.className = 'hardware-content-wrapper';
+    wrapper.style.width = '100%';
+    
+    const bodyNode = document.createElement('div');
+    bodyNode.id = 'hardware-content-body';
+    
+    wrapper.appendChild(bodyNode);
+    panel.appendChild(wrapper);
+    renderHardwareDetail(item);
+  } else if (currentDataSource === 'commands-notes.json') {
+    const simulator = document.createElement('section');
+    simulator.className = 'terminal-simulator';
+    simulator.style.marginTop = '0';
+    
+    const header = document.createElement('div');
+    header.className = 'terminal-header';
+    header.innerHTML = `
+      <div class="terminal-buttons">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+      </div>
+      <div class="terminal-title-text">lab_server - bash - 80x24</div>
+      <div style="width: 50px;"></div>
     `;
+    
+    const bodyNode = document.createElement('div');
+    bodyNode.className = 'terminal-body';
+    bodyNode.id = 'terminal-body';
+    
+    simulator.appendChild(header);
+    simulator.appendChild(bodyNode);
+    panel.appendChild(simulator);
+    renderCommandsForGroup(item);
   }
-
-  panel.innerHTML = html;
 
   // 觸發公式與程式碼高亮渲染
   setTimeout(() => {

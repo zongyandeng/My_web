@@ -206,7 +206,7 @@ export async function loadAndRenderAINotes() {
   }
 }
 
-function renderSingleAINote(note) {
+export function renderSingleAINote(note) {
   const container = document.getElementById('ai-note-content');
   if (!container) return;
 
@@ -664,7 +664,7 @@ export async function loadAndRenderHardware() {
   }
 }
 
-function renderHardwareDetail(item) {
+export function renderHardwareDetail(item) {
   const container = document.getElementById('hardware-content-body');
   if (!container) return;
 
@@ -844,7 +844,7 @@ export async function loadAndRenderCommands() {
   }
 }
 
-function renderCommandsForGroup(group) {
+export function renderCommandsForGroup(group) {
   const terminalBody = document.getElementById('terminal-body');
   if (!terminalBody) return;
 
@@ -1178,7 +1178,7 @@ export async function loadAndRenderNetworkNotes() {
   }
 }
 
-function renderSingleNetworkNote(note) {
+export function renderSingleNetworkNote(note) {
   const container = document.getElementById('network-note-content');
   if (!container) return;
 

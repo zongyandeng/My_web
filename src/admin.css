@@ -2,14 +2,15 @@
 
 /* 主要 Layout 配置 */
 .admin-container {
-  max-width: 1400px;
+  max-width: 1650px !important; /* 強制覆蓋 style.css 的 .container 1200px 限制 */
+  width: 95%;
   margin: 0 auto;
   padding: 100px 20px 40px; /* 留出 navbar 的空間 */
 }
 
 .admin-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 260px 1fr;
   gap: 30px;
   margin-top: 20px;
   min-height: 70vh;
@@ -337,9 +338,22 @@
   flex-direction: column;
   gap: 16px;
   margin-top: 12px;
+  width: 100%;
+}
+
+.sub-section-group {
+  width: 100%;
+}
+
+.sub-list-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .sub-item-card {
+  width: 100%;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
   border-radius: 10px;
