@@ -1,7 +1,7 @@
 [
   {
     "id": "rag",
-    "title": "我不相信檢索增強生成 (Retrieval-Augmented Generation - RAG)",
+    "title": "檢索增強生成 (Retrieval-Augmented Generation - RAG)",
     "englishTitle": "Retrieval-Augmented Generation",
     "description": "RAG 是一種結合外部知識庫檢索與大型語言模型 (LLM) 生成的技術。它能有效解決 LLM 訓練資料時效性落後與幻覺 (Hallucination) 的問題，特別適用於企業私有知識庫與專題問答系統。",
     "steps": [
