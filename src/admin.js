@@ -717,7 +717,7 @@ async function publishToGitHub() {
     // Step 1: 取得遠端目標檔案的最新 SHA 碼
     const getRes = await fetch(`${apiUrl}?ref=${branch}`, {
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json',
         'Cache-Control': 'no-cache'
       }
@@ -751,7 +751,7 @@ async function publishToGitHub() {
     const putRes = await fetch(apiUrl, {
       method: 'PUT',
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json'
       },
@@ -769,7 +769,11 @@ async function publishToGitHub() {
     updateSyncStatus(false);
   } catch (err) {
     console.error('發佈失敗:', err);
-    alert(`發佈失敗，請檢查錯誤：\n${err.message}`);
+    if (err.message === 'Failed to fetch') {
+      alert(`發佈失敗：Failed to fetch。\n\n這通常是由以下原因引起：\n1. 您的瀏覽器安裝了阻擋廣告/追蹤的插件（如 AdBlock、Privacy Badger、Brave 瀏覽器內建防護），這些插件會攔截往 api.github.com 的 API 請求。請嘗試在該頁面暫時停用此類插件。\n2. 您的網路連線中斷或無法連接 GitHub API。\n3. 請按下鍵盤 F12 打開「開發者工具」，切換至 Console (控制台) 分頁以查看瀏覽器拋出的詳細錯誤。`);
+    } else {
+      alert(`發佈失敗，請檢查錯誤：\n${err.message}`);
+    }
     updateSyncStatus(true);
   } finally {
     // 釋放 UI
