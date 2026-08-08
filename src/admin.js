@@ -53,6 +53,15 @@ const SCHEMA_CONFIGS = {
 
 // 3. 初始化 DOM 載入與監聽事件
 document.addEventListener('DOMContentLoaded', () => {
+  // 安全驗證：非管理員權限一律彈回首頁
+  const userRole = sessionStorage.getItem('user-role');
+  if (userRole !== 'admin') {
+    alert('🔒 系統提示：此頁面僅限已授權的管理員存取，請先完成登入。');
+    sessionStorage.setItem('intro-played', 'false'); // 強制重新顯示動畫與登入遮罩
+    window.location.href = 'index.html';
+    return;
+  }
+
   initApp();
   setupEventListeners();
   loadCredentials();
@@ -146,6 +155,7 @@ function setupEventListeners() {
   const tokenModal = document.getElementById('token-modal');
   document.getElementById('token-settings-btn').addEventListener('click', () => {
     tokenModal.style.display = 'flex';
+    loadAdminUsername(); // 載入當前管理員帳號
   });
   document.getElementById('modal-close-btn').addEventListener('click', () => {
     tokenModal.style.display = 'none';
@@ -154,8 +164,7 @@ function setupEventListeners() {
     tokenModal.style.display = 'none';
   });
   document.getElementById('btn-save-token').addEventListener('click', () => {
-    saveCredentials();
-    tokenModal.style.display = 'none';
+    saveCredentialsAndSync(); // 儲存並同步至雲端
   });
 
   // Token 顯示/隱藏切換
@@ -647,16 +656,211 @@ function downloadJsonBackup() {
   updateSyncStatus(false);
 }
 
-// 14. 儲存庫憑證 (Token) 存取管理
-function saveCredentials() {
+// 14. 儲存庫憑證 (Token) 與帳密安全管理 (Crypto & Sync)
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hexToBytes(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+  }
+  return bytes;
+}
+
+async function getKey(password, saltHex) {
+  const encoder = new TextEncoder();
+  const passwordBuffer = encoder.encode(password);
+  const saltBuffer = await hexToBytes(saltHex);
+  
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    passwordBuffer,
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+  
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: saltBuffer,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
+}
+
+async function encryptToken(token, password, saltHex) {
+  if (!token) return { ciphertext: '', iv: '' };
+  const encoder = new TextEncoder();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await getKey(password, saltHex);
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv },
+    key,
+    encoder.encode(token)
+  );
+  
+  return {
+    ciphertext: bytesToHex(new Uint8Array(encrypted)),
+    iv: bytesToHex(iv)
+  };
+}
+
+async function loadAdminUsername() {
+  try {
+    const res = await fetch(`src/data/auth.json?t=${Date.now()}`);
+    if (res.ok) {
+      const authData = await res.json();
+      document.getElementById('admin-username-settings').value = authData.username || '';
+    }
+  } catch (e) {
+    console.error('無法載入管理員帳號設定:', e);
+  }
+}
+
+async function saveCredentialsAndSync() {
+  const username = document.getElementById('admin-username-settings').value.trim();
+  const password = document.getElementById('admin-password-settings').value;
+  const passwordConfirm = document.getElementById('admin-password-confirm').value;
   const owner = document.getElementById('github-owner').value.trim();
   const repo = document.getElementById('github-repo').value.trim();
   const branch = document.getElementById('github-branch').value.trim();
   const token = document.getElementById('github-token').value.trim();
 
-  const creds = { owner, repo, branch, token };
-  localStorage.setItem('github_creds', JSON.stringify(creds));
-  alert('憑證已成功儲存在本機！');
+  if (!username) {
+    alert('管理員帳號不可為空！');
+    return;
+  }
+
+  if (!password) {
+    alert('⚠️ 儲存並發佈至雲端需要您的密碼來加密憑證。\n如不修改密碼，請於「新密碼」欄位輸入目前的密碼。');
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    alert('兩次輸入的新密碼不一致，請重新輸入！');
+    return;
+  }
+
+  const saveBtn = document.getElementById('btn-save-token');
+  const originalText = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⚡ 加密發佈中...';
+
+  try {
+    // 1. 取得遠端目標檔案的最新 SHA 碼
+    // 優先使用當前的 Token 去發佈，如果是初次設定，則使用剛剛輸入的 Token
+    const activeCredsStr = localStorage.getItem('github_creds');
+    let activeToken = token;
+    if (activeCredsStr) {
+      try {
+        const activeCreds = JSON.parse(activeCredsStr);
+        if (activeCreds.token && !token) {
+          activeToken = activeCreds.token;
+        }
+      } catch (e) {}
+    }
+
+    if (!activeToken) {
+      alert('請提供 GitHub Personal Access Token (PAT) 以便進行雲端發佈！');
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+      return;
+    }
+
+    // 2. 加密處理
+    const saltBytes = crypto.getRandomValues(new Uint8Array(8));
+    const salt = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    const passwordHash = await sha256(password + salt);
+    const encryptedToken = await encryptToken(token || activeToken, password, salt);
+
+    // 3. 組成 auth.json 資料
+    const newAuthData = {
+      username: username,
+      passwordHash: passwordHash,
+      salt: salt,
+      encryptedToken: encryptedToken,
+      githubOwner: owner,
+      githubRepo: repo,
+      githubBranch: branch
+    };
+
+    // 4. 呼叫 GitHub API 更新遠端
+    const filePath = `src/data/auth.json`;
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+    const getRes = await fetch(`${apiUrl}?ref=${branch}&t=${Date.now()}`, {
+      headers: {
+        'Authorization': `Bearer ${activeToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    let sha = null;
+    if (getRes.status === 200) {
+      const fileInfo = await getRes.json();
+      sha = fileInfo.sha;
+    }
+
+    const jsonString = JSON.stringify(newAuthData, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+
+    const bodyObj = {
+      message: `docs(auth): update authentication credentials via Web Admin`,
+      content: base64Content,
+      branch: branch
+    };
+    if (sha) {
+      bodyObj.sha = sha;
+    }
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${activeToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify(bodyObj)
+    });
+
+    if (!putRes.ok) {
+      const errInfo = await putRes.json();
+      throw new Error(errInfo.message || '更新 auth.json 失敗');
+    }
+
+    // 5. 本地快取更新
+    const creds = { owner, repo, branch, token: token || activeToken };
+    localStorage.setItem('github_creds', JSON.stringify(creds));
+    
+    alert('🎉 認證帳密與憑證已成功發佈至 GitHub，並同步更新至本機！\n約 1~2 分鐘後您的新帳密將會生效。');
+    document.getElementById('token-modal').style.display = 'none';
+
+    // 清空輸入框
+    document.getElementById('admin-password-settings').value = '';
+    document.getElementById('admin-password-confirm').value = '';
+
+  } catch (err) {
+    console.error('同步憑證失敗:', err);
+    alert(`❌ 同步認證設定失敗，請確認您的 GitHub PAT 與 Repo 設定是否正確。\n錯誤訊息: ${err.message}`);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
+  }
 }
 
 function loadCredentials() {

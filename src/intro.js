@@ -778,13 +778,432 @@ class IntroController {
     return title;
   }
 
-  finish(fadeOutDuration = 600) {
-    if (this.overlay) {
-      this.overlay.style.opacity = '0';
-      setTimeout(() => {
-        this.cleanup();
-      }, fadeOutDuration);
+  // Web Crypto API Helpers
+  async sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async hexToBytes(hex) {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
     }
+    return bytes;
+  }
+
+  async getKey(password, saltHex) {
+    const encoder = new TextEncoder();
+    const passwordBuffer = encoder.encode(password);
+    const saltBuffer = await this.hexToBytes(saltHex);
+    
+    const baseKey = await crypto.subtle.importKey(
+      'raw',
+      passwordBuffer,
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    
+    return crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: saltBuffer,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      baseKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+  }
+
+  async decryptToken(ciphertextHex, ivHex, password, saltHex) {
+    if (!ciphertextHex || !ivHex) return '';
+    try {
+      const key = await this.getKey(password, saltHex);
+      const iv = await this.hexToBytes(ivHex);
+      const ciphertext = await this.hexToBytes(ciphertextHex);
+      
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        ciphertext
+      );
+      return new TextDecoder().decode(decrypted);
+    } catch (e) {
+      throw new Error('金鑰解密失敗');
+    }
+  }
+
+  // 渲染登入與訪客模式選擇 UI
+  showLoginUI() {
+    // 停止 canvas 動畫
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = null;
+    }
+    
+    // 清除畫布
+    if (this.ctx && this.canvas) {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    // 隱藏可能存在的 intro-title 標題
+    const titleEl = this.overlay.querySelector('.intro-title');
+    if (titleEl) {
+      titleEl.style.display = 'none';
+    }
+    const termEl = this.overlay.querySelector('#intro-terminal');
+    if (termEl) {
+      termEl.style.display = 'none';
+    }
+
+    // 確保 CSS 樣式已插入
+    this.injectLoginCSS();
+
+    // 建立登入容器
+    const container = document.createElement('div');
+    container.id = 'intro-login-container';
+    
+    // 設置色彩屬性適配主題
+    container.style.setProperty('--intro-accent1', this.colors.accent1);
+    container.style.setProperty('--intro-accent2', this.colors.accent2);
+
+    this.overlay.appendChild(container);
+
+    // 渲染模式選擇主介面
+    this.renderModeSelection(container);
+
+    // 漸顯效果
+    setTimeout(() => {
+      container.classList.add('show');
+    }, 50);
+  }
+
+  renderModeSelection(container) {
+    container.innerHTML = `
+      <div class="login-logo">🌌 Edison.Dev</div>
+      <div class="login-subtitle">歡迎光臨，請選擇您的系統存取模式以繼續</div>
+      <div class="login-btn-group">
+        <button class="login-btn login-btn-visitor" id="btn-visitor">
+          🌐 訪客模式 (直接參觀)
+        </button>
+        <button class="login-btn login-btn-admin" id="btn-show-login">
+          🔑 管理員登入 (內容維護)
+        </button>
+      </div>
+    `;
+
+    // 監聽訪客模式點擊
+    container.querySelector('#btn-visitor').addEventListener('click', () => {
+      this.audio.playTyping(); // 播放點選音
+      sessionStorage.setItem('user-role', 'visitor');
+      this.finish();
+    });
+
+    // 監聽管理員登入切換
+    container.querySelector('#btn-show-login').addEventListener('click', () => {
+      this.audio.playTyping();
+      this.renderLoginForm(container);
+    });
+  }
+
+  renderLoginForm(container) {
+    container.innerHTML = `
+      <div class="login-logo">🔑 管理員驗證</div>
+      <div class="login-subtitle" style="margin-bottom: 20px;">請輸入認證密鑰以解鎖系統權限</div>
+      <div class="login-error" id="login-error">帳號或密碼錯誤！</div>
+      <form class="login-form" id="login-form">
+        <div class="login-input-group">
+          <label class="login-label">管理員帳號</label>
+          <input type="text" class="login-input" id="login-username" required placeholder="請輸入帳號" autocomplete="username">
+        </div>
+        <div class="login-input-group">
+          <label class="login-label">管理員密碼</label>
+          <input type="password" class="login-input" id="login-password" required placeholder="請輸入密碼" autocomplete="current-password">
+        </div>
+        <button type="submit" class="login-btn login-btn-submit" id="btn-submit-login">
+          🔓 驗證並解鎖
+        </button>
+      </form>
+      <button class="login-btn-back" id="btn-back-to-select">← 返回選擇模式</button>
+    `;
+
+    // 監聽返回按鈕
+    container.querySelector('#btn-back-to-select').addEventListener('click', () => {
+      this.audio.playTyping();
+      this.renderModeSelection(container);
+    });
+
+    // 監聽表單提交
+    const form = container.querySelector('#login-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const usernameInput = container.querySelector('#login-username').value.trim();
+      const passwordInput = container.querySelector('#login-password').value;
+      const errorDiv = container.querySelector('#login-error');
+      const submitBtn = container.querySelector('#btn-submit-login');
+
+      // 載入按鈕狀態
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⚡ 驗證解密中...';
+      errorDiv.style.display = 'none';
+
+      try {
+        // Fetch 讀取設定檔 auth.json
+        const response = await fetch(`src/data/auth.json?t=${Date.now()}`);
+        if (!response.ok) throw new Error('讀取認證資料夾失敗');
+        const authData = await response.json();
+
+        // 1. 比對帳號與密碼 Hash
+        const inputHash = await this.sha256(passwordInput + authData.salt);
+        
+        if (usernameInput !== authData.username || inputHash !== authData.passwordHash) {
+          throw new Error('帳號或密碼錯誤');
+        }
+
+        // 2. 密碼驗證成功，嘗試解密 Token
+        let token = '';
+        if (authData.encryptedToken && authData.encryptedToken.ciphertext) {
+          token = await this.decryptToken(
+            authData.encryptedToken.ciphertext,
+            authData.encryptedToken.iv,
+            passwordInput,
+            authData.salt
+          );
+        }
+
+        // 3. 登入成功
+        sessionStorage.setItem('user-role', 'admin');
+        
+        // 寫入 github_creds 到 LocalStorage
+        const creds = {
+          owner: authData.githubOwner || 'zongyandeng',
+          repo: authData.githubRepo || 'My_web',
+          branch: authData.githubBranch || 'main',
+          token: token
+        };
+        localStorage.setItem('github_creds', JSON.stringify(creds));
+
+        // 播放成功音效
+        this.audio.playBootSuccess();
+
+        // 成功動畫與延遲跳轉到管理後台
+        submitBtn.style.background = 'linear-gradient(135deg, #10b981, #05ffc0)';
+        submitBtn.textContent = '🎉 驗證成功！跳轉中...';
+        
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+          window.location.href = 'admin.html';
+        }, 800);
+
+      } catch (err) {
+        console.error('登入驗證失敗:', err);
+        // 播放鍵盤 Click 或其他警示效果（利用打字聲模擬錯響）
+        this.audio.playTyping();
+        
+        // UI 抖動與錯誤提示
+        container.classList.remove('login-shake');
+        void container.offsetWidth; // 強制瀏覽器重繪 (reflow)
+        container.classList.add('login-shake');
+        
+        errorDiv.textContent = err.message === '帳號或密碼錯誤' ? '❌ 帳號或密碼錯誤！' : '❌ 載入認證系統失敗，請確認檔案是否存在。';
+        errorDiv.style.display = 'block';
+        
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🔓 驗證並解鎖';
+      }
+    });
+  }
+
+  injectLoginCSS() {
+    if (document.getElementById('intro-login-css')) return;
+    const style = document.createElement('style');
+    style.id = 'intro-login-css';
+    style.textContent = `
+      #intro-login-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 90%;
+        max-width: 420px;
+        background: rgba(10, 15, 30, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 35px 30px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.02);
+        color: #ffffff;
+        z-index: 1000000;
+        transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+        font-family: "Outfit", "Inter", sans-serif;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      #intro-login-container.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .login-logo {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        letter-spacing: 2px;
+        background: linear-gradient(135deg, var(--intro-accent1, #3b82f6), var(--intro-accent2, #a855f7));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+      }
+      .login-subtitle {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 30px;
+        text-align: center;
+      }
+      .login-btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+      }
+      .login-btn {
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .login-btn-visitor {
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+        color: #fff;
+        border: none;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      }
+      .login-btn-visitor:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+      }
+      .login-btn-admin {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .login-btn-admin:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        width: 100%;
+      }
+      .login-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-align: left;
+      }
+      .login-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        letter-spacing: 0.5px;
+      }
+      .login-input {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+      }
+      .login-input:focus {
+        outline: none;
+        border-color: var(--intro-accent1, #3b82f6);
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+      }
+      .login-btn-submit {
+        background: linear-gradient(135deg, #10b981, #05ffc0);
+        color: #0c0e17;
+        border: none;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      }
+      .login-btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+      }
+      .login-btn-back {
+        background: transparent;
+        color: rgba(255, 255, 255, 0.6);
+        border: none;
+        font-size: 0.9rem;
+        padding: 8px;
+        margin-top: 15px;
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+      .login-btn-back:hover {
+        color: #fff;
+      }
+      .login-error {
+        color: #f43f5e;
+        font-size: 0.85rem;
+        background: rgba(244, 63, 94, 0.1);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+        border-radius: 6px;
+        padding: 10px;
+        text-align: center;
+        display: none;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      @keyframes login-shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-8px); }
+        40%, 80% { transform: translateX(8px); }
+      }
+      .login-shake {
+        animation: login-shake 0.4s ease-in-out;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  finish(fadeOutDuration = 600) {
+    // 檢查是否有 user-role。如果有或者是預覽模式，就直接正常淡出並移除遮罩
+    const userRole = sessionStorage.getItem('user-role');
+    if (userRole || this.isPreviewMode) {
+      if (this.overlay) {
+        this.overlay.style.opacity = '0';
+        setTimeout(() => {
+          this.cleanup();
+        }, fadeOutDuration);
+      }
+      return;
+    }
+
+    // 沒有 user-role，則切換成「登入/訪客」選擇 UI
+    this.showLoginUI();
   }
 
   cleanup() {

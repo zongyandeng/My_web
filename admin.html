@@ -35,7 +35,7 @@
       <li><a href="commands.html">指令查詢</a></li>
     </ul>
     <button class="settings-btn" id="token-settings-btn" style="border-color: var(--accent-1); color: var(--accent-1);">
-      🔑 設定 GitHub Token
+      🔑 認證與帳密管理
     </button>
   </nav>
 
@@ -150,47 +150,73 @@
     </div>
   </main>
 
-  <!-- GitHub Token 設定彈出視窗 (Modal) -->
+  <!-- GitHub Token 與帳密設定彈出視窗 (Modal) -->
   <div class="modal-backdrop" id="token-modal" style="display: none;">
-    <div class="modal-container">
+    <div class="modal-container" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h3 class="modal-title">🔑 設定 GitHub 儲存庫憑證</h3>
+        <h3 class="modal-title">🔑 認證帳密與憑證管理</h3>
         <button class="modal-close" id="modal-close-btn">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-info-text">
-          為了能將您的修改直接寫回 GitHub 專案，我們需要您的個人存取 Token。此 Token 只會安全的儲存在您此台電腦的瀏覽器中，不會傳送給任何第三方。
-        </p>
-        
-        <div class="form-group">
-          <label for="github-owner" class="field-label">GitHub 帳號名稱</label>
-          <input type="text" id="github-owner" class="admin-input" value="zongyandeng">
-        </div>
-
-        <div class="form-group">
-          <label for="github-repo" class="field-label">儲存庫 Repo 名稱</label>
-          <input type="text" id="github-repo" class="admin-input" value="My_web">
-        </div>
-
-        <div class="form-group">
-          <label for="github-branch" class="field-label">分支名稱 (Branch)</label>
-          <input type="text" id="github-branch" class="admin-input" value="main">
-        </div>
-
-        <div class="form-group">
-          <label for="github-token" class="field-label">Personal Access Token (PAT)</label>
-          <div class="input-with-button">
-            <input type="password" id="github-token" class="admin-input" placeholder="ghp_xxxxxxxxxxxxxxx">
-            <button type="button" id="toggle-token-visibility" class="admin-btn secondary-btn-sm">顯示</button>
+        <!-- 區塊 1：管理員登入帳密 -->
+        <div style="margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+          <h4 style="color: var(--accent-2); margin-bottom: 12px; font-size: 1.1rem;">⚙️ 管理員帳密管理</h4>
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label for="admin-username-settings" class="field-label">管理員帳號 (Username)</label>
+            <input type="text" id="admin-username-settings" class="admin-input" placeholder="例如: admin">
           </div>
-          <small class="field-helper">
-            請至 GitHub [Settings > Developer settings > Personal access tokens (classic)] 建立一個具有 <b>repo (完整控制權)</b> 權限的 Token。
+          <div class="form-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <div class="form-group col-6" style="flex: 1;">
+              <label for="admin-password-settings" class="field-label">新密碼 (Password)</label>
+              <input type="password" id="admin-password-settings" class="admin-input" placeholder="留空表示不修改">
+            </div>
+            <div class="form-group col-6" style="flex: 1;">
+              <label for="admin-password-confirm" class="field-label">確認新密碼</label>
+              <input type="password" id="admin-password-confirm" class="admin-input" placeholder="留空表示不修改">
+            </div>
+          </div>
+          <small class="field-helper" style="color: var(--text-muted); font-size: 0.8rem;">
+            密碼將以加鹽 SHA-256 方式雜湊，隨後用於加密下方的 GitHub Token。
           </small>
+        </div>
+
+        <!-- 區塊 2：GitHub 儲存庫憑證 -->
+        <div>
+          <h4 style="color: var(--accent-1); margin-bottom: 12px; font-size: 1.1rem;">📦 GitHub 儲存庫發佈憑證</h4>
+          <p class="modal-info-text" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            此處的 Token 會經由您的密碼加密後安全上傳至儲存庫中的 auth.json，不用擔心明文洩漏！
+          </p>
+          
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label for="github-owner" class="field-label">GitHub 帳號名稱 (Owner)</label>
+            <input type="text" id="github-owner" class="admin-input" value="zongyandeng">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label for="github-repo" class="field-label">儲存庫 Repo 名稱</label>
+            <input type="text" id="github-repo" class="admin-input" value="My_web">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label for="github-branch" class="field-label">分支名稱 (Branch)</label>
+            <input type="text" id="github-branch" class="admin-input" value="main">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label for="github-token" class="field-label">Personal Access Token (PAT)</label>
+            <div class="input-with-button" style="display: flex; gap: 8px;">
+              <input type="password" id="github-token" class="admin-input" placeholder="ghp_xxxxxxxxxxxxxxx" style="flex: 1;">
+              <button type="button" id="toggle-token-visibility" class="admin-btn secondary-btn-sm" style="padding: 0 12px; white-space: nowrap;">顯示</button>
+            </div>
+            <small class="field-helper" style="color: var(--text-muted); font-size: 0.8rem;">
+              請至 GitHub [Settings > Developer settings > Personal access tokens (classic)] 建立一個具有 <b>repo</b> 權限的 Token。
+            </small>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" id="btn-cancel-token" class="admin-btn secondary-btn">取消</button>
-        <button type="button" id="btn-save-token" class="admin-btn primary-btn">儲存憑證</button>
+        <button type="button" id="btn-save-token" class="admin-btn primary-btn">💾 儲存並同步至雲端</button>
       </div>
     </div>
   </div>
