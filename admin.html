@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="deepspace">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>網站內容安全線上編輯器 | Edison.Dev</title>
+  <link rel="stylesheet" href="src/style.css">
+  <link rel="stylesheet" href="src/admin.css">
+  
+  <!-- CDN 載入 KaTeX 數學公式渲染 (用於預覽) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- CDN 載入 Prism.js 程式碼語法高亮 (用於預覽) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+  <!-- 動態流光背景 -->
+  <div class="dynamic-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- 頂部導覽列 -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">
+      <span>🌌 Edison.Dev (Admin)</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">返回首頁</a></li>
+      <li><a href="ai-learning.html">AI 實驗室</a></li>
+      <li><a href="hardware.html">硬體研究</a></li>
+      <li><a href="network-learning.html">網管學習</a></li>
+      <li><a href="commands.html">指令查詢</a></li>
+    </ul>
+    <button class="settings-btn" id="token-settings-btn" style="border-color: var(--accent-1); color: var(--accent-1);">
+      🔑 設定 GitHub Token
+    </button>
+  </nav>
+
+  <!-- 主要內容區 -->
+  <main class="container admin-container">
+    <header class="page-header">
+      <h1 class="page-title">線上內容管理後台</h1>
+      <p class="page-desc">
+        在此頁面您可以直接編輯網站的所有筆記內容。在右上角填寫您的 GitHub Personal Access Token 後，修改結果即可直接安全地發佈到線上。一般訪客因無 Token 將無法進行任何修改。
+      </p>
+    </header>
+
+    <!-- 編輯器主 Layout -->
+    <div class="admin-layout">
+      
+      <!-- 左側選單：資料來源 & 主題列表 -->
+      <aside class="sidebar admin-sidebar">
+        <div class="sidebar-section">
+          <label for="data-source-select" class="field-label">選擇編輯檔案</label>
+          <select id="data-source-select" class="admin-select">
+            <option value="test-notes.json">🧪 測試沙盒 (test-notes.json)</option>
+            <option value="ai-notes.json">🤖 AI 學習筆記 (ai-notes.json)</option>
+            <option value="hardware-notes.json">💻 硬體選購指南 (hardware-notes.json)</option>
+            <option value="network-notes.json">🌐 網管學習筆記 (network-notes.json)</option>
+            <option value="commands-notes.json">💻 常用指令查詢 (commands-notes.json)</option>
+          </select>
+        </div>
+        
+        <div class="sidebar-section list-section">
+          <div class="section-header">
+            <h3 class="sidebar-title">主題列表</h3>
+            <button id="add-topic-btn" class="action-btn-sm" title="新增主題">+ 新增主題</button>
+          </div>
+          <ul class="sidebar-menu" id="admin-topic-list">
+            <!-- 由 JS 動態生成 -->
+            <li class="sidebar-item loading">載入中...</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- 右側主要編輯表單 -->
+      <section class="note-content-container edit-pane">
+        <!-- 未選取主題提示 -->
+        <div id="no-selection-view" class="empty-state">
+          <p>请從左側選取要編輯的主題，或點擊「+ 新增主題」</p>
+        </div>
+
+        <!-- 編輯表單 (預設隱藏) -->
+        <form id="edit-form" class="admin-form" style="display: none;">
+          <!-- 頂部操作按鈕列 -->
+          <div class="form-actions-top">
+            <div class="sync-status" id="sync-status-indicator">● 本地未儲存</div>
+            <div class="button-group">
+              <button type="button" id="save-local-btn" class="admin-btn secondary-btn">💾 本地暫存</button>
+              <button type="button" id="publish-github-btn" class="admin-btn primary-btn">🚀 發佈到 GitHub</button>
+              <button type="button" id="delete-topic-btn" class="admin-btn danger-btn">🗑️ 刪除此主題</button>
+            </div>
+          </div>
+
+          <!-- 基礎資料欄位 -->
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="topic-id" class="field-label">主題 ID (唯一英文代號，用於 URL)</label>
+              <input type="text" id="topic-id" class="admin-input" required placeholder="例如: rag">
+            </div>
+            <div class="form-group col-6">
+              <label for="topic-english" class="field-label">英文標題 (English Title)</label>
+              <input type="text" id="topic-english" class="admin-input" required placeholder="例如: Retrieval-Augmented Generation">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="topic-title" class="field-label">中文標題 (Title)</label>
+            <input type="text" id="topic-title" class="admin-input" required placeholder="例如: 檢索增強生成 (RAG)">
+          </div>
+
+          <div class="form-group">
+            <label for="topic-desc" class="field-label">主題前言 / 描述 (Description)</label>
+            <textarea id="topic-desc" class="admin-textarea" required placeholder="輸入該主題的背景介紹..."></textarea>
+          </div>
+
+          <!-- 動態子項目編輯區 (例如 specs, guides, faq, steps, formulas 等) -->
+          <div class="sub-items-section">
+            <div class="section-header">
+              <h4 class="sub-section-title" id="sub-items-title">動態子項目</h4>
+              <button type="button" id="add-sub-item-btn" class="action-btn-sm">+ 新增子項目</button>
+            </div>
+            <div id="sub-items-container" class="sub-items-list">
+              <!-- 由 JS 根據檔案類型動態載入對應表單 -->
+            </div>
+          </div>
+
+          <!-- 特殊欄位 (如 Code 程式碼) -->
+          <div class="form-group" id="code-group" style="display: none;">
+            <label for="topic-code" class="field-label">示範程式碼 (Code Block)</label>
+            <textarea id="topic-code" class="admin-textarea code-font" placeholder="例如: import torch..."></textarea>
+          </div>
+
+          <!-- 即時預覽控制 -->
+          <div class="preview-toggle-bar">
+            <button type="button" id="btn-show-editor" class="toggle-tab active">✏️ 編輯原始碼</button>
+            <button type="button" id="btn-show-preview" class="toggle-tab">👁️ 即時效果預覽</button>
+          </div>
+
+          <!-- 預覽容器 (預設隱藏) -->
+          <div id="preview-panel" class="preview-panel markdown-body" style="display: none;">
+            <!-- 由 JS 進行 KaTeX 與 Prism 渲染 -->
+          </div>
+        </form>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- GitHub Token 設定彈出視窗 (Modal) -->
+  <div class="modal-backdrop" id="token-modal" style="display: none;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">🔑 設定 GitHub 儲存庫憑證</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-info-text">
+          為了能將您的修改直接寫回 GitHub 專案，我們需要您的個人存取 Token。此 Token 只會安全的儲存在您此台電腦的瀏覽器中，不會傳送給任何第三方。
+        </p>
+        
+        <div class="form-group">
+          <label for="github-owner" class="field-label">GitHub 帳號名稱</label>
+          <input type="text" id="github-owner" class="admin-input" value="zongyandeng">
+        </div>
+
+        <div class="form-group">
+          <label for="github-repo" class="field-label">儲存庫 Repo 名稱</label>
+          <input type="text" id="github-repo" class="admin-input" value="My_web">
+        </div>
+
+        <div class="form-group">
+          <label for="github-branch" class="field-label">分支名稱 (Branch)</label>
+          <input type="text" id="github-branch" class="admin-input" value="main">
+        </div>
+
+        <div class="form-group">
+          <label for="github-token" class="field-label">Personal Access Token (PAT)</label>
+          <div class="input-with-button">
+            <input type="password" id="github-token" class="admin-input" placeholder="ghp_xxxxxxxxxxxxxxx">
+            <button type="button" id="toggle-token-visibility" class="admin-btn secondary-btn-sm">顯示</button>
+          </div>
+          <small class="field-helper">
+            請至 GitHub [Settings > Developer settings > Personal access tokens (classic)] 建立一個具有 <b>repo (完整控制權)</b> 權限的 Token。
+          </small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn-cancel-token" class="admin-btn secondary-btn">取消</button>
+        <button type="button" id="btn-save-token" class="admin-btn primary-btn">儲存憑證</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/admin.js"></script>
+</body>
+</html>

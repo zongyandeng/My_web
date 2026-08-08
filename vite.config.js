@@ -45,6 +45,7 @@ export default defineConfig({
         hardware: resolve(__dirname, 'hardware.html'),
         network: resolve(__dirname, 'network-learning.html'),
         commands: resolve(__dirname, 'commands.html'),
+        admin: resolve(__dirname, 'admin.html'),
       },
     },
   },

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "test-item-1",
+    "title": "測試筆記主題一",
+    "englishTitle": "Test Note Topic One",
+    "description": "這是一個用於測試線上內容編輯器的沙盒測試項目。您在此處進行的編輯將寫回 GitHub，且不影響其他正式的筆記內容。",
+    "specs": [
+      {
+        "name": "測試規格名稱",
+        "value": "規格數值",
+        "description": "詳細規格說明內容。"
+      }
+    ],
+    "guides": [
+      {
+        "card": "RTX 9090 Super",
+        "recommendation": "極限測試硬體",
+        "pros": "速度極快，具備無限記憶體。",
+        "cons": "目前僅存在於想像中。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "這是 FAQ 的問題嗎？",
+        "answer": "是的，這是一條 FAQ 的回答測試。"
+      }
+    ]
+  }
+]
