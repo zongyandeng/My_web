@@ -717,7 +717,7 @@ class SettingsManager {
   bindEvents() {
     this.toggleBtn = document.getElementById('settings-toggle');
     if (this.toggleBtn) {
-      this.toggleBtn.innerHTML = '<span class="settings-icon">⚙️</span> 設定';
+      this.toggleBtn.innerHTML = '<span class="settings-icon">⚙️</span><span class="settings-btn-text"> 設定</span>';
       this.toggleBtn.addEventListener('click', () => this.openModal());
     }
 

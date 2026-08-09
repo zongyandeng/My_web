@@ -1249,6 +1249,50 @@ pre[class*="language-"] {
     padding: 0 10px;
   }
 
+  /* 首頁高度自適應，防止手機直立時垂直卡片重疊 */
+  .hero {
+    height: auto !important;
+    min-height: 100vh;
+    padding: 100px 20px 60px 20px !important;
+  }
+
+  /* 幾何體實驗室手機 RWD 佈局，防止面板遮擋並方便觸控 */
+  #three-container {
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #webgl-canvas {
+    height: 300px !important;
+    width: 100% !important;
+  }
+  .three-controls {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 15px !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 15px !important;
+  }
+  .three-control-group {
+    flex: 1 1 150px !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* 標題與內文縮減，適配窄螢幕 */
+  .page-title {
+    font-size: 2rem !important;
+  }
+  .page-desc {
+    font-size: 0.95rem !important;
+  }
+
   /* 側邊欄優化：在手機上轉換為水平滑動 Tab Bar */
   .sidebar {
     margin-bottom: 20px;
@@ -1352,6 +1396,31 @@ pre[class*="language-"] {
   }
   .hero-subtitle {
     font-size: 0.95rem;
+  }
+
+  /* 混淆矩陣極窄螢幕優化，防溢出 */
+  .matrix-grid {
+    grid-template-columns: 60px repeat(2, 95px) !important;
+    grid-template-rows: 30px repeat(2, 95px) !important;
+    gap: 6px !important;
+  }
+  .matrix-cell-value {
+    font-size: 1.15rem !important;
+  }
+  .matrix-cell-label {
+    font-size: 0.75rem !important;
+  }
+
+  /* 頂部導覽列於極窄螢幕下收縮設定按鈕，只保留齒輪 */
+  .settings-btn-text {
+    display: none !important;
+  }
+  .settings-btn {
+    padding: 8px !important;
+    gap: 0 !important;
+  }
+  .navbar {
+    padding: 0 12px !important;
   }
 }
 
