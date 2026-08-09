@@ -508,5 +508,38 @@
         "answer": "答：這與 MP4 容器的結構有關。標準 MP4 檔案的 metadata（moov atom，內含幀索引、時長等關鍵播放資訊）通常在錄影結束、檔案關閉的最後一刻才會寫入檔案尾部。如果寫入中途突然斷電，由於缺少 moov，整個影片將無法被播放器解開。為了解決這個問題，工業安防與 HLS 預設使用 **TS 容器 (.ts 檔案)**，它沒有中央元數據結構，每一幀都有獨立的 header，即使中途斷電，僅會遺失最後斷電那一秒的畫面，其餘已寫入部分均能正常播放。"
       }
     ]
+  },
+  {
+    "id": "web_architectures",
+    "title": "現代網頁與全端開發架構解析",
+    "englishTitle": "Modern Web & Full-Stack Architectures",
+    "description": "整理現代網頁開發中最主流的前端框架（React、Vue.js）、全端框架（Next.js）、後端架構（Node.js、FastAPI、Spring Boot）以及常用組合堆疊（MERN、T3），剖析其優缺點、適用場景與技術定位。",
+    "steps": [
+      {
+        "name": "一、 前端核心與框架 (Frontend)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>SPA</strong> (Single Page Application，單頁式應用程式)<br>• <strong>DOM / Virtual DOM</strong> (Document Object Model，文件物件模型 / 虛擬 DOM)",
+        "details": "前端負責使用者看得見、互動得到的介面與瀏覽器端渲染：<br>• <strong>1. React (Meta/Facebook 維護)</strong>：<br>  - <strong>用途</strong>：建構 UI 組件，擅長單頁式應用 (SPA) 與複雜的高互動介面。<br>  - <strong>優勢</strong>：組件化可重用、虛擬 DOM 效能好、生態系與社群資源極大，還能透過 React Native 開發 App。<br>  - <strong>劣勢</strong>：本身只是 Library（函式庫），大型專案需要額外搭配 Router 與狀態管理工具（如 Redux/Zustand），學習曲線較陡峭。<br>• <strong>2. Vue.js</strong>：<br>  - <strong>用途</strong>：強調漸進式開發的前端 UI 框架。<br>  - <strong>優勢</strong>：單一檔案組件 (SFC) 易學上手，官方中文文件完善，效能輕量高效率，適合中小型到大型專案。<br>  - <strong>劣勢</strong>：大型商業專案的生態系規模略小於 React，過度靈活可能使不同團隊的代碼風格差異較大。<br>• <strong>3. Next.js (React 全端框架)</strong>：<br>  - <strong>用途</strong>：企業級 Web 開發，結合前端渲染與後端 API。<br>  - <strong>優勢</strong>：支援伺服器端渲染 (SSR) 與靜態網站生成 (SSG)，極度利於 SEO 與首屏加載；內建圖片/字型優化與路由系統。<br>  - <strong>劣勢</strong>：部署要求較高，通常需要 Node.js 伺服器環境或 Serverless 主機（如 Vercel）。"
+      },
+      {
+        "name": "二、 後端核心與框架 (Backend)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>I/O Non-blocking</strong> (非阻塞式輸入輸出)<br>• <strong>ORM</strong> (Object-Relational Mapping，物件關係對照，資料庫操作工具)",
+        "details": "後端主要負責商業邏輯、資料庫互動與 API 資料傳輸：<br>• <strong>1. Node.js (搭配 Express / NestJS)</strong>：<br>  - <strong>用途</strong>：以 JavaScript 運行於伺服器端，建構高效能 API 伺服器、即時通訊 (WebSocket)。<br>  - <strong>優勢</strong>：前後端語言統一 (JS/TS)，開發切換成本極低；非同步非阻塞 I/O 處理高併發表現極佳；NestJS 提供了極嚴謹的模組化企業級架構。<br>  - <strong>劣勢</strong>：單執行緒特性導致處理「CPU 密集運算」（如圖像處理、繁重數學計算）效率差；NPM 套件品質參差不齊。<br>• <strong>2. Python (FastAPI / Django)</strong>：<br>  - <strong>用途</strong>：後端 API 提供、AI/機器學習模型整合、數據分析網站後台。<br>  - <strong>優勢</strong>：FastAPI 速度極快並自動生成 Swagger API 文件；Django 內建 ORM、認證與管理後台，開發速度極快。<br>  - <strong>劣勢</strong>：執行速度比 Java / Go 慢；動態型別在大型專案中若未做好型別提示 (Type Hints)，維護較為不易。<br>• <strong>3. Java (Spring Boot)</strong>：<br>  - <strong>用途</strong>：大型企業級系統、金融系統、高安全性與穩定性需求專案。<br>  - <strong>優勢</strong>：效能高、極具穩定性與擴展性；生態系完整，具備強大的交易管理、安全控管與企業標準相容性。<br>  - <strong>劣勢</strong>：代碼較繁瑣（Boilerplate 多），開發初期配置與學習曲線均較為陡峭。"
+      },
+      {
+        "name": "三、 業界常見組合架構 (Stack)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>Full-Stack</strong> (全端，包含前端與後端整套技術堆疊)",
+        "details": "實務開發中，前後端技術常組合成以下套餐：<br>• <strong>1. MERN / PERN Stack (最流行 JavaScript 全端)</strong>：<br>  - <strong>組合</strong>：MongoDB / PostgreSQL + Express + React + Node.js。<br>  - <strong>特點</strong>：全端使用同一種語言開發，團隊協作與元件共享效率極高。<br>• <strong>2. T3 Stack (現代型別安全架構)</strong>：<br>  - <strong>組合</strong>：Next.js + TypeScript + Tailwind CSS + Prisma + tRPC。<br>  - <strong>特點</strong>：近代極熱門的全端架構，前後端傳遞資料時擁有嚴格的端到端型別安全（End-to-End Type-safe）。<br>• <strong>3. 傳統企業架構 (極穩套餐)</strong>：<br>  - <strong>組合</strong>：Spring Boot (Java) + React / Vue.js + 關聯式資料庫 (MySQL/PostgreSQL)。<br>  - <strong>特點</strong>：後端高安全穩定、前端高互動性，是政府標案、金融機構與大型企業的最愛。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：為什麼 Node.js 不適合用來做『CPU 密集運算』（如影片剪輯、大量圖像壓縮或機器學習訓練）？",
+        "answer": "答：Node.js 是單執行緒（Single-threaded）的非同步事件驅動架構。它的優勢在於處理大量的 I/O 密集任務（如資料庫查詢、網絡請求），因為它可以在等待硬碟/網路回應時去處理其他事情。然而，一旦遇到繁重的計算任務（例如複雜的圖形處理），CPU 會被這個單執行緒長時間 100% 佔用，導致這段時間內所有其他的 API 請求通通被卡死（阻塞）。對這類任務，更適合使用 Python、C++ 或 Go 等具備多執行緒平行處理能力的後端環境。"
+      },
+      {
+        "question": "問：SEO 友善（如 Next.js 的 SSR）對於一般網頁到底有多重要？什麼時候不需要它？",
+        "answer": "答：**非常重要**。傳統的 React/Vue 單頁應用（SPA）是客戶端渲染，搜尋引擎爬蟲（如 Googlebot）抓取網頁時只能抓到空殼 HTML，需要執行 JS 才能看到內容，這會嚴重影響 Google 搜尋排名（SEO）。如果你的網頁是**公開的電商、部落格、形象官網**，需要靠搜尋引擎帶來流量，就**必須使用 Next.js 等 SSR 技術**。但如果你的網頁是**後台管理系統、需要登入才能使用的 SaaS 工具或儀表板**，搜尋爬蟲本來就進不去，那就完全**不需要考慮 SEO**，直接使用傳統 React SPA 即可。"
+      }
+    ]
   }
 ]
