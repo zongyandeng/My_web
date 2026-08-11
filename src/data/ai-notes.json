@@ -964,5 +964,68 @@
         "answer": "答：這需要實施<b>「工具層容錯保護 (Tool Exception Handling)」</b>。在定義工具時，程式必須捕捉 (Try-Catch) 所有例外，並反回一段友善的觀察結果文字，例如：<code>\"Error: Search tool timeout. Please try to reformulate your query or try a different search engine.\"</code>。這樣代理人的 ReAct 大腦就能藉由這句 Observation 重新思考，自動換一個工具或修正查詢關鍵字，防止程式崩潰卡死。"
       }
     ]
+  },
+  {
+    "id": "model_vs_kv_cache_quantization",
+    "title": "模型量化與 KV Cache 量化區別及 VRAM 估算規劃",
+    "englishTitle": "Model vs KV Cache Quantization & VRAM Profiling",
+    "description": "本單元解構 LLM 推理優化中的兩大核心技術：模型量化與 KV Cache 量化。解析模型靜態權重壓縮與動態上下文快取壓縮的運作機制與優化目標。詳細拆解 VLM 的 VRAM 顯存預算表計算公式，並針對 AMD 7900 XTX (24 GB) 提供 2026 年最新多模態視覺模型 (Gemma 4, Qwen 3.5, Llama 4 Scout) 的執行級距與獨立對話併發策略。",
+    "steps": [
+      {
+        "name": "1. 核心觀念：模型量化與 KV Cache 量化的物理本質 (Core Concepts)",
+        "details": "模型量化決定模型能否在顯卡上「跑起來」，而 KV Cache 量化決定模型能跑多長的對話、同時服務多少人。<br><br><b>💡 專有名詞對照：</b><br>• <b>LLM (Large Language Model / 大型語言模型)</b>：基於 Transformer 架構的超大規模自然語言與多模態基礎模型。<br>• <b>VRAM (Video RAM / 視訊隨機存取記憶體)</b>：GPU 顯卡上專門用來快速讀寫矩陣運算張量的實體記憶體。<br><br><b>📊 模型量化 vs KV Cache 量化核心區別對照表：</b><br><table><thead><tr><th>比較維度</th><th>模型量化 (Model Quantization)</th><th>KV Cache 量化 (KV Cache Quantization)</th></tr></thead><tbody><tr><td>主要作用對象</td><td><b>靜態的模型參數</b>。包括模型本身的權重 (Weights) 與偏置 (Biases)。</td><td><b>動態的臨時快取</b>。推理過程中隨自回歸生成而動態產生的 Key-Value 張量。</td></tr><tr><td>記憶體佔用影響</td><td>減少模型載入時的<b>靜態佔用</b>（決定大模型能不能塞進顯卡的顯存）。</td><td>減少推理過程中的<b>動態增長佔用</b>（防止長文本或高並發時顯存爆炸）。</td></tr><tr><td>對吞吐量/並發的影響</td><td>降低模型運作的最低硬體門檻。</td><td>顯著提升最大批次大小 (Batch Size) 與最大上下文長度 (Context Length)。</td></tr><tr><td>數值分布特徵</td><td>權重分布在訓練後即固定，極易通過校準集 (Calibration) 進行靜態量化。</td><td>動態性極高，包含大量隨解碼步數而變化的離群值 (Outliers)，動態量化難度高。</td></tr></tbody></table>"
+      },
+      {
+        "name": "2. 靜態壓縮：模型權重量化原理與常見技術 (Model Weights Quantization)",
+        "details": "模型量化將權重從高精度浮點數（如 FP16）轉換為低精度數值（如 INT4），大幅降低顯卡的靜態載入門檻。<br><br><b>💡 專有名詞對照：</b><br>• <b>FP16 (16-bit Floating Point / 半精度浮點數)</b>：佔用 2 Bytes 顯存，為多數大模型預設的儲存與運算精度。<br>• <b>INT8 / INT4 (8-bit / 4-bit Integer / 8/4位元整數)</b>：分別佔用 1 Byte 與 0.5 Byte 顯存，是極低位元量化常用的目標精度。<br>• <b>GPTQ / AWQ (權重量化演算法)</b>：分別透過二階導數誤差校準、以及依激活值權重重要性進行縮放的後訓練量化 (PTQ) 演算法。<br>• <b>GGUF (GPT-Generated Unified Format / 統一格式)</b>：由 llama.cpp 推出的開源二進位格式，支援 CPU/GPU 混合推理與分組量化。"
+      },
+      {
+        "name": "3. 動態快取：KV Cache 原理與長文本挑戰 (KV Cache Mechanics)",
+        "details": "自回歸解碼中，為避免重複計算歷史 Token，會將 Key 與 Value 向量快取於 VRAM 中，這也是長文本與高並發時顯存爆炸的元兇。<br><br><b>💡 專有名詞對照：</b><br>• <b>KV Cache (Key-Value Cache / 鍵值快取)</b>：存取過去所有 Token 的 Key 與 Value 矩陣，避免每吐一個新字就要重算一次歷史 context。<br>• <b>OOM (Out of Memory / 顯存溢出)</b>：顯存被完全耗盡導致程式強行中斷崩潰的現象。<br>• <b>Autoregressive (自回歸解碼)</b>：模型逐字生成，並將生成的字作為下一步的輸入。<br><br><b>📊 多輪長對話 vs 獨立對話下 KV Cache 壓力對比：</b><br><table><thead><tr><th>對話模式</th><th>KV Cache 累積特徵</th><th>VRAM 壓力表現</th><th>KV Cache 量化必要性</th></tr></thead><tbody><tr><td>多輪長對話 (Multi-turn)</td><td>隨著對話輪次持續推進，歷史 context 呈線性或平方級累積，KV Cache 體積不斷膨脹。</td><td><b>極高</b>。隨時面臨對話尾聲顯存爆炸 (OOM) 的風險。</td><td><b>絕對必要</b>。必須藉由量化（如 INT8/INT4）或 PageAttention 釋放空間。</td></tr><tr><td>獨立對話 (Single-turn)</td><td>每次問答都是完全獨立的單次請求，結束後 KV Cache 立即釋放清空，不累積到下一次。</td><td><b>低</b>（除非單次輸入為超長文本或面臨高並發）。</td><td>低（個人使用且 context 小）。但如果是高並發服務或超長 prompt 摘要，依然需要注意。</td></tr></tbody></table>"
+      },
+      {
+        "name": "4. GGUF (Q開頭) 分組量化與混合精度機制 (GGUF Block-wise & Mixed-Precision)",
+        "details": "本地端主流的 Q 開頭量化（如 Q4_K_M）採用混合精度與微小分組量化，在大幅壓縮體積的同時，保留重要層的高精度，鎖定極低誤差。<br><br><b>💡 專有名詞對照：</b><br>• <b>Perplexity (困惑度/混亂度)</b>：衡量語言模型預測性能的指標，數值越低代表語言模型越聰明、越精準。<br>• <b>Block-wise Quantization (分組/分塊量化)</b>：將權重切成每 32 或 256 個元素為一個小區塊 (Block)，每個區塊獨立計算 Scale 比例尺，防止單一極端離群值破壞整體精度。<br>• <b>Mixed-Precision (混合精度)</b>：在同一個模型中，對敏感的核心層使用高精度（如 6-bit/8-bit），非敏感層使用低精度（如 4-bit）的混合策略。<br><br><b>📊 常見 GGUF 量化標籤選用與性能損耗指南：</b><br><table><thead><tr><th>量化標籤</th><th>位元精度配置</th><th>對 perplexity 影響 (智商損耗)</th><th>實務建議</th></tr></thead><tbody><tr><td>Q8_0</td><td>全域使用 8-bit 整數。</td><td>幾乎無損（與 FP16 幾乎完全一致）。</td><td>檔案偏大，若 VRAM 非常充裕可選擇。</td></tr><tr><td>Q4_K_M</td><td>重要層（如 Attention 投影）使用 6-bit/8-bit，其餘層 4-bit。</td><td>極微損（困惑度微幅上升，幾乎無感）。</td><td><b>最推薦的黃金平衡選擇</b>。體積縮減 70%，智商依舊在線。</td></tr><tr><td>Q4_K_S</td><td>幾乎全砍到 4-bit，體積更小。</td><td>微損（略大於 Q4_K_M）。</td><td>適合顯存極度緊繃、想勉強跑起來的妥協之選。</td></tr><tr><td>Q2_K / Q3_K</td><td>極限壓縮到 2-bit 或 3-bit。</td><td><b>嚴重受損</b>。模型極易胡說八道或產生嚴重幻覺。</td><td>不建議使用，模型表現會大幅衰退。</td></tr></tbody></table>"
+      },
+      {
+        "name": "5. 多模態模型 VRAM 顯存佔用精密計算公式 (VLM VRAM Calculation Formula)",
+        "details": "推理時的 VRAM 佔用由四大部分組成：模型權重、視覺編碼器、執行期緩衝以及 KV Cache 預配空間。<br><br><b>💡 專有名詞對照：</b><br>• <b>ViT (Vision Transformer / 視覺編碼器)</b>：負責將輸入的圖片裁切為 patches 並轉換為視覺 token 特徵向量的模組。<br>• <b>Activation (激活值緩衝)</b>：矩陣乘法運算時，存放層間臨時輸出的顯存空間。<br><br><b>🧮 實戰顯存預算表計算公式與範例（以 Qwen 3.5 27B @ Q4_K_M 於 24GB 顯存執行為例）：</b><br>1. <b>模型權重</b>：$27\\text{B (參數)} \\times 4\\text{-bit} / 8 = 13.5\\text{ GB}$ (加上 GGUF 額外格式結構開銷，實際約 $14.5\\text{ GB}$)。<br>2. <b>視覺編碼器 (Vision Tower / ViT)</b>：以 FP16 原生載入不量化，佔用約 $1.5\\text{ GB}$。<br>3. <b>執行期激活緩衝 (Activation)</b>：矩陣乘法臨時張量，預留約 $1.0\\text{ GB}$。<br>4. <b>KV Cache 預配空間</b>：在「獨立對話」且 context 設定極低（如 2048 tokens）時，預留約 $1.0\\text{ GB}$。<br>• <b>合計顯存預算</b>：$14.5 + 1.5 + 1.0 + 1.0 = 17.0\\text{ GB}$，在 24 GB 顯卡上運行擁有健康的安全餘裕（約 30% Headroom）。"
+      },
+      {
+        "name": "6. 2026 最新多模態視覺模型規格級距 (2026 Vision-LLM S/M/L Scale)",
+        "details": "精選 2026 年最新發布的多模態開源模型，針對主流 24 GB 顯卡（如 7900 XTX）在獨立對話情境下進行三級規劃。<br><br><b>💡 專有名詞對照：</b><br>• <b>MoE (Mixture of Experts / 混合專家架構)</b>：模型包含多個專家子網絡，每次推理僅激活其中一部分以降低實際運算開銷，但載入時仍需佔用完整的顯存。<br>• <b>Vision-LLM (多模態視覺模型)</b>：同時具有影像視覺理解與文字處理能力的大語言模型。<br><br><b>📊 AMD RX 7900 XTX (24 GB VRAM) 2026 多模態模型規劃表：</b><br><table><thead><tr><th>級距</th><th>2026 開源模型名稱</th><th>推薦量化規格</th><th>估算 VRAM 佔用 (權重 + ViT + 執行)</th><th>獨立對話實務表現</th></tr></thead><tbody><tr><td>小型模型 (Small)</td><td>Google Gemma 4 (12B)</td><td>Q8_0 或 FP16</td><td>約 13.0 GB</td><td><b>極輕量高效</b>。24GB 顯卡上有極大餘裕，推論速度極快，反應極敏捷。</td></tr><tr><td>中型模型 (Medium)</td><td>Qwen 3.5 (27B)</td><td>Q4_K_M</td><td>約 17.0 GB</td><td><b>最推薦的黃金甜蜜點</b>。OCR 與圖文理解力強，顯存佔用安全，運行極度穩定。</td></tr><tr><td>大型模型 (Large)</td><td>Meta Llama 4 Scout (109B MoE)</td><td>Q3_K_M 或 Q4_K_S</td><td>約 21.0 ~ 23.0 GB</td><td><b>極限壓榨</b>。因為 MoE 架構啟動參數僅 17B，3-bit 壓線可跑，但顯存隨時可能崩潰 (OOM)。</td></tr></tbody></table>"
+      },
+      {
+        "name": "7. 獨立對話與高併發場景的 VRAM 實戰佈局 (VRAM Strategy for Concurrency)",
+        "details": "即使在單次獨立對話情境中，高併發 API 服務與超長輸入 (Long Context) 依然會對 VRAM 造成嚴重壓力，需配置適度餘裕防範 OOM。<br><br><b>💡 專有名詞對照：</b><br>• <b>Batch Size (批次大小)</b>：伺服器一次性處理的併發請求用戶數。<br>• <b>Prefill Stage (預填充階段)</b>：模型一次性處理並計算輸入 Prompt 所有 Token 的階段，會瞬間產生龐大的 KV Cache。<br><br><b>📊 單人單次使用 vs 多人高併發 API 服務之 VRAM 應對：</b><br><table><thead><tr><th>硬體部署情境</th><th>KV Cache 壓力來源</th><th>記憶體主要瓶頸點</th><th>最合適的量化優化方案</th></tr></thead><tbody><tr><td>個人本地單次使用 (如 Ollama)</td><td>僅限於用戶輸入超長 Prompt 的瞬間（如貼入三萬字長文）。</td><td>主要在模型權重本身。只要塞得進顯卡即可。</td><td><b>模型量化 (如 Q4_K_M) 優先</b>，KV Cache 保持預設精度，配合 FlashAttention。</td></tr><tr><td>多人高併發 API 服務 (如 Web API)</td><td>大量用戶同時發起獨立請求，伺服器必須同時維持數百個用戶的動態 KV Cache。</td><td><b>動態的 KV Cache 顯存佔用</b>。KV Cache 佔用會迅速超越模型權重本身。</td><td><b>模型量化 + KV Cache 量化 (如 INT8) 雙管齊下</b>，啟用動態 Batch 融合。</td></tr></tbody></table>"
+      },
+      {
+        "name": "8. Python / PyTorch 顯存佔用與 KV Cache 規模模擬計算 (VRAM & KV Cache Simulator Code)",
+        "details": "使用 Python 代碼動態模擬不同 Batch Size、層數、頭數以及 Context Length 下，FP16、INT8 與 INT4 精度下的 KV Cache 顯存大小計算。"
+      }
+    ],
+    "formulas": [
+      {
+        "name": "KV Cache 物理顯存佔用計算公式 (VRAM Footprint for KV Cache)",
+        "latex": "M_{\\text{KV}} = 2 \\times b \\times s \\times l \\times h \\times d \\times p \\quad \\text{Bytes}",
+        "description": "2 代表 Key 與 Value 兩個矩陣；b 為 Batch Size (批次/用戶數)；s 為 Sequence Length (序列/上下文長度)；l 為 Transformer 層數；h 為 Attention 頭數；d 為每個頭的維度 (Dimension)；p 為數值精度佔用位元組 (FP16 為 2 Bytes, INT8 為 1 Byte, INT4 為 0.5 Byte)。"
+      },
+      {
+        "name": "模型靜態權重顯存計算公式 (Model Weights VRAM Footprint)",
+        "latex": "M_{\\text{Weights}} = \\frac{N \\times b_{\\text{bits}}}{8} \\times 1.1 \\quad \\text{Bytes}",
+        "description": "N 為模型參數總量 (Billion)；$b_{\\text{bits}}$ 為量化位元精度數 (如 4-bit, 8-bit)；除以 8 換算為位元組 (Bytes)；乘上 1.1 代表預留 10% 的量化格式結構與 Pad 輔助空間開銷。"
+      }
+    ],
+    "code": "# Python 類比計算: 多模態視覺模型在不同量化配置下的 VRAM 顯存佔用估算器\n\ndef estimate_vram(param_size_b, quant_bits, vit_size_gb, context_len, batch_size, layers, heads, head_dim, kv_bits):\n    # 1. 計算模型權重 (預留 8% 開銷)\n    weight_size = (param_size_b * quant_bits / 8) * 1.08\n    \n    # 2. 計算 KV Cache 大小\n    # 2 (Key, Value) * Batch * Context * Layers * Heads * HeadDim * (KV_Bits / 8 bytes)\n    kv_bytes = 2 * batch_size * context_len * layers * heads * head_dim * (kv_bits / 8)\n    kv_size_gb = kv_bytes / (1024 ** 3) # 換算為 GB\n    \n    # 3. 執行期臨時 Activation 緩衝 (粗略估算)\n    activation_buffer = 1.0 if param_size_b < 30 else 2.0\n    \n    # 4. 總顯存需求\n    total_vram = weight_size + vit_size_gb + kv_size_gb + activation_buffer\n    \n    print(f\"=== 模型量化顯存估算 (參數: {param_size_b}B, 量化: {quant_bits}-bit) ===\")\n    print(f\"1. 模型靜態權重: {weight_size:.2f} GB\")\n    print(f\"2. 視覺編碼器 (ViT): {vit_size_gb:.2f} GB\")\n    print(f\"3. KV Cache (長度: {context_len}, 併發: {batch_size}, 精度: {kv_bits}-bit): {kv_size_gb:.2f} GB\")\n    print(f\"4. 運算激活緩衝: {activation_buffer:.2f} GB\")\n    print(f\"--------------------------------------\")\n    print(f\"估算總顯存需求: {total_vram:.2f} GB\")\n    return total_vram\n\n# 測試：Qwen 3.5 27B, Q4_K_M (4-bit), 視覺編碼器 1.5GB, 獨立對話 Context=2048, Batch=1 (個人單次使用), KV Cache 使用 FP16 (16-bit)\n# 假設 Qwen 3.5 27B 具有 32 層, 32 頭, 每頭維度 128\nestimate_vram(param_size_b=27, quant_bits=4.5, vit_size_gb=1.5, context_len=2048, batch_size=1, layers=32, heads=32, head_dim=128, kv_bits=16)",
+    "faq": [
+      {
+        "question": "問：如果我的顯卡是 AMD RX 7900 XTX (24 GB)，跑 Qwen 3.5 (27B) Q4_K_M 出現了 OOM 該如何排查？",
+        "answer": "答：在 24GB 顯卡上跑 27B 搭配 4-bit 量化理論上非常安全。如果發生 OOM，排查順序如下：<br>1. <b>檢查背景顯存佔用</b>：作業系統桌面環境（如 Windows 視窗渲染）或背景瀏覽器是否佔用了 3-4 GB VRAM。可嘗試重啟進入輕量環境或關閉硬體加速。<br>2. <b>檢查 Context Window 預配設定</b>：檢查推理引擎（如 Ollama）是否將 <code>num_ctx</code> 預分配設為極大的數值（如 32768），這會預先搶佔數 GB 的 VRAM。請將其調小為 2048 或 4096。<br>3. <b>檢查執行後端 (Backend)</b>：AMD 顯示卡通常使用 ROCm 運行。確保編譯的 llama.cpp ROCm 版本無漏顯存問題，或者降低 <code>num_gpu_layers</code>，將一部分層分流到 CPU/記憶體運行。"
+      },
+      {
+        "question": "問：既然 KV Cache 量化 (如 INT8/INT4) 能大幅省顯存，為什麼不預設對所有 LLM 開啟？有什麼副作用？",
+        "answer": "答：KV Cache 量化的主要副作用是<b>「注意力精準度損耗」</b>。由於 Key 和 Value 張量在解碼時存在高度動態的激活極值 (Outliers)，將其強制壓縮至 INT8，特別是 INT4 時，會直接破壞 Attention 機制的機率分布計算，導致模型<b>「長文本理解力退化、上下文檢索失敗、或是生成胡言亂語」</b>。因此，除非在高併發或超長 Context 的記憶體極限邊緣，個人本地端使用一般預留 FP16 的原汁原味 KV Cache 以維持智商穩定。"
+      }
+    ]
   }
 ]
