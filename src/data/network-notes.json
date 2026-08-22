@@ -541,5 +541,48 @@
         "answer": "答：**非常重要**。傳統的 React/Vue 單頁應用（SPA）是客戶端渲染，搜尋引擎爬蟲（如 Googlebot）抓取網頁時只能抓到空殼 HTML，需要執行 JS 才能看到內容，這會嚴重影響 Google 搜尋排名（SEO）。如果你的網頁是**公開的電商、部落格、形象官網**，需要靠搜尋引擎帶來流量，就**必須使用 Next.js 等 SSR 技術**。但如果你的網頁是**後台管理系統、需要登入才能使用的 SaaS 工具或儀表板**，搜尋爬蟲本來就進不去，那就完全**不需要考慮 SEO**，直接使用傳統 React SPA 即可。"
       }
     ]
+  },
+  {
+    "id": "wireguard_vpn_troubleshooting",
+    "title": "WireGuard VPN 斷網與大檔案傳輸卡死故障排查",
+    "englishTitle": "WireGuard VPN Troubleshooting: Route Tables, MTU & TANet Policy",
+    "description": "本單元整理在遠端連線 WireGuard VPN 時最常遇到的經典故障。內容涵蓋：AllowedIPs 路由過大導致本地瀏覽器斷網（分流 Split Tunneling vs 全流量模式）、DNS 解析失效、NAT 轉發失效等問題；重點拆解 MTU（最大傳輸單元）包裝加密封包過重導致 SSH/SCP 連線成功卻「傳大檔案卡死 0%」的物理原理與修改指引；以及學術網路（TANet）流量上限被鎖 IP 與 UDP 假綠燈狀態的具體排查順序。",
+    "steps": [
+      {
+        "name": "1. 檢測 WireGuard 的無狀態「假綠燈」與交握時間 (WireGuard Keepalive & Handshake)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>UDP</strong> (User Datagram Protocol，用戶資料報協定，一種無狀態的快速傳輸層協定)<br>• <strong>Latest Handshake</strong> (最新握手時間，兩端設備最後一次成功交換金鑰的時間對齊)",
+        "details": "WireGuard 顯示綠色的「已連線 (Active)」並不代表網路真的有通！因為 WireGuard 底層是使用無狀態的 <strong>UDP 協定</strong>。當你在本地按連線時，它會直接顯示綠色，但如果伺服器此時關機了，它依然是綠色的「已連線」狀態，只是實際上沒有封包傳回來。<br><br>• <strong>如何判斷是否「假連線」？</strong>：<br>請打開你的 WireGuard 電腦版介面，點選連線，觀察右側狀態欄：<br>1. <strong>傳輸量 (Transfer)</strong>：如果 <strong>Sent (已傳送)</strong> 一直在增加，但 <strong>Received (已接收)</strong> 卻為 <strong>0 B</strong> 或卡在極小的位元組，說明你的電腦有發出封包，但伺服器完全沒有回應。<br>2. <strong>最新握手時間 (Latest handshake)</strong>：如果顯示為「無」或顯示超過幾分鐘前（正常應在數秒到 2 分鐘內），說明 VPN 隧道並未真正建立成功。<br><br>• <strong>ping 指令檢測工具（Mac 終端機風格）</strong>：<br><div class='mac-terminal'><div class='terminal-header'><div class='terminal-buttons'><div class='terminal-button btn-red'></div><div class='terminal-button btn-yellow'></div><div class='terminal-button btn-green'></div></div><div class='terminal-title'>bash - Ubuntu</div></div><pre class='terminal-body'><span class='terminal-prompt'>user@lab:~$</span><span class='terminal-cmd'># 測試能否連到外網 IP (排除 DNS 問題)\nping 8.8.8.8\n\n# 測試能否連到實驗室 VPN 伺服器的虛擬 Gateway (例如 10.7.0.1)\nping 10.7.0.1</span></pre><div class='terminal-footer'><button class='terminal-copy-btn' data-code='ping 8.8.8.8\nping 10.7.0.1'>複製指令</button></div></div>"
+      },
+      {
+        "name": "2. AllowedIPs 路由表設定與 Split Tunneling 分流模式 (AllowedIPs & Split Tunneling)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>AllowedIPs</strong> (允許的位址，定義哪些目標網段的網路封包要被導入 VPN 虛擬網卡傳輸)<br>• <strong>Split Tunneling</strong> (分割隧道/分流模式，僅把特定網段導入 VPN，其餘日常上網流量走原物理網卡)",
+        "details": "在設定檔 <code>.conf</code> 的 <code>[Peer]</code> 區段中，<code>AllowedIPs</code> 的範圍決定了哪些流量會走 VPN。如果設為 <code>0.0.0.0/0</code>（全流量模式），代表所有流量都被強制塞進 VPN，一旦 VPN 伺服器沒有配置 NAT 外網轉發，本地就會直接斷網。<br><br>• <strong>全流量模式與分流模式對照表</strong>：<br><div class='table-responsive'><table class='table table-bordered text-light' style='border-color:#333; font-size:0.85rem; width:100%; text-align:left;'><thead><tr style='background:rgba(16, 185, 129, 0.2);'><th>模式類型</th><th>AllowedIPs 設定範例</th><th>優點</th><th>缺點與限制</th></tr></thead><tbody><tr><td><strong>全流量模式 (Full Tunnel)</strong></td><td><code>0.0.0.0/0, ::/0</code></td><td>可以使用學校/實驗室的學術網路 IP 存取專屬論文資料庫。</td><td>所有上網流量皆佔用實驗室頻寬，若伺服器未開 NAT 轉發則直接斷網，且極易流量超標被鎖 IP。</td></tr><tr><td><strong>分流模式 (Split Tunnel)</strong></td><td><code>10.7.0.0/24, 192.168.50.0/24</code></td><td>🟢 <strong>推薦</strong>。一般上網（Google、YouTube）走你原本的家用網路（流暢且不佔限額），只有連實驗室網段走 VPN。</td><td>無法借用學校 IP 身分下載校外學術電子書或專利資料。</td></tr></tbody></table></div><br>• <strong>修改 Peer 設定範例</strong>：<br>點擊右下角的「編輯 (E)」，將 <code>AllowedIPs</code> 修改為只放行實驗室內部使用的網段：<br><div class='mac-terminal'><div class='terminal-header'><div class='terminal-buttons'><div class='terminal-button btn-red'></div><div class='terminal-button btn-yellow'></div><div class='terminal-button btn-green'></div></div><div class='terminal-title'>wireguard.conf - ini</div></div><pre class='terminal-body'>[Peer]\nPublicKey = &lt;實驗室伺服器的公鑰&gt;\nEndpoint = 140.122.103.145:51820\n# 修改前：AllowedIPs = 0.0.0.0/0, ::/0\n# 修改後：僅放行 VPN 虛擬網段與實驗室實體內網網段\nAllowedIPs = 10.7.0.0/24, 192.168.50.0/24</pre><div class='terminal-footer'><button class='terminal-copy-btn' data-code='AllowedIPs = 10.7.0.0/24, 192.168.50.0/24'>複製內容</button></div></div>"
+      },
+      {
+        "name": "3. DNS 解析失敗與公共 DNS 配置 (DNS Resolution & Public DNS)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>DNS</strong> (Domain Name System，網域名稱系統，將網域名稱如 google.com 轉換為 IP 地址的系統)<br>• <strong>Public DNS</strong> (公共 DNS，全球公開提供解析服務的公共伺服器，如 Google 的 8.8.8.8)",
+        "details": "連上 VPN 後，WireGuard 有時會強制將你的 DNS 伺服器改為實驗室內部的 DNS。如果該伺服器無法解析外部網域、或是該伺服器當機，你的瀏覽器就會因為找不到網頁 IP 而回報「連不上網頁」。<br><br>• <strong>解決方法</strong>：<br>可以在設定檔的 <code>[Interface]</code> 區段中，檢查是否有 <code>DNS = ...</code>。如果有的話，可以修改為公共 DNS，或是乾脆將其刪除/註解，讓系統直接延用你原本路由器的 DNS 解析服務。<br><br>• <strong>修改設定範例</strong>：<br><div class='mac-terminal'><div class='terminal-header'><div class='terminal-buttons'><div class='terminal-button btn-red'></div><div class='terminal-button btn-yellow'></div><div class='terminal-button btn-green'></div></div><div class='terminal-title'>wireguard.conf - ini</div></div><pre class='terminal-body'>[Interface]\nPrivateKey = &lt;你的私鑰&gt;\nAddress = 10.7.0.43/24\n# 將 DNS 強制更改為公共 DNS 伺服器，防止內部 DNS 當機\nDNS = 8.8.8.8, 8.8.4.4</pre><div class='terminal-footer'><button class='terminal-copy-btn' data-code='DNS = 8.8.8.8, 8.8.4.4'>複製內容</button></div></div>"
+      },
+      {
+        "name": "4. MTU 大小限制與 SCP/SSH 大檔案傳輸卡死 0% 原理 (MTU Bottleneck & Packet Drop)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>MTU</strong> (Maximum Transmission Unit，最大傳輸單元，單個網路封包的最大位元組限制)<br>• <strong>SIGHUP / Packet Drop</strong> (掛斷訊號 / 丟包，封包因超重被路由器直接丟棄的故障現象)",
+        "details": "這是一個非常經典的網路傳輸限制問題。當你連線 SSH 時，打字、建立連線使用的是極小的封包，可以暢行無阻。然而一旦執行 <code>scp</code> 或拉大檔案時，系統會嘗試以最大的傳輸能力發送接近 1500 bytes 的封包，此時就會卡死在 <code>0% 0.0KB/s</code> 然後斷線。<br><br>• <strong>📦 快遞紙箱大小比喻</strong>：<br>1. <strong>實體網限制</strong>：一般家用網路與 Wi-Fi 的最大紙箱尺寸（MTU）規定為 <strong>1500</strong> 位元組。<br>2. <strong>VPN 包裝加重</strong>：VPN（如 WireGuard）為了加密與安全，必須在你的箱子外面再套上一個保護殼，這會額外佔用約 <strong>60 到 80</strong> 的尺寸。<br>3. <strong>封包超重丟棄</strong>：如果你的電腦仍然發送 size 為 1500 的封包，加上保護殼後總重量變成了 <strong>1580</strong>。當它送達路由器時，路由器會因超出輸送帶限制（1500）而<b>直接把紙箱扔掉（丟包）</b>，導致傳輸卡死在 0%。<br><br>• <strong>解決方案（手動限制 MTU）</strong>：<br>在設定檔的 <code>[Interface]</code> 區段最後面加入 MTU 限制。提早告訴電腦：「因為要套 VPN 殼，請把箱子最大尺寸限制在 1360 就好」，加上殼也才 1440，小於 1500，即可順暢傳檔。<br><br>• <strong>修改設定範例</strong>：<br><div class='mac-terminal'><div class='terminal-header'><div class='terminal-buttons'><div class='terminal-button btn-red'></div><div class='terminal-button btn-yellow'></div><div class='terminal-button btn-green'></div></div><div class='terminal-title'>wireguard.conf - ini</div></div><pre class='terminal-body'>[Interface]\nPrivateKey = &lt;你的私鑰&gt;\nAddress = 10.7.0.43/24\n# 新增此行，限制最大傳輸單元以防止加密封包超載\nMTU = 1360</pre><div class='terminal-footer'><button class='terminal-copy-btn' data-code='MTU = 1360'>複製內容</button></div></div>"
+      },
+      {
+        "name": "5. 學術網路 (TANet) 流量限速與被計中封鎖排除 (TANet Traffic Limit & ITC Blockage)",
+        "summary": "🔎 專有名詞對照：<br>• <strong>TANet</strong> (Taiwan Academic Network，台灣學術網路，教育部提供給學校教學與研究用的公眾資源)<br>• <strong>QoS</strong> (Quality of Service，服務質量，防火牆對異常流量進行頻寬限速的頻寬控制手段)",
+        "details": "台師大、台大等學校使用的是學術網路（TANet）。比起家用網路，學術網路為了確保骨幹頻寬不被佔滿，有著極其嚴格的限制規範與安全防護：<br><br>• <strong>學術網路的三大常見問題與規則</strong>：<br>1. <strong>每日流量上限（鎖 IP）</strong>：各校計算機中心（計中）多設有每日下載/上傳限額（例如每日 6GB 到 10GB）。如果透過 VPN 下載了數 GB 的大語言模型，伺服器 IP 會因為超額而被計中自動<b>「鎖外網」24 小時</b>。此時 VPN 可以連通（校內互連正常），但透過它無法開啟任何外網（如 Google）。流量超額通常在<b>隔日凌晨 00:00 自動解鎖重置</b>。<br>2. <strong>防火牆 QoS 與流量管制</strong>：當偵測到短時間有大量加密流量輸出（如大檔傳輸），計中防火牆會判定為「疑似中毒或被當作跳板攻擊」，從而強行截斷連線，導致傳檔卡死或頻寬歸零。<br>3. <strong>資安事件人工解鎖</strong>：如果被計中判定為「中毒異常流量」，不會自動解鎖。必須聯絡實驗室管理員去計中網站的<b>「查詢電腦是否因異常被封鎖」</b>功能中輸入 VPN 伺服器 IP（如 140.122.103.145）查詢，修復問題後向計中申請人工解鎖。<br><br>• <strong>解決最佳實務</strong>：平時使用<strong>分流模式</strong>，只在需要連接實驗室 10.7.0.X 與 192.168.50.X 的主機時走 VPN，其餘網頁流量走本機外網，如此便能徹底杜絕流量超標被鎖 IP 的問題。"
+      }
+    ],
+    "faq": [
+      {
+        "question": "問：學長說「調整 route table 跟 CDN 可以解決問題」，這跟你的建議是一樣的嗎？",
+        "answer": "答：學長說的觀念本質上是完全一樣的！<br>1. <b>調整 Route Table（路由表）</b>：這對應到修改 <code>AllowedIPs</code>。修改它會直接去變更系統內部的路由表，把特定 IP 的指向從 VPN 虛擬網卡與本機實體網卡之間進行分流切換。<br>2. <b>調整 CDN（大概率是 DNS 的口誤）</b>：在 VPN 設定的語境下，學長指的通常是 <code>DNS = 8.8.8.8</code>，避免被實驗室內網有問題的 DNS 解析卡死。如果學長真的是指 <b>CDN (內容傳遞網路)</b>，代表大檔案（如 AI 模型）可能存在 Cloudflare 等快取伺服器，此時可以直接使用一般的瀏覽器直連下載，避開 VPN 的頻寬限制。"
+      },
+      {
+        "question": "問：如何確認我目前所在的本地網路與實驗室 VPN 內網是否存在路由衝突？",
+        "answer": "答：在你的本地電腦（非 Ubuntu 伺服器）上打開命令提示字元 (CMD)，輸入 <code>ipconfig</code> (Windows) 或 <code>ifconfig</code> (Linux/macOS)，檢查你當前物理 Wi-Fi 或乙太網路的 IPv4 地址。如果你的本地 IP 也是 <code>192.168.50.X</code>，而你又要透過 VPN 連線到實驗室的 <code>192.168.50.213</code> 主機，電腦會分不清該往哪裡發送，進而導致連線丟包。這時必須調整本地路由器的 LAN 網段（如改為 192.168.1.X），以避開衝突。"
+      }
+    ]
   }
 ]
